@@ -44,7 +44,8 @@ def main():
                 "avaliacao": txt(pr.get("AVALIAÇÃO")) or 0,
                 "planta": txt(pr.get("PLANTA")) or "",
                 "informacoes": txt(pr.get("INFORMAÇÕES")) or "",
-                "decorado": bool(txt(pr.get("DECORADO"))),
+                "decorado": str(txt(pr.get("DECORADO")) or "").strip().upper() == "SIM",
+                "disponivel": str(txt(pr.get("DISPONÍVEL")) or "SIM").strip().upper() not in ("NÃO", "NAO"),
             })
         if not data.get("has_more"): break
         cursor = data.get("next_cursor")

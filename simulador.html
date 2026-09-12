@@ -168,11 +168,12 @@
         <label>Linhas de financiamento que serão simuladas</label>
         <div class="produtos" id="produtos"></div>
         <span class="ajuda" id="produtosAjuda"></span>
+        <div id="produtosAviso" style="display:none;margin-top:8px;padding:9px 12px;border-radius:6px;background:#FBEDEA;border:1px solid #E2A493;color:#8A2E17;font-size:13px;">Selecione ao menos uma linha de financiamento.</div>
       </div>
 
       <div class="rodape">
         <button type="button" class="btn-secundario" onclick="irPara(1)">Voltar</button>
-        <button type="button" class="btn-primario" onclick="irPara(3)">Próximo</button>
+        <button type="button" class="btn-primario" onclick="if(exigirProduto())irPara(3)">Próximo</button>
       </div>
     </section>
 
@@ -258,9 +259,9 @@
   var produtosSelecionados=[];
   function renderProdutos(){
     var l=produtosAplicaveis();
-    produtosSelecionados=l.slice();   // por padrão, todas marcadas
+    produtosSelecionados=[];          // por padrão, nenhuma marcada
     document.getElementById('produtos').innerHTML=l.map(function(p,i){
-      return '<div class="produto on" data-i="'+i+'" onclick="alternarProduto(this)"><span class="marca">✓</span><span>'+p+'</span></div>';
+      return '<div class="produto" data-i="'+i+'" onclick="alternarProduto(this)"><span class="marca">✓</span><span>'+p+'</span></div>';
     }).join('');
     document.getElementById('produtosAjuda').textContent=
       (document.querySelector('[name="possuiImovelCidade"]').checked
@@ -270,9 +271,16 @@
   }
   function alternarProduto(el){
     el.classList.toggle('on');
-    var marcados=[].slice.call(document.querySelectorAll('.produto.on span:last-child')).map(function(x){return x.textContent;});
-    if(!marcados.length){ el.classList.add('on'); return; }   // pelo menos uma
-    produtosSelecionados=marcados;
+    produtosSelecionados=[].slice.call(document.querySelectorAll('.produto.on span:last-child'))
+      .map(function(x){return x.textContent;});
+    var aviso=document.getElementById('produtosAviso');
+    if(aviso) aviso.style.display = produtosSelecionados.length ? 'none' : 'block';
+  }
+  function exigirProduto(){
+    if(produtosSelecionados.length) return true;
+    var aviso=document.getElementById('produtosAviso');
+    if(aviso){ aviso.style.display='block'; aviso.scrollIntoView({behavior:'smooth',block:'center'}); }
+    return false;
   }
 
   function irPara(n){
@@ -292,6 +300,7 @@
   document.getElementById('formSimulacao').addEventListener('submit',async function(e){
     e.preventDefault();
     var u=unidadeAtual();if(!u){mostrarStatus('erro','Selecione a unidade.');return;}
+    if(!produtosSelecionados.length){mostrarStatus('erro','Selecione ao menos uma linha de financiamento (passo 2).');return;}
     var f=e.target,botao=f.querySelector('button[type="submit"]');
     var prazo=(document.querySelector('[name="prazoEntrada"]:checked')||{}).value||'48';
     var dados=Object.assign({},TRAVADOS,{
@@ -305,7 +314,7 @@
       sistemaAmortizacao:f.sistemaAmortizacao.value,
       prazoEntrada:Number(prazo), comissaoPct:COMISSAO[prazo], comissaoValor:u.valorVenda*COMISSAO[prazo],
       subsidio:parseMoeda(f.subsidio.value), fgtsDisponivel:parseMoeda(f.fgtsDisponivel.value),
-      produtos:(produtosSelecionados.length?produtosSelecionados:produtosAplicaveis()), corretor:f.corretor.value, imobiliaria:f.imobiliaria.value,
+      produtos:produtosSelecionados, corretor:f.corretor.value, imobiliaria:f.imobiliaria.value,
       nomeCliente:f.nomeCliente.value, cpfCliente:f.cpfCliente.value,
       emailDestino:f.emailDestino.value, emailCopia:EMAIL_COPIA });
     botao.disabled=true; mostrarStatus('processando','Enviando sua solicitação...');

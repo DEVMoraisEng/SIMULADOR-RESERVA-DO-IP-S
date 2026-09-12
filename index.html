@@ -287,7 +287,7 @@
   function carregarSVG(i){
     i=i||0;
     if(i===0){
-      try{ var cache=sessionStorage.getItem('svgMapa');
+      try{ var cache=localStorage.getItem('svgMapa');
         if(cache && usarTexto(cache)) return;   // abre instantâneo
       }catch(e){}
     }
@@ -302,7 +302,7 @@
       return r.text();
     }).then(function(txt){
       if(!usarTexto(txt)) throw new Error('resposta não é SVG');
-      try{ sessionStorage.setItem('svgMapa', txt); }catch(e){}
+      try{ localStorage.setItem('svgMapa', txt); }catch(e){}
     }).catch(function(err){
       console.warn('mapa: falhou em '+CAMINHOS_SVG[i]+' ('+err.message+')');
       carregarSVG(i+1);
@@ -324,7 +324,7 @@
     var hash=JSON.stringify(d);
     if(hash===ultimoHash && unidadesProntas) return;   // nada mudou
     ultimoHash=hash; UNIDADES=d;
-    try{ sessionStorage.setItem('unidadesCache', hash); }catch(e){}
+    try{ localStorage.setItem('unidadesCache', hash); }catch(e){}
     renderCards(); renderTabela();
     unidadesProntas=true; if(svgPronto) pintarMapa();
   }
@@ -337,7 +337,7 @@
         || document.getElementById('modal').style.display==='flex';
   }
   try{                                   // dados em cache -> cards/tabela na hora
-    var cacheU=sessionStorage.getItem('unidadesCache');
+    var cacheU=localStorage.getItem('unidadesCache');
     if(cacheU) aplicar(JSON.parse(cacheU));
   }catch(e){}
   carregarSVG();      // carrega o mapa já, sem esperar os dados

@@ -12,11 +12,21 @@
   header h1{font-size:17px;font-weight:700;margin:0;} header span{font-size:12px;color:var(--amarelo);font-weight:600;}
   main{max-width:1280px;margin:24px auto 80px;padding:0 20px;}
   h2.sec{font-size:15px;color:var(--marrom);border-bottom:2px solid var(--amarelo);padding-bottom:8px;margin:0 0 16px;}
-  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:32px;}
-  .tcard{background:#fff;border:1px solid var(--borda);border-top:4px solid var(--amarelo);border-radius:10px;padding:16px;cursor:pointer;text-align:center;transition:.15s;}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;margin-bottom:32px;}
+  .tcard{background:#fff;border:1px solid var(--borda);border-top:5px solid var(--amarelo);border-radius:12px;padding:22px 18px;cursor:pointer;text-align:center;transition:.15s;position:relative;overflow:hidden;}
   .tcard:hover{box-shadow:0 4px 14px rgba(122,74,22,.15);transform:translateY(-2px);}
-  .tcard.dec{border-top-color:var(--rosa);}
-  .tcard b{display:block;font-size:15px;color:var(--marrom);} .tcard small{color:var(--texto-suave);font-size:12px;}
+  .tcard b{display:block;font-size:17px;color:var(--marrom);margin-bottom:2px;} .tcard small{color:var(--texto-suave);font-size:13px;}
+  .tcard .preco{display:block;margin-top:6px;font-size:13px;font-weight:700;color:var(--marrom2);}
+  .selo{display:inline-block;margin-top:10px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:.5px;color:#fff;}
+  .selo.breve{background:#E4322B;} .selo.vend{background:#2A2118;} .selo.disp{background:#2E7D52;}
+  .btn-sim{padding:7px 12px;border-radius:6px;border:none;background:var(--amarelo);color:var(--marrom);font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;}
+  .btn-sim:hover{background:var(--amarelo2);}
+  .vazio{padding:16px;font-size:13px;color:var(--texto-suave);}
+  #modal .uns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+  #modal .un-chip{border:1px solid var(--borda);border-radius:8px;padding:8px 10px;font-size:12px;min-width:92px;}
+  #modal .un-chip b{display:block;color:var(--marrom);font-size:13px;}
+  #modal .un-chip small{color:var(--texto-suave);}
+  #modal .un-chip.off{opacity:.55;}
   .layout{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;}
   @media(max-width:980px){.layout{grid-template-columns:1fr;}}
   .mapbox{background:#fff;border:1px solid var(--borda);border-radius:10px;padding:12px;position:relative;}
@@ -47,6 +57,7 @@
   #pop .band{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:10px;display:none;}
   #pop .band::before{content:'EM BREVE!';position:absolute;top:50%;left:-10%;width:120%;text-align:center;transform:translateY(-50%) rotate(-22deg);background:#E4322B;color:#fff;font-weight:800;font-size:15px;letter-spacing:1px;padding:6px 0;box-shadow:0 2px 8px rgba(0,0,0,.35);}
   #pop.indisponivel .band{display:block;}
+  #pop .band.vend::before{content:'VENDIDA';background:#2A2118;}
   /* modal tipo */
   #modal{position:fixed;inset:0;background:rgba(42,33,24,.55);display:none;align-items:center;justify-content:center;z-index:60;padding:20px;}
   #modal .box{background:#fff;border-radius:12px;max-width:640px;width:100%;max-height:88vh;overflow:auto;padding:24px;position:relative;}
@@ -72,7 +83,7 @@
       <div class="legenda" id="legenda"></div>
     </div>
     <div class="tabela">
-      <table><thead><tr><th>Valor de venda</th><th class="tot">Unid.</th></tr></thead><tbody id="tbody"></tbody></table>
+      <table><thead><tr><th>Valor de venda (disponíveis)</th><th class="tot">Unid.</th><th></th></tr></thead><tbody id="tbody"></tbody></table>
     </div>
   </div>
 </main>
@@ -92,7 +103,7 @@
 </div>
 
 <div id="modal"><div class="box"><span class="x" onclick="fecharModal()">×</span>
-  <h3 id="mTit"></h3><div id="mInfo" style="color:#6B5A45;font-size:14px;"></div><img id="mImg" style="display:none;"></div></div>
+  <h3 id="mTit"></h3><div id="mInfo" style="color:#6B5A45;font-size:14px;"></div><img id="mImg" style="display:none;"><div class="uns" id="mUns"></div></div></div>
 
 <script>
 
@@ -112,31 +123,51 @@
   function fmt(v){return 'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
   function porNum(n){return UNIDADES.find(function(u){return String(u.unidade)===String(n);});}
   function indisponivel(u){return u && u.disponivel===false;}
+  function vendido(u){return u && u.vendido===true;}
+  function disponivelParaVenda(u){return u && u.disponivel!==false && u.vendido!==true;}
 
   // ---- cards por tipo (+ decorado) ----
   function renderCards(){
     tiposOrdenados=[...new Set(UNIDADES.filter(function(u){return !u.decorado;}).map(function(u){return String(u.tipo);}))];
     var html='';
+    function selo(us){
+      if(us.length && us.every(vendido)) return '<span class="selo vend">VENDIDO</span>';
+      if(!us.some(disponivelParaVenda)) return '<span class="selo breve">EM BREVE</span>';
+      return '<span class="selo disp">'+us.filter(disponivelParaVenda).length+' disponível(is)</span>';
+    }
     tiposOrdenados.forEach(function(t){
-      var qtd=UNIDADES.filter(function(u){return String(u.tipo)===String(t)&&!u.decorado;}).length;
-      var c=corDoTipo(t,false);
-      html+='<div class="tcard" style="border-top-color:'+c+'" onclick="abrirTipo(\''+t+'\',false)"><b>Tipo '+t+'</b><small>'+qtd+' unidade(s)</small></div>';
+      var us=UNIDADES.filter(function(u){return String(u.tipo)===String(t)&&!u.decorado;});
+      var precos=us.map(function(u){return u.valorVenda||0;}).filter(function(v){return v>0;});
+      var minimo=precos.length?Math.min.apply(null,precos):0;
+      html+='<div class="tcard" style="border-top-color:'+corDoTipo(t,false)+'" onclick="abrirTipo(\''+t+'\',false)">'+
+            '<b>Tipo '+t+'</b><small>'+us.length+' unidade(s)</small>'+
+            (minimo?'<span class="preco">a partir de '+fmt(minimo)+'</span>':'')+selo(us)+'</div>';
     });
     var dec=UNIDADES.find(function(u){return u.decorado;});
-    if(dec) html+='<div class="tcard" style="border-top-color:'+DEC_COR+'" onclick="abrirTipo(\''+dec.tipo+'\',true)"><b>Decorado</b><small>Unidade '+dec.unidade+'</small></div>';
+    if(dec) html+='<div class="tcard" style="border-top-color:'+DEC_COR+'" onclick="abrirTipo(\''+dec.tipo+'\',true)">'+
+      '<b>Decorado</b><small>Unidade '+dec.unidade+'</small>'+
+      (dec.valorVenda?'<span class="preco">'+fmt(dec.valorVenda)+'</span>':'')+selo([dec])+'</div>';
     document.getElementById('cards').innerHTML=html;
     var leg=tiposOrdenados.map(function(t){return '<span><i style="background:'+corDoTipo(t,false)+'"></i>Tipo '+t+'</span>';}).join('');
     if(dec) leg+='<span><i style="background:'+DEC_COR+'"></i>Decorado</span>';
     if(UNIDADES.some(indisponivel)) leg+='<span><i style="background:'+COR_INDISP+'"></i>Em breve</span>';
+    if(UNIDADES.some(vendido)) leg+='<span><i style="background:'+COR_VENDIDO+'"></i>Vendida</span>';
     var elLeg=document.getElementById('legenda'); if(elLeg) elLeg.innerHTML=leg;
   }
   function abrirTipo(t,decorado){
-    var u = decorado ? UNIDADES.find(function(x){return x.decorado;})
-                     : UNIDADES.find(function(x){return String(x.tipo)===String(t);});
+    var us = decorado ? UNIDADES.filter(function(x){return x.decorado;})
+                      : UNIDADES.filter(function(x){return String(x.tipo)===String(t)&&!x.decorado;});
+    var u=us[0]||{};
     document.getElementById('mTit').textContent = decorado?('Decorado — Tipo '+t):('Tipo '+t);
-    document.getElementById('mInfo').textContent = (u&&u.informacoes)||'Sem informações cadastradas.';
+    document.getElementById('mInfo').textContent = (u.informacoes)||'';
     var img=document.getElementById('mImg');
-    if(u&&u.planta){img.src=u.planta;img.style.display='block';}else{img.style.display='none';}
+    if(u.planta){img.src=u.planta;img.style.display='block';}else{img.style.display='none';}
+    // lista das unidades desse tipo
+    document.getElementById('mUns').innerHTML = us.map(function(x){
+      var est = vendido(x)?'Vendida':(indisponivel(x)?'Em breve':'Disponível');
+      return '<div class="un-chip'+(disponivelParaVenda(x)?'':' off')+'"><b>Un. '+x.unidade+'</b>'+
+             '<small>'+(x.valorVenda?fmt(x.valorVenda):'—')+'<br>'+est+'</small></div>';
+    }).join('');
     document.getElementById('modal').style.display='flex';
   }
   function fecharModal(){document.getElementById('modal').style.display='none';}
@@ -144,17 +175,30 @@
   // ---- tabela por valor de venda ----
   function renderTabela(){
     var g={};
-    UNIDADES.forEach(function(u){var k=u.valorVenda||0;(g[k]=g[k]||[]).push(u.unidade);});
+    UNIDADES.filter(disponivelParaVenda).forEach(function(u){
+      var k=u.valorVenda||0; (g[k]=g[k]||[]).push(u);
+    });
     var linhas=Object.keys(g).map(Number).sort(function(a,b){return a-b;});
+    if(!linhas.length){
+      document.getElementById('tbody').innerHTML='<tr><td colspan="3" class="vazio">Nenhuma unidade disponível no momento.</td></tr>';
+      return;
+    }
     document.getElementById('tbody').innerHTML=linhas.map(function(v){
-      var us=g[v].sort(function(a,b){return a-b;});
-      return '<tr><td>'+fmt(v)+'<div class="un">Unid.: '+us.join(', ')+'</div></td><td class="tot">'+us.length+'</td></tr>';
+      var us=g[v].slice().sort(function(a,b){return (parseInt(a.unidade,10)||0)-(parseInt(b.unidade,10)||0);});
+      var nums=us.map(function(u){return u.unidade;});
+      var p=us[0];
+      return '<tr><td>'+fmt(v)+'<div class="un">Unid.: '+nums.join(', ')+'</div></td>'+
+             '<td class="tot">'+us.length+'</td>'+
+             '<td><button class="btn-sim" onclick="simular(\''+p.tipo+'\',\''+p.unidade+'\')">Simular</button></td></tr>';
     }).join('');
+  }
+  function simular(tipo,unidade){
+    location.href='simulador.html?tipo='+encodeURIComponent(tipo)+'&unidade='+encodeURIComponent(unidade);
   }
 
   // ---- cor das unidades por tipo (só cores; listeners ficam no ligarMapa) ----
-  var COR_INDISP='#9AA0A6';
-  function corUnidade(u){ if(indisponivel(u)) return COR_INDISP; return corDoTipo(u.tipo,u.decorado); }
+  var COR_INDISP='#9AA0A6', COR_VENDIDO='#5B5045';
+  function corUnidade(u){ if(vendido(u)) return COR_VENDIDO; if(indisponivel(u)) return COR_INDISP; return corDoTipo(u.tipo,u.decorado); }
   function pintarMapa(){
     for(var n=1;n<=62;n++){
       var u=porNum(n), pol=document.getElementById(String(n).padStart(2,'0'));
@@ -179,11 +223,13 @@
     if(u.planta){img.src=u.planta;img.style.display='block';}else{img.style.display='none';}
     var pop=document.getElementById('pop');
     var acoes=pop.querySelector('.acoes');
-    if(indisponivel(u)){
+    var band=pop.querySelector('.band');
+    band.classList.toggle('vend', vendido(u));
+    if(!disponivelParaVenda(u)){
       pop.classList.add('indisponivel'); acoes.style.display='none';
     }else{
       pop.classList.remove('indisponivel'); acoes.style.display='flex';
-      document.getElementById('popSim').onclick=function(){location.href='simulador.html?tipo='+encodeURIComponent(u.tipo)+'&unidade='+u.unidade;};
+      document.getElementById('popSim').onclick=function(){simular(u.tipo,u.unidade);};
       document.getElementById('popProp').onclick=function(){alert('Enviar proposta — em breve (aguardando o banco de propostas).');};
     }
     pop.style.display='block';
@@ -214,8 +260,14 @@
   var svgPronto=false, unidadesProntas=false;
   function carregarSVG(){
     fetch('assets/CONDOMINIO_VENDAS.svg').then(function(r){return r.text()}).then(function(txt){
-      var wrap=document.getElementById('mapScroll'); wrap.innerHTML=txt;
-      var svg=wrap.querySelector('svg'); if(svg){svg.style.width='100%';svg.removeAttribute('height');}
+      var wrap=document.getElementById('mapScroll');
+      var doc=new DOMParser().parseFromString(txt,'image/svg+xml');
+      var svg=doc.documentElement;
+      if(!svg || svg.nodeName==='parsererror'){ throw new Error('svg inválido'); }
+      wrap.innerHTML='';
+      wrap.appendChild(document.importNode(svg,true));
+      var el=wrap.querySelector('svg');
+      if(el){ el.removeAttribute('width'); el.removeAttribute('height'); el.style.width='100%'; el.style.height='auto'; }
       ligarMapa(); svgPronto=true; if(unidadesProntas) pintarMapa();
     }).catch(function(){document.getElementById('mapScroll').textContent='Não foi possível carregar o mapa (assets/CONDOMINIO_VENDAS.svg).';});
   }

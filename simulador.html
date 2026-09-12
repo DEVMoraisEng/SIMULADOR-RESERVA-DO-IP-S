@@ -150,18 +150,6 @@
         <span class="ajuda" id="produtosAjuda"></span>
       </div>
 
-      <div class="campo full" style="margin-top:18px;">
-        <label>Modo teste — pré-visualizar o fluxo de entrada</label>
-        <div style="background:#FFFBF0;border:1px dashed var(--amarelo);border-radius:8px;padding:14px;">
-          <div class="linha" style="margin-bottom:10px;">
-            <div class="campo"><label>Data da simulação (teste)</label><input type="date" id="dataTeste"></div>
-            <div class="campo"><label>Financiamento estimado (R$)</label><input type="text" id="financTeste" inputmode="numeric" placeholder="0,00"></div>
-          </div>
-          <div id="fluxoTeste"></div>
-          <span class="ajuda">Só para visualização de como o fluxo se reorganiza pela data. O financiamento e a parcela reais vêm do SIOP no envio.</span>
-        </div>
-      </div>
-
       <div class="rodape">
         <button type="button" class="btn-secundario" onclick="irPara(1)">Voltar</button>
         <button type="button" class="btn-primario" onclick="irPara(3)">Próximo</button>
@@ -254,7 +242,7 @@
   function irPara(n){
     document.querySelectorAll('.etapa').forEach(function(el){el.classList.toggle('oculto',el.dataset.etapa!==String(n));});
     document.querySelectorAll('.passo').forEach(function(el){var p=Number(el.dataset.passo);el.classList.remove('ativo','concluido');if(p===n)el.classList.add('ativo');else if(p<n)el.classList.add('concluido');});
-    if(n===2){renderProdutos();atualizarComissao();renderFluxoTeste();}
+    if(n===2){renderProdutos();atualizarComissao();}
     window.scrollTo({top:0,behavior:'smooth'});
   }
 
@@ -307,36 +295,6 @@
   }
   function mostrarStatus(t,h){var c=document.getElementById('statusEnvio');c.style.display='block';c.className='status '+t;c.innerHTML=h;}
   async function verificarServico(){var a=document.getElementById('avisoOffline');try{var s=await apiGet({acao:'servico'});a.classList.toggle('visivel',!s.online);}catch(e){a.classList.add('visivel');}}
-
-  // ===== MODO TESTE: prévia do fluxo de entrada (mesma lógica do e-mail) =====
-  var FIXOS_JS=[['Na assinatura',1000,'Sinal / ato'],['30 dias',3000,'Sinal 30 dias'],['60 dias',3000,'Sinal 60 dias'],['90 dias',3000,'Sinal 90 dias'],['20/12/2027',10000,'Balão dezembro/2027'],['Entrega das chaves',7000,'Balão na entrega']];
-  var TOTAL_FIXO=27000, BASE_M1A12=10320, BASE_M13A24=3960, BASE_POS=24*788.3332806666667, BASE_FLEX=BASE_M1A12+BASE_M13A24+BASE_POS, ANCORA=new Date(2026,10,20);
-  function mesesEntre(d1,d2){return (d2.getFullYear()-d1.getFullYear())*12+(d2.getMonth()-d1.getMonth());}
-  function calcularFluxo(venda,financ,subs,fgts,prazo,dataSim){
-    var entrada=venda-(financ+subs)-fgts; if(entrada<TOTAL_FIXO)entrada=TOTAL_FIXO;
-    var flex=entrada-TOTAL_FIXO,t12,t1324,tpos;
-    if(flex<=BASE_FLEX){var f=BASE_FLEX?flex/BASE_FLEX:0;t12=BASE_M1A12*f;t1324=BASE_M13A24*f;tpos=BASE_POS*f;}
-    else{tpos=BASE_POS;var rest=flex-BASE_POS,b=BASE_M1A12+BASE_M13A24;t12=rest*BASE_M1A12/b;t1324=rest*BASE_M13A24/b;}
-    var n1=12-Math.max(0,mesesEntre(ANCORA,dataSim));n1=Math.max(1,Math.min(12,n1));
-    return {entrada:entrada,n1:n1,p12:t12/n1,p1324:t1324/12,ppos:tpos/24};
-  }
-  function renderFluxoTeste(){
-    var u=unidadeAtual(); var alvo=document.getElementById('fluxoTeste'); if(!u||!alvo){if(alvo)alvo.innerHTML='';return;}
-    var f=document.getElementById('formSimulacao');
-    var prazo=(document.querySelector('[name="prazoEntrada"]:checked')||{}).value||'48';
-    var dv=document.getElementById('dataTeste').value; var dataSim=dv?new Date(dv+'T00:00:00'):new Date();
-    var r=calcularFluxo(u.valorVenda,parseMoeda(document.getElementById('financTeste').value),parseMoeda(f.subsidio.value),parseMoeda(f.fgtsDisponivel.value),prazo,dataSim);
-    var l=FIXOS_JS.map(function(x){return '<tr><td>'+x[0]+'</td><td style="text-align:right">R$ '+fmt(x[1])+'</td><td style="color:#6B5A45">'+x[2]+'</td></tr>';});
-    l.push('<tr><td>'+r.n1+' X</td><td style="text-align:right">R$ '+fmt(r.p12)+'</td><td style="color:#6B5A45">meses 1 a '+r.n1+'</td></tr>');
-    l.push('<tr><td>12 X</td><td style="text-align:right">R$ '+fmt(r.p1324)+'</td><td style="color:#6B5A45">meses 13 a 24</td></tr>');
-    l.push('<tr><td>24 X</td><td style="text-align:right">R$ '+fmt(r.ppos)+'</td><td style="color:#6B5A45">pós-chaves</td></tr>');
-    alvo.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:6px">'+
-      '<tr style="background:var(--marrom);color:#fff"><td colspan="2" style="padding:6px 8px"><b>ENTRADA TOTAL</b></td><td style="padding:6px 8px;text-align:right"><b>R$ '+fmt(r.entrada)+'</b></td></tr>'+l.join('')+'</table>';
-  }
-  (function(){var d=document.getElementById('dataTeste');if(d)d.value=new Date().toISOString().slice(0,10);})();
-  ['dataTeste','financTeste'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('input',renderFluxoTeste);});
-  ['subsidio','fgtsDisponivel'].forEach(function(n){var el=document.querySelector('[name="'+n+'"]');if(el)el.addEventListener('input',renderFluxoTeste);});
-  document.querySelectorAll('[name="prazoEntrada"]').forEach(function(r){r.addEventListener('change',renderFluxoTeste);});
 
   document.getElementById('tipo').addEventListener('change',preencherUnidades);
   document.getElementById('unidade').addEventListener('change',aoTrocarUnidade);

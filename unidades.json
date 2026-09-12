@@ -1,560 +1,560 @@
 [
   {
-    "unidade": 1,
+    "unidade": "1",
     "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/f050b62f-8779-4a11-bc58-015e0df93bf5/CASA_DECORADO_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=7d8b59f7185f48a45baf8786849d87c775ac6de56af1c20b4ef077c6f78d1dc5&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "Decorado",
     "decorado": true
   },
   {
-    "unidade": 2,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "10",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/b1da5cbe-4423-41d8-84b2-0ac1a47c3209/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=bf21f200dcf6b3efadc7a460f8fc8ebcab224adbea8fff5e64d69f9128b85838&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 3,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "11",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/b1da5cbe-4423-41d8-84b2-0ac1a47c3209/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=bf21f200dcf6b3efadc7a460f8fc8ebcab224adbea8fff5e64d69f9128b85838&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 4,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "12",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/b1da5cbe-4423-41d8-84b2-0ac1a47c3209/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=bf21f200dcf6b3efadc7a460f8fc8ebcab224adbea8fff5e64d69f9128b85838&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 5,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "13",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/b1da5cbe-4423-41d8-84b2-0ac1a47c3209/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=bf21f200dcf6b3efadc7a460f8fc8ebcab224adbea8fff5e64d69f9128b85838&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 6,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "14",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/b1da5cbe-4423-41d8-84b2-0ac1a47c3209/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=bf21f200dcf6b3efadc7a460f8fc8ebcab224adbea8fff5e64d69f9128b85838&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 7,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "15",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/b1da5cbe-4423-41d8-84b2-0ac1a47c3209/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=bf21f200dcf6b3efadc7a460f8fc8ebcab224adbea8fff5e64d69f9128b85838&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 8,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "16",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/b1da5cbe-4423-41d8-84b2-0ac1a47c3209/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=bf21f200dcf6b3efadc7a460f8fc8ebcab224adbea8fff5e64d69f9128b85838&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 9,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "17",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/b1da5cbe-4423-41d8-84b2-0ac1a47c3209/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=bf21f200dcf6b3efadc7a460f8fc8ebcab224adbea8fff5e64d69f9128b85838&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 10,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "18",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/b1da5cbe-4423-41d8-84b2-0ac1a47c3209/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=bf21f200dcf6b3efadc7a460f8fc8ebcab224adbea8fff5e64d69f9128b85838&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 11,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "19",
+    "tipo": "3",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/92f65428-1695-4e95-b158-9c28b1ceb540/CASA_TIPO_3_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=c74dc272694824af2fe3491083df0e6dc4a240f4f1a2538419eba97f80aeb20f&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 12,
+    "unidade": "2",
     "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/08c912f6-df75-46c1-a474-469f130f9363/CASA_TIPO_1_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=2625a57912edc78b77316f21ce92144e3d0ced9ce8dfdd16f6972ef9494df6ef&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 13,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "20",
+    "tipo": "3",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/92f65428-1695-4e95-b158-9c28b1ceb540/CASA_TIPO_3_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=c74dc272694824af2fe3491083df0e6dc4a240f4f1a2538419eba97f80aeb20f&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 14,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "21",
+    "tipo": "3",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/92f65428-1695-4e95-b158-9c28b1ceb540/CASA_TIPO_3_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=c74dc272694824af2fe3491083df0e6dc4a240f4f1a2538419eba97f80aeb20f&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 15,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "22",
+    "tipo": "3",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/92f65428-1695-4e95-b158-9c28b1ceb540/CASA_TIPO_3_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=c74dc272694824af2fe3491083df0e6dc4a240f4f1a2538419eba97f80aeb20f&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 16,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "23",
+    "tipo": "3",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/92f65428-1695-4e95-b158-9c28b1ceb540/CASA_TIPO_3_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=c74dc272694824af2fe3491083df0e6dc4a240f4f1a2538419eba97f80aeb20f&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 17,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "24",
+    "tipo": "3",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/92f65428-1695-4e95-b158-9c28b1ceb540/CASA_TIPO_3_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=c74dc272694824af2fe3491083df0e6dc4a240f4f1a2538419eba97f80aeb20f&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 18,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "25",
+    "tipo": "3",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/92f65428-1695-4e95-b158-9c28b1ceb540/CASA_TIPO_3_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=c74dc272694824af2fe3491083df0e6dc4a240f4f1a2538419eba97f80aeb20f&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 19,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "26",
+    "tipo": "3",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/92f65428-1695-4e95-b158-9c28b1ceb540/CASA_TIPO_3_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=c74dc272694824af2fe3491083df0e6dc4a240f4f1a2538419eba97f80aeb20f&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 20,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "27",
+    "tipo": "3",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/92f65428-1695-4e95-b158-9c28b1ceb540/CASA_TIPO_3_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=c74dc272694824af2fe3491083df0e6dc4a240f4f1a2538419eba97f80aeb20f&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 21,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "28",
+    "tipo": "3",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/92f65428-1695-4e95-b158-9c28b1ceb540/CASA_TIPO_3_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=c74dc272694824af2fe3491083df0e6dc4a240f4f1a2538419eba97f80aeb20f&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 22,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "29",
+    "tipo": "3",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/92f65428-1695-4e95-b158-9c28b1ceb540/CASA_TIPO_3_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=c74dc272694824af2fe3491083df0e6dc4a240f4f1a2538419eba97f80aeb20f&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 23,
+    "unidade": "3",
     "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/08c912f6-df75-46c1-a474-469f130f9363/CASA_TIPO_1_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=2625a57912edc78b77316f21ce92144e3d0ced9ce8dfdd16f6972ef9494df6ef&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 24,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "30",
+    "tipo": "3",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/92f65428-1695-4e95-b158-9c28b1ceb540/CASA_TIPO_3_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=c74dc272694824af2fe3491083df0e6dc4a240f4f1a2538419eba97f80aeb20f&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 25,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "31",
+    "tipo": "4",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/2dfc352c-3310-4bd7-a141-c1265dc0c0ba/CASA_TIPO_4_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=b4d41de20770534091a3e49e13a7de9524c53cbfc6721e0c22f4bc50bcc577cf&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 26,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "32",
+    "tipo": "4",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/2dfc352c-3310-4bd7-a141-c1265dc0c0ba/CASA_TIPO_4_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=b4d41de20770534091a3e49e13a7de9524c53cbfc6721e0c22f4bc50bcc577cf&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 27,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "33",
+    "tipo": "4",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/2dfc352c-3310-4bd7-a141-c1265dc0c0ba/CASA_TIPO_4_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=b4d41de20770534091a3e49e13a7de9524c53cbfc6721e0c22f4bc50bcc577cf&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 28,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "34",
+    "tipo": "4",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/2dfc352c-3310-4bd7-a141-c1265dc0c0ba/CASA_TIPO_4_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=b4d41de20770534091a3e49e13a7de9524c53cbfc6721e0c22f4bc50bcc577cf&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 29,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "35",
+    "tipo": "4",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/2dfc352c-3310-4bd7-a141-c1265dc0c0ba/CASA_TIPO_4_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=b4d41de20770534091a3e49e13a7de9524c53cbfc6721e0c22f4bc50bcc577cf&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 30,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "36",
+    "tipo": "4",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/2dfc352c-3310-4bd7-a141-c1265dc0c0ba/CASA_TIPO_4_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=b4d41de20770534091a3e49e13a7de9524c53cbfc6721e0c22f4bc50bcc577cf&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 31,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "37",
+    "tipo": "4",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/2dfc352c-3310-4bd7-a141-c1265dc0c0ba/CASA_TIPO_4_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=b4d41de20770534091a3e49e13a7de9524c53cbfc6721e0c22f4bc50bcc577cf&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 32,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "38",
+    "tipo": "4",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/2dfc352c-3310-4bd7-a141-c1265dc0c0ba/CASA_TIPO_4_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=b4d41de20770534091a3e49e13a7de9524c53cbfc6721e0c22f4bc50bcc577cf&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 33,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "39",
+    "tipo": "4",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/2dfc352c-3310-4bd7-a141-c1265dc0c0ba/CASA_TIPO_4_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=b4d41de20770534091a3e49e13a7de9524c53cbfc6721e0c22f4bc50bcc577cf&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 34,
+    "unidade": "4",
     "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/08c912f6-df75-46c1-a474-469f130f9363/CASA_TIPO_1_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=2625a57912edc78b77316f21ce92144e3d0ced9ce8dfdd16f6972ef9494df6ef&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 35,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "40",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/ad775585-9346-404e-9a3c-7564947ea9cf/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=a55e4b9d26e49e8866b47ed8045ba42a66d33c87dc35533edde33a0edba5d8e7&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 36,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "41",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/ad775585-9346-404e-9a3c-7564947ea9cf/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121639Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=fef2a463f0e8ee7c428d155663534a6ffacd29b13fd1941ad1612138d1a6d875&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 37,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "42",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/ad775585-9346-404e-9a3c-7564947ea9cf/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121639Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=fef2a463f0e8ee7c428d155663534a6ffacd29b13fd1941ad1612138d1a6d875&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 38,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "43",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/ad775585-9346-404e-9a3c-7564947ea9cf/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=a55e4b9d26e49e8866b47ed8045ba42a66d33c87dc35533edde33a0edba5d8e7&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 39,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "44",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/ad775585-9346-404e-9a3c-7564947ea9cf/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=a55e4b9d26e49e8866b47ed8045ba42a66d33c87dc35533edde33a0edba5d8e7&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 40,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "45",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/ad775585-9346-404e-9a3c-7564947ea9cf/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=a55e4b9d26e49e8866b47ed8045ba42a66d33c87dc35533edde33a0edba5d8e7&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 41,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "46",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/ad775585-9346-404e-9a3c-7564947ea9cf/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121639Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=fef2a463f0e8ee7c428d155663534a6ffacd29b13fd1941ad1612138d1a6d875&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 42,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "47",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/ad775585-9346-404e-9a3c-7564947ea9cf/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121639Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=fef2a463f0e8ee7c428d155663534a6ffacd29b13fd1941ad1612138d1a6d875&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 43,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "48",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/ad775585-9346-404e-9a3c-7564947ea9cf/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=a55e4b9d26e49e8866b47ed8045ba42a66d33c87dc35533edde33a0edba5d8e7&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 44,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "49",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/ad775585-9346-404e-9a3c-7564947ea9cf/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=a55e4b9d26e49e8866b47ed8045ba42a66d33c87dc35533edde33a0edba5d8e7&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 45,
+    "unidade": "5",
     "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/08c912f6-df75-46c1-a474-469f130f9363/CASA_TIPO_1_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=2625a57912edc78b77316f21ce92144e3d0ced9ce8dfdd16f6972ef9494df6ef&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 46,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "50",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/ad775585-9346-404e-9a3c-7564947ea9cf/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=a55e4b9d26e49e8866b47ed8045ba42a66d33c87dc35533edde33a0edba5d8e7&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 47,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "51",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/ad775585-9346-404e-9a3c-7564947ea9cf/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121639Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=fef2a463f0e8ee7c428d155663534a6ffacd29b13fd1941ad1612138d1a6d875&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 48,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "52",
+    "tipo": "5",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/aaca7e53-0daa-4765-a7ae-60c6ad85eb11/CASA_TIPO_5_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121639Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=c834504b19f13e802fa69bdaa1e6b02b4cdb1f79bbb32a05f523c6a38939b57d&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 49,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "53",
+    "tipo": "5",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/aaca7e53-0daa-4765-a7ae-60c6ad85eb11/CASA_TIPO_5_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=5df28be1b81548d8e1c2e312b5070b9371a732807c69cd522f47001a9f87fa25&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 50,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "54",
+    "tipo": "5",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/aaca7e53-0daa-4765-a7ae-60c6ad85eb11/CASA_TIPO_5_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=5df28be1b81548d8e1c2e312b5070b9371a732807c69cd522f47001a9f87fa25&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 51,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "55",
+    "tipo": "5",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/aaca7e53-0daa-4765-a7ae-60c6ad85eb11/CASA_TIPO_5_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=5df28be1b81548d8e1c2e312b5070b9371a732807c69cd522f47001a9f87fa25&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 52,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "56",
+    "tipo": "5",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/aaca7e53-0daa-4765-a7ae-60c6ad85eb11/CASA_TIPO_5_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121639Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=c834504b19f13e802fa69bdaa1e6b02b4cdb1f79bbb32a05f523c6a38939b57d&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 53,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "57",
+    "tipo": "5",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/aaca7e53-0daa-4765-a7ae-60c6ad85eb11/CASA_TIPO_5_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121639Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=c834504b19f13e802fa69bdaa1e6b02b4cdb1f79bbb32a05f523c6a38939b57d&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 54,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "58",
+    "tipo": "5",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/aaca7e53-0daa-4765-a7ae-60c6ad85eb11/CASA_TIPO_5_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121639Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=c834504b19f13e802fa69bdaa1e6b02b4cdb1f79bbb32a05f523c6a38939b57d&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 55,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "59",
+    "tipo": "5",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/aaca7e53-0daa-4765-a7ae-60c6ad85eb11/CASA_TIPO_5_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=5df28be1b81548d8e1c2e312b5070b9371a732807c69cd522f47001a9f87fa25&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 56,
+    "unidade": "6",
     "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/08c912f6-df75-46c1-a474-469f130f9363/CASA_TIPO_1_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=2625a57912edc78b77316f21ce92144e3d0ced9ce8dfdd16f6972ef9494df6ef&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 57,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "60",
+    "tipo": "5",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/aaca7e53-0daa-4765-a7ae-60c6ad85eb11/CASA_TIPO_5_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=5df28be1b81548d8e1c2e312b5070b9371a732807c69cd522f47001a9f87fa25&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 58,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "61",
+    "tipo": "5",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/aaca7e53-0daa-4765-a7ae-60c6ad85eb11/CASA_TIPO_5_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121639Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=c834504b19f13e802fa69bdaa1e6b02b4cdb1f79bbb32a05f523c6a38939b57d&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 59,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "62",
+    "tipo": "5",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/aaca7e53-0daa-4765-a7ae-60c6ad85eb11/CASA_TIPO_5_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121639Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=c834504b19f13e802fa69bdaa1e6b02b4cdb1f79bbb32a05f523c6a38939b57d&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 60,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "7",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/b1da5cbe-4423-41d8-84b2-0ac1a47c3209/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=bf21f200dcf6b3efadc7a460f8fc8ebcab224adbea8fff5e64d69f9128b85838&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 61,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "8",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/b1da5cbe-4423-41d8-84b2-0ac1a47c3209/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=bf21f200dcf6b3efadc7a460f8fc8ebcab224adbea8fff5e64d69f9128b85838&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   },
   {
-    "unidade": 62,
-    "tipo": "1",
-    "valorVenda": 305000,
-    "avaliacao": 306000,
-    "planta": "",
+    "unidade": "9",
+    "tipo": "2",
+    "valorVenda": 0,
+    "avaliacao": 0,
+    "planta": "https://prod-files-secure.s3.us-west-2.amazonaws.com/39028903-2a98-4a4f-900e-ff617b19a037/b1da5cbe-4423-41d8-84b2-0ac1a47c3209/CASA_TIPO_2_%28opo_2%29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XAGFEQ5X%2F20260912%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260912T121640Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEOv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJHMEUCIQDHX9v%2FWpheNR1Mt3IRs27Xy4YKhfVwna80IebbPKSi%2FAIgMkB8dAdGUNW3mlDYQzkahSzWgS6L9TS4UepYB2bQ4RAqiAQIs%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw2Mzc0MjMxODM4MDUiDKkGyA0iHwDEhlVESyrcA%2BUpY1Rj4GvbKjKru2fgdXzlKiphP9X3%2Bl0p%2FQs4AVz91drgnflQp50YMT7rMqdn8c0mp8kemKZsn3QMFw9mG6X%2Bw4QlilW5J5yH5Pjpa3lxkVRg1wJTHwPJPcDPLmj7CsYgAC7dywUOGcNg7dNpw1rAVYXK6kFPhn5mWG1TjGzk97r5EuF4U1KMn6m1obX11CEVICANLIDYrrIHbMDlE2Lfa1JtmxIiLEoeS6cbso3smehY4Gn5LdTl6aHe%2FsRI05XScuREHpzLn1BkGnRSFbt5svVIPIp%2B7U5%2BrJG5Yfbtz2zJnbBMlINmzGLkeT32EJm1zd6eaEZIbjz5qRDitMefcKQ6rw6RaxUyYBCpAjxXn6lBg%2BtvOGqclvNjg6TN13VnrU55nMdQsldQc%2BRoj%2FwoiwfUZNuV0jfx0lSCr0%2BDeI%2BHWikIob75ZbQtiHt9or8hLMbTj7xxQX1mqyVWHdb3%2BBsHzROgpD430bX7mAZ6Mk7Uy0cy3A4YmjdDiuNUeHgzcPG7Iq%2FIsl0Esw8HvU%2BdtEfVtaGNJ6SDrwOPqBXkaOa5X%2FiZ2tNY7HJe0VxtY7dCiQqWzl1Y0CNqAR0b8o3g%2F6Mxf%2BvuEDEQByd%2F%2B2grLpjw4D7mPwaj2QkOMN%2FPlNUGOqUBmYvC%2FQHsxY11CriSO0MGXwtsheABYmipr4FGKc0hjIYx5rtEMMkskTT6XIpQUMz7xOdIhfScsXZqWkr80pt2fxFbssfCwBAMtru1wHuiL7%2FF5Nq%2FtlpS6BtjRbXbgfX0XjSGEOyRDTiZHNRnBTWrsD5SnXF7JkKlpebtF%2BCVX9WDrqUvX89LlCYXQrehXvYyCPJkqY7qc4kSre20S321uRtvYx%2Bs&X-Amz-Signature=bf21f200dcf6b3efadc7a460f8fc8ebcab224adbea8fff5e64d69f9128b85838&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
     "informacoes": "",
-    "decorado": false
+    "decorado": true
   }
 ]

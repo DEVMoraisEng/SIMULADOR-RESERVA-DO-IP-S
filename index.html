@@ -83,7 +83,7 @@
   <div class="layout">
     <div class="mapbox">
       <div class="zoom"><button onclick="zoom(1.25)">+</button><button onclick="zoom(0.8)">−</button></div>
-      <div id="mapScroll">Carregando mapa…</div>
+      <div id="mapScroll"><div class="vazio">Carregando mapa…</div></div>
       <div class="legenda" id="legenda"></div>
     </div>
     <div class="tabela">
@@ -99,7 +99,7 @@
   <div class="val">Valor de venda: <b id="popVal"></b></div>
   <div class="val">Avaliação: <b id="popAval"></b></div>
   <div class="val" id="popInfo" style="margin-top:6px;color:#6B5A45;"></div>
-  <img id="popImg" style="display:none;">
+  <img id="popImg" loading="lazy" decoding="async" style="display:none;">
   <div class="acoes">
     <button class="b1" id="popSim">Fazer simulação</button>
     <button class="b2" id="popProp">Enviar proposta</button>
@@ -107,7 +107,7 @@
 </div>
 
 <div id="modal"><div class="box"><span class="x" onclick="fecharModal()">×</span>
-  <h3 id="mTit"></h3><div id="mInfo" style="color:#6B5A45;font-size:14px;"></div><img id="mImg" style="display:none;"><div class="uns" id="mUns"></div></div></div>
+  <h3 id="mTit"></h3><div id="mInfo" style="color:#6B5A45;font-size:14px;"></div><img id="mImg" loading="lazy" decoding="async" style="display:none;"><div class="uns" id="mUns"></div></div></div>
 
 <script>
 
@@ -278,8 +278,19 @@
     wrap.appendChild(el);
     return true;
   }
+  function usarTexto(txt){
+    if(txt.indexOf('<svg')<0) return false;
+    if(!injetar(txt)) return false;
+    ligarMapa(); svgPronto=true; if(unidadesProntas) pintarMapa();
+    return true;
+  }
   function carregarSVG(i){
     i=i||0;
+    if(i===0){
+      try{ var cache=sessionStorage.getItem('svgMapa');
+        if(cache && usarTexto(cache)) return;   // abre instantâneo
+      }catch(e){}
+    }
     if(i>=CAMINHOS_SVG.length){
       document.getElementById('mapScroll').innerHTML=
         '<div class="vazio">Não encontrei o arquivo do mapa em <b>assets/CONDOMINIO_VENDAS.svg</b>.'+
@@ -290,9 +301,8 @@
       if(!r.ok) throw new Error('HTTP '+r.status);
       return r.text();
     }).then(function(txt){
-      if(txt.indexOf('<svg')<0) throw new Error('resposta não é SVG');
-      if(!injetar(txt)) throw new Error('SVG não pôde ser inserido');
-      ligarMapa(); svgPronto=true; if(unidadesProntas) pintarMapa();
+      if(!usarTexto(txt)) throw new Error('resposta não é SVG');
+      try{ sessionStorage.setItem('svgMapa', txt); }catch(e){}
     }).catch(function(err){
       console.warn('mapa: falhou em '+CAMINHOS_SVG[i]+' ('+err.message+')');
       carregarSVG(i+1);
@@ -314,6 +324,7 @@
     var hash=JSON.stringify(d);
     if(hash===ultimoHash && unidadesProntas) return;   // nada mudou
     ultimoHash=hash; UNIDADES=d;
+    try{ sessionStorage.setItem('unidadesCache', hash); }catch(e){}
     renderCards(); renderTabela();
     unidadesProntas=true; if(svgPronto) pintarMapa();
   }
@@ -325,8 +336,12 @@
     return document.getElementById('pop').style.display==='block'
         || document.getElementById('modal').style.display==='flex';
   }
+  try{                                   // dados em cache -> cards/tabela na hora
+    var cacheU=sessionStorage.getItem('unidadesCache');
+    if(cacheU) aplicar(JSON.parse(cacheU));
+  }catch(e){}
   carregarSVG();      // carrega o mapa já, sem esperar os dados
-  carregar(true);     // dados em paralelo
+  carregar(true);     // dados em paralelo (atualiza o cache)
   // auto-atualiza a cada 60s (sem atrapalhar se um pop-up estiver aberto)
   setInterval(function(){ if(!ocupado()) carregar(false); }, 60000);
 

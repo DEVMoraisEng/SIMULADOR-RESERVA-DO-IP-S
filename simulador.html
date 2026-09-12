@@ -53,7 +53,11 @@
   .prazo-opt b{display:block;font-size:16px;color:var(--marrom);}
   .prazo-opt small{color:var(--texto-suave);}
   .produtos{display:flex;flex-direction:column;gap:8px;}
-  .produto{border:1px solid var(--borda);border-left:4px solid var(--amarelo);border-radius:6px;padding:11px 14px;font-size:13px;font-weight:700;color:var(--marrom2);background:#FFFBF0;}
+  .produto{border:1px solid var(--borda);border-left:4px solid var(--borda);border-radius:6px;padding:11px 14px;font-size:13px;font-weight:700;color:var(--texto-suave);background:#fff;cursor:pointer;display:flex;align-items:center;gap:10px;transition:.12s;}
+  .produto:hover{border-color:var(--marrom2);}
+  .produto .marca{width:18px;height:18px;border-radius:4px;border:2px solid var(--borda);flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;}
+  .produto.on{border-left-color:var(--amarelo);color:var(--marrom2);background:#FFFBF0;}
+  .produto.on .marca{background:var(--amarelo);border-color:var(--amarelo);color:var(--marrom);}
   .comissao-box{background:var(--marrom);color:#fff;border-radius:8px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
   .comissao-box b{font-size:18px;color:var(--amarelo);}
   .aviso-offline{display:none;background:#7A2E12;color:#fff;padding:12px 20px;font-size:14px;text-align:center;}
@@ -123,13 +127,29 @@
     <section class="card etapa oculto" data-etapa="2">
       <h2>Condições de financiamento</h2>
       <div class="linha">
-        <div class="campo"><label>Prazo do financiamento</label><div class="fixo">420 meses (PRICE)</div></div>
-        <div class="campo"><label>Seguradora<span class="obrig">*</span></label>
+        <div class="campo">
+          <label>Prazo do financiamento (meses)<span class="obrig">*</span></label>
+          <input type="number" name="prazoMeses" min="60" max="420" step="1" value="420" required>
+          <span class="ajuda">Máximo permitido: 420 meses.</span>
+        </div>
+        <div class="campo">
+          <label>Sistema de amortização<span class="obrig">*</span></label>
+          <select name="sistemaAmortizacao" required>
+            <option value="PRICE">PRICE</option>
+            <option value="SAC">SAC</option>
+          </select>
+        </div>
+      </div>
+      <div class="linha">
+        <div class="campo">
+          <label>Seguradora<span class="obrig">*</span></label>
           <select name="seguradora" required>
             <option>CAIXA RESIDENCIAL HABITACIONAL</option>
             <option>CAIXA RESIDENCIAL HABITACIONAL MAIS</option>
             <option>TOKIO MARINE</option>
-          </select></div>
+          </select>
+        </div>
+        <div class="campo"></div>
       </div>
       <div class="campo full" style="margin-bottom:16px;">
         <label>Prazo total da entrada<span class="obrig">*</span></label>
@@ -200,7 +220,7 @@
 
   var TRAVADOS = { tipoPessoa:'Fisica', tipoImovel:'Residencial',
     categoriaImovel:'Aquisição de Imóvel Novo', uf:'GO', municipio:'SENADOR CANEDO',
-    sistemaAmortizacao:'PRICE', prazoMeses:420 };
+    };
   var COMISSAO = { '24':0.05, '36':0.0475, '48':0.045 };
 
   var UNIDADES=[];
@@ -235,9 +255,25 @@
   var PROD_COM=['SBPE SFH - TR - AQUISIÇÃO DE IMÓVEL RESIDENCIAL NOVO'];
   var PROD_SEM=['NPMCMV - IMÓVEL NOVO INDIVIDUAL','NPMCMV - IMÓVEL NOVO INDIVIDUAL','PRÓCOTISTA - AQUISIÇÃO DE IMÓVEL RESIDENCIAL NOVO'];
   function produtosAplicaveis(){return document.querySelector('[name="possuiImovelCidade"]').checked?PROD_COM:PROD_SEM;}
-  function renderProdutos(){var l=produtosAplicaveis();
-    document.getElementById('produtos').innerHTML=l.map(function(p){return '<div class="produto">'+p+'</div>';}).join('');
-    document.getElementById('produtosAjuda').textContent=document.querySelector('[name="possuiImovelCidade"]').checked?'Cliente com imóvel na cidade: apenas a linha SBPE é elegível.':'Cliente sem imóvel na cidade: linhas NPMCMV e Prócotista.';}
+  var produtosSelecionados=[];
+  function renderProdutos(){
+    var l=produtosAplicaveis();
+    produtosSelecionados=l.slice();   // por padrão, todas marcadas
+    document.getElementById('produtos').innerHTML=l.map(function(p,i){
+      return '<div class="produto on" data-i="'+i+'" onclick="alternarProduto(this)"><span class="marca">✓</span><span>'+p+'</span></div>';
+    }).join('');
+    document.getElementById('produtosAjuda').textContent=
+      (document.querySelector('[name="possuiImovelCidade"]').checked
+        ? 'Cliente com imóvel na cidade: apenas a linha SBPE é elegível. '
+        : 'Cliente sem imóvel na cidade: linhas NPMCMV e Prócotista. ')
+      + 'Clique para marcar/desmarcar quais serão simuladas.';
+  }
+  function alternarProduto(el){
+    el.classList.toggle('on');
+    var marcados=[].slice.call(document.querySelectorAll('.produto.on span:last-child')).map(function(x){return x.textContent;});
+    if(!marcados.length){ el.classList.add('on'); return; }   // pelo menos uma
+    produtosSelecionados=marcados;
+  }
 
   function irPara(n){
     document.querySelectorAll('.etapa').forEach(function(el){el.classList.toggle('oculto',el.dataset.etapa!==String(n));});
@@ -265,9 +301,11 @@
       maisDeUmComprador:f.maisDeUmComprador.checked, jaBeneficiado:f.jaBeneficiado.checked,
       relacionamentoCaixa:f.relacionamentoCaixa.checked, dataNascimento:f.dataNascimento.value,
       rendaIndividual:parseMoeda(f.rendaIndividual.value), seguradora:f.seguradora.value,
+      prazoMeses:Math.min(420,Number(f.prazoMeses.value)||420),
+      sistemaAmortizacao:f.sistemaAmortizacao.value,
       prazoEntrada:Number(prazo), comissaoPct:COMISSAO[prazo], comissaoValor:u.valorVenda*COMISSAO[prazo],
       subsidio:parseMoeda(f.subsidio.value), fgtsDisponivel:parseMoeda(f.fgtsDisponivel.value),
-      produtos:produtosAplicaveis(), corretor:f.corretor.value, imobiliaria:f.imobiliaria.value,
+      produtos:(produtosSelecionados.length?produtosSelecionados:produtosAplicaveis()), corretor:f.corretor.value, imobiliaria:f.imobiliaria.value,
       nomeCliente:f.nomeCliente.value, cpfCliente:f.cpfCliente.value,
       emailDestino:f.emailDestino.value, emailCopia:EMAIL_COPIA });
     botao.disabled=true; mostrarStatus('processando','Enviando sua solicitação...');

@@ -348,16 +348,24 @@
   document.querySelectorAll('[name="prazoEntrada"]').forEach(function(r){r.addEventListener('change',atualizarComissao);});
   document.querySelector('[name="possuiImovelCidade"]').addEventListener('change',renderProdutos);
 
-  function buscarUnidades(){
-    if(APPS_SCRIPT_URL && APPS_SCRIPT_URL.indexOf('http')===0){
-      return fetch(APPS_SCRIPT_URL+'?acao=unidades').then(function(r){return r.json();})
-        .then(function(j){if(j&&j.ok&&j.unidades&&j.unidades.length)return j.unidades;throw 0;})
-        .catch(function(){return fetch('unidades.json').then(function(r){return r.ok?r.json():Promise.reject();});});
-    }
-    return fetch('unidades.json').then(function(r){return r.ok?r.json():Promise.reject();});
+  // unidades.json local primeiro (instantâneo); Notion ao vivo em segundo plano
+  function buscarLocal(){
+    return fetch('unidades.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():Promise.reject();});
   }
-  buscarUnidades().then(function(d){UNIDADES=d;preencherTipos();})
-    .catch(function(){UNIDADES=FALLBACK;preencherTipos();});
+  function buscarAoVivo(){
+    if(!(APPS_SCRIPT_URL && APPS_SCRIPT_URL.indexOf('http')===0)) return Promise.reject();
+    return fetch(APPS_SCRIPT_URL+'?acao=unidades').then(function(r){return r.json();})
+      .then(function(j){if(j&&j.ok&&j.unidades&&j.unidades.length)return j.unidades;throw 0;});
+  }
+  function aplicarUnidades(d){
+    var t=document.getElementById('tipo').value, u=document.getElementById('unidade').value;
+    UNIDADES=d; preencherTipos();
+    if(t){ document.getElementById('tipo').value=t; preencherUnidades(); }
+    if(u){ document.getElementById('unidade').value=u; aoTrocarUnidade(); }
+  }
+  buscarLocal().then(function(d){aplicarUnidades(d);})
+    .catch(function(){aplicarUnidades(FALLBACK);})
+    .then(function(){ buscarAoVivo().then(function(d){aplicarUnidades(d);}).catch(function(){}); });
   verificarServico(); setInterval(verificarServico,60000);
 
 </script>

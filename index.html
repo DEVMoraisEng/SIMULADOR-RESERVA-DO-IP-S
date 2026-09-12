@@ -122,6 +122,21 @@
   }
   function rgba(hex,a){var n=parseInt(hex.slice(1),16);return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';}
 
+  // Planta: usa assets/plantas/tipo-<TIPO>.jpg do repositório se existir;
+  // se não existir, cai automaticamente para a imagem do Notion.
+  function localPlanta(u){
+    if(!u) return '';
+    return 'assets/plantas/' + (u.decorado ? 'decorado' : ('tipo-' + String(u.tipo).trim())) + '.jpg';
+  }
+  function mostrarPlanta(img, u){
+    if(!u){ img.style.display='none'; return; }
+    var local=localPlanta(u), notion=u.planta||'';
+    img.onerror=function(){ img.onerror=null; if(notion){ img.src=notion; } else { img.style.display='none'; } };
+    img.style.display='block';
+    img.src = local;
+    if(!local && notion) img.src=notion;
+  }
+
   var UNIDADES=[];
   var FALLBACK=(function(){var a=[];for(var n=1;n<=62;n++)a.push({unidade:n,tipo:'1',valorVenda:305000,avaliacao:306000,planta:'',informacoes:(n===1?'Decorado':''),decorado:(n===1),disponivel:true});return a;})();
   function fmt(v){return 'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -164,8 +179,7 @@
     var u=us[0]||{};
     document.getElementById('mTit').textContent = decorado?('Decorado — Tipo '+t):('Tipo '+t);
     document.getElementById('mInfo').textContent = (u.informacoes)||'';
-    var img=document.getElementById('mImg');
-    if(u.planta){img.src=u.planta;img.style.display='block';}else{img.style.display='none';}
+    mostrarPlanta(document.getElementById('mImg'), u);
     // lista das unidades desse tipo
     document.getElementById('mUns').innerHTML = us.map(function(x){
       var livre = disponivelParaVenda(x);
@@ -226,8 +240,7 @@
     document.getElementById('popVal').textContent=fmt(u.valorVenda);
     document.getElementById('popAval').textContent=fmt(u.avaliacao);
     document.getElementById('popInfo').textContent=u.informacoes||'';
-    var img=document.getElementById('popImg');
-    if(u.planta){img.src=u.planta;img.style.display='block';}else{img.style.display='none';}
+    mostrarPlanta(document.getElementById('popImg'), u);
     var pop=document.getElementById('pop');
     var acoes=pop.querySelector('.acoes');
     var band=pop.querySelector('.band');
@@ -311,13 +324,18 @@
 
   // ===== dados das unidades: Notion ao vivo (Apps Script) -> unidades.json -> fallback =====
   var APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbzwUIApU5nKXi1vG3cEs_V2DWCdkLDwY_vo0zBxO59ZBLbEihIxuOqbHdNLm-8pVVwVJQ/exec';
+  // 1) unidades.json do repositório = instantâneo (mesma origem, sem CORS)
+  function buscarLocal(){
+    return fetch('unidades.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():Promise.reject();});
+  }
+  // 2) Notion ao vivo = em segundo plano, só para pegar mudanças recentes
+  function buscarAoVivo(){
+    if(!(APPS_SCRIPT_URL && APPS_SCRIPT_URL.indexOf('http')===0)) return Promise.reject();
+    return fetch(APPS_SCRIPT_URL+'?acao=unidades').then(function(r){return r.json();})
+      .then(function(j){if(j&&j.ok&&j.unidades&&j.unidades.length)return j.unidades;throw 0;});
+  }
   function buscarUnidades(){
-    if(APPS_SCRIPT_URL && APPS_SCRIPT_URL.indexOf('http')===0){
-      return fetch(APPS_SCRIPT_URL+'?acao=unidades').then(function(r){return r.json();})
-        .then(function(j){if(j&&j.ok&&j.unidades&&j.unidades.length)return j.unidades;throw 0;})
-        .catch(function(){return fetch('unidades.json').then(function(r){return r.ok?r.json():Promise.reject();});});
-    }
-    return fetch('unidades.json').then(function(r){return r.ok?r.json():Promise.reject();});
+    return buscarLocal().catch(function(){return buscarAoVivo();});
   }
   var ultimoHash='';
   function aplicar(d){
@@ -329,8 +347,14 @@
     unidadesProntas=true; if(svgPronto) pintarMapa();
   }
   function carregar(primeira){
-    buscarUnidades().then(function(d){aplicar(d);})
-      .catch(function(){ if(primeira && !unidadesProntas) aplicar(FALLBACK); });
+    if(primeira){
+      buscarLocal().then(function(d){aplicar(d);})
+        .catch(function(){ if(!unidadesProntas) aplicar(FALLBACK); })
+        .then(function(){ buscarAoVivo().then(function(d){aplicar(d);}).catch(function(){}); });
+    }else{
+      buscarAoVivo().then(function(d){aplicar(d);})
+        .catch(function(){ buscarLocal().then(function(d){aplicar(d);}).catch(function(){}); });
+    }
   }
   function ocupado(){
     return document.getElementById('pop').style.display==='block'

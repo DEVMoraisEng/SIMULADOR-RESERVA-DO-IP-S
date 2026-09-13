@@ -91,6 +91,44 @@ def sel(pr, nome, default=""):
     return _norm(txt(pr, nome) or default)
 
 
+PASTA_PLANTAS = "assets/plantas"
+
+
+def baixar_plantas(unidades):
+    """A URL de arquivo do Notion é assinada e EXPIRA em 1 hora — publicar
+    ela no unidades.json deixaria a planta quebrada quase sempre (o Actions
+    roda de 6 em 6h). Então a imagem é baixada uma vez por tipo e passa a ser
+    servida pelo próprio repositório, onde não expira.
+
+    Se o download falhar, mantém a URL do Notion: no pior caso a imagem some,
+    em vez de o pipeline inteiro parar."""
+    os.makedirs(PASTA_PLANTAS, exist_ok=True)
+    baixados = {}
+    for u in unidades:
+        url = u.get("planta") or ""
+        nome = "decorado" if u.get("decorado") else f"tipo-{str(u.get('tipo') or '').strip()}"
+        destino = f"{PASTA_PLANTAS}/{nome}.jpg"
+        if nome in baixados:
+            u["planta"] = baixados[nome]
+            continue
+        if not url.startswith("http"):
+            if os.path.exists(destino):
+                u["planta"] = destino
+                baixados[nome] = destino
+            continue
+        try:
+            r = requests.get(url, timeout=60)
+            r.raise_for_status()
+            with open(destino, "wb") as f:
+                f.write(r.content)
+            u["planta"] = destino
+            baixados[nome] = destino
+            print(f"  planta {nome}: {len(r.content)//1024} KB -> {destino}")
+        except Exception as e:
+            print(f"  planta {nome}: falhou ({e}) — mantendo a URL do Notion")
+            baixados[nome] = url
+
+
 def main():
     unidades, cursor = [], None
     while True:
@@ -117,6 +155,8 @@ def main():
         if not data.get("has_more"):
             break
         cursor = data.get("next_cursor")
+
+    baixar_plantas(unidades)
 
     def chave(u):
         try:

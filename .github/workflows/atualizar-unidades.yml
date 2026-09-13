@@ -3,6 +3,8 @@ on:
   schedule:
     - cron: '0 */6 * * *'      # a cada 6h
   workflow_dispatch:            # botão manual
+  repository_dispatch:          # disparado pelo portal ao editar uma unidade
+    types: [unidades_update]
 jobs:
   atualizar:
     runs-on: ubuntu-latest
@@ -20,6 +22,6 @@ jobs:
       - run: |
           git config user.name  "github-actions"
           git config user.email "actions@github.com"
-          git add unidades.json
+          git add unidades.json assets/plantas
           git commit -m "Atualiza unidades.json" || echo "sem mudanças"
           git push

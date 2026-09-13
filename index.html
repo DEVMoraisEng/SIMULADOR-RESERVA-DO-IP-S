@@ -37,8 +37,9 @@
   .marca-mapa span{font-size:11px;font-weight:700;color:var(--marrom);line-height:1.25;max-width:110px;}
   @media(max-width:640px){.marca-mapa img{height:30px;} .marca-mapa span{display:none;}}
   .zoom button{width:34px;height:34px;border-radius:6px;border:1px solid var(--borda);background:#fff;color:var(--marrom);font-size:18px;font-weight:700;cursor:pointer;}
-  #mapScroll{overflow:auto;max-height:74vh;}
+  #mapScroll{overflow:auto;max-height:74vh;overscroll-behavior:contain;touch-action:pan-x pan-y pinch-zoom;-webkit-user-select:none;user-select:none;}
   #mapScroll svg{display:block;height:auto;}
+  #mapScroll svg *{-webkit-user-drag:none;}
   #mapScroll polygon{stroke:var(--marrom2);stroke-width:3;cursor:pointer;transition:fill .1s;}
   #mapScroll polygon.sel{stroke:#2A2118;stroke-width:5;}
   .legenda{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:12px;color:var(--texto-suave);}
@@ -281,7 +282,10 @@
       (function(n){
         var pol=document.getElementById(String(n).padStart(2,'0'));
         if(!pol)return;
-        pol.addEventListener('click',function(e){e.stopPropagation();var u=porNum(n);if(u)abrirPop(u,e);});
+        pol.addEventListener('click',function(e){
+          var wrap=document.getElementById('mapScroll');
+          if(wrap && wrap.dataset.arrastou) return;   // fim de arrasto, não seleção
+          e.stopPropagation();var u=porNum(n);if(u)abrirPop(u,e);});
         pol.addEventListener('mouseenter',function(){if(pol!==selPoly&&pol.dataset.hover)pol.style.fill=pol.dataset.hover;});
         pol.addEventListener('mouseleave',function(){if(pol!==selPoly&&pol.dataset.base)pol.style.fill=pol.dataset.base;});
       })(n);
@@ -289,9 +293,81 @@
   }
   document.addEventListener('click',function(e){var p=document.getElementById('pop');if(p.style.display==='block'&&!p.contains(e.target))fecharPop();});
 
-  // ---- zoom por largura (vetor nítido) ----
-  var zLevel=1;
-  function zoom(f){var svg=document.querySelector('#mapScroll svg');if(!svg)return;zLevel=Math.max(0.5,Math.min(4,zLevel*f));svg.style.width=(zLevel*100)+'%';}
+  // ---- zoom e navegação (roda do mouse, arrastar, pinça no celular) ----
+  // A largura do SVG é o que muda — assim o desenho continua vetorial e nítido
+  // em qualquer nível, em vez de virar uma imagem esticada.
+  var zLevel=1, ZMIN=0.5, ZMAX=6;
+  function svgMapa(){ return document.querySelector('#mapScroll svg'); }
+
+  /* Aplica o nível novo mantendo FIXO o ponto do mapa que está sob o cursor
+     (ou sob o centro da tela). Sem isso, dar zoom joga a vista para o canto
+     superior esquerdo e a pessoa se perde. */
+  function aplicarZoom(novoNivel, ancoraX, ancoraY){
+    var svg=svgMapa(), wrap=document.getElementById('mapScroll');
+    if(!svg||!wrap) return;
+    novoNivel=Math.max(ZMIN,Math.min(ZMAX,novoNivel));
+    if(novoNivel===zLevel) return;
+
+    var r=wrap.getBoundingClientRect();
+    var px=(ancoraX==null? r.width/2  : ancoraX-r.left);
+    var py=(ancoraY==null? r.height/2 : ancoraY-r.top);
+    // posição relativa do ponto ancorado dentro do conteúdo, ANTES do zoom
+    var fx=(wrap.scrollLeft+px)/svg.offsetWidth;
+    var fy=(wrap.scrollTop +py)/svg.offsetHeight;
+
+    var fator=novoNivel/zLevel; zLevel=novoNivel;
+    svg.style.width=(zLevel*100)+'%';
+
+    // depois do zoom, recoloca o mesmo ponto embaixo do cursor
+    wrap.scrollLeft=fx*svg.offsetWidth-px;
+    wrap.scrollTop =fy*svg.offsetHeight-py;
+    if(fator){}  // (fator só documenta a intenção; a conta usa as frações)
+  }
+  function zoom(f){ aplicarZoom(zLevel*f, null, null); }
+
+  function ligarNavegacao(){
+    var wrap=document.getElementById('mapScroll');
+    if(!wrap || wrap.dataset.nav) return;
+    wrap.dataset.nav='1';
+
+    // roda do mouse = zoom (Ctrl não é exigido: o mapa é o conteúdo da área)
+    wrap.addEventListener('wheel', function(e){
+      if(!svgMapa()) return;
+      e.preventDefault();
+      aplicarZoom(zLevel*(e.deltaY<0?1.15:0.87), e.clientX, e.clientY);
+    }, {passive:false});
+
+    // arrastar com o botão esquerdo = mover o mapa
+    var arrastando=false, x0=0, y0=0, sl=0, st=0, moveu=0;
+    wrap.addEventListener('pointerdown', function(e){
+      if(e.button!==0 || !svgMapa()) return;
+      arrastando=true; moveu=0;
+      x0=e.clientX; y0=e.clientY; sl=wrap.scrollLeft; st=wrap.scrollTop;
+      wrap.setPointerCapture(e.pointerId);
+      wrap.style.cursor='grabbing';
+    });
+    wrap.addEventListener('pointermove', function(e){
+      if(!arrastando) return;
+      var dx=e.clientX-x0, dy=e.clientY-y0;
+      moveu=Math.max(moveu, Math.abs(dx)+Math.abs(dy));
+      wrap.scrollLeft=sl-dx; wrap.scrollTop=st-dy;
+    });
+    function soltar(e){
+      if(!arrastando) return;
+      arrastando=false; wrap.style.cursor='grab';
+      try{ wrap.releasePointerCapture(e.pointerId); }catch(err){}
+      /* Arrastou de verdade? Então o "click" que vem a seguir é fim de
+         arrasto, não escolha de unidade — senão o pop-up abre sozinho
+         toda vez que a pessoa move o mapa. */
+      if(moveu>6){ wrap.dataset.arrastou='1'; setTimeout(function(){ delete wrap.dataset.arrastou; },0); }
+    }
+    wrap.addEventListener('pointerup', soltar);
+    wrap.addEventListener('pointercancel', soltar);
+    wrap.style.cursor='grab';
+
+    // duplo clique aproxima
+    wrap.addEventListener('dblclick', function(e){ aplicarZoom(zLevel*1.5, e.clientX, e.clientY); });
+  }
 
   var svgPronto=false, unidadesProntas=false;
   var CAMINHOS_SVG=['assets/CONDOMINIO_VENDAS.svg','./assets/CONDOMINIO_VENDAS.svg','assets/CONDOMINIO_VENDAS.SVG'];
@@ -310,7 +386,7 @@
   function usarTexto(txt){
     if(txt.indexOf('<svg')<0) return false;
     if(!injetar(txt)) return false;
-    ligarMapa(); svgPronto=true; if(unidadesProntas) pintarMapa();
+    ligarMapa(); ligarNavegacao(); svgPronto=true; if(unidadesProntas) pintarMapa();
     return true;
   }
   function carregarSVG(i){

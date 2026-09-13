@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulações · Reserva do Ipês — Morais</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  :root{color-scheme:light}
+  :root{
+    --azul:#295778;--azul-esc:#1e3f58;--teal:#8FDCD2;--verde:#2a9d5c;--verde-esc:#1a6b40;
+    --bg:#EAF1F3;--bg2:#F5F9FA;--bg3:#dceaef;--border:#b8d0da;--border2:#d0e4ec;
+    --text:#1a3347;--text3:#5a8099;--text4:#8aacbb;--branco:#fff;
+    --vermelho:#c0392b;--laranja:#d46a1a;--amarelo:#c9a227;--sup:#fff;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--bg);min-height:100%}
+  body{margin:0;font-family:-apple-system,"Segoe UI",Arial,sans-serif;color:var(--text);background:var(--bg)}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 16px}
+  .hide{display:none!important}
+  header{background:var(--branco);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:30}
+  .hbar{display:flex;align-items:center;gap:12px;padding:10px 16px}
+  .logo img{height:34px}
+  .htitle{font-weight:700;font-size:15px;color:var(--azul-esc)}
+  .hsub{font-size:11px;color:var(--text3)}
+  .hspace{flex:1}
+  .net{font-size:11px;padding:3px 9px;border-radius:20px;background:#e7f5ec;color:var(--verde-esc);font-weight:700}
+  .net.off{background:#fbeae7;color:var(--vermelho)}
+  .user{display:flex;align-items:center;gap:10px}
+  .user .nome{font-size:12px;font-weight:700}
+  .badge{font-size:10px;background:var(--bg3);color:var(--azul);padding:2px 7px;border-radius:20px;font-weight:700}
+  .sair{background:var(--bg3);border:1px solid var(--border);color:var(--azul);border-radius:7px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer}
+  main{padding-bottom:60px}
+  .crumb{display:flex;align-items:center;gap:10px;padding:14px 0}
+  .btn-voltar{color:var(--azul);text-decoration:none;font-size:13px;font-weight:700}
+  .chip-extr{font-size:11px;color:var(--text3)}
+  .semacesso{background:var(--branco);border:1px solid var(--border);border-radius:12px;padding:28px;text-align:center}
+  .semacesso h2{margin:0 0 6px;color:var(--azul-esc);font-size:18px}
+  .tabs-outer{overflow:auto;margin-bottom:14px}
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--border)}
+  .tab{background:none;border:none;padding:11px 16px;font-size:13px;font-weight:700;color:var(--text3);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+  .tab.on{color:var(--azul-esc);border-bottom-color:var(--teal)}
+  .sec{margin:18px 0 10px}
+  .cond{font-size:12px;font-weight:800;color:var(--azul);text-transform:uppercase;letter-spacing:.6px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+  .kpi{background:var(--branco);border:1px solid var(--border);border-radius:11px;padding:14px 16px}
+  .kpi small{display:block;font-size:11px;color:var(--text3);font-weight:700;margin-bottom:4px}
+  .kpi b{font-size:19px;color:var(--azul-esc)}
+  .card{background:var(--branco);border:1px solid var(--border);border-radius:11px;padding:16px;margin-bottom:16px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{background:var(--bg3);color:var(--azul-esc);text-align:left;padding:9px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+  td{padding:9px 10px;border-top:1px solid var(--border2)}
+  tr.clic{cursor:pointer} tr.clic:hover{background:var(--bg2)}
+  .tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:800;color:#fff}
+  .t-pend{background:var(--amarelo)} .t-apr{background:var(--verde)} .t-rej{background:var(--vermelho)}
+  .t-err{background:#8a2e17} .t-proc{background:var(--azul)}
+  .barra{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  .barra input,.barra select{padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;background:var(--branco);color:var(--text)}
+  .bt{padding:9px 15px;border-radius:7px;border:none;font-weight:700;font-size:13px;cursor:pointer}
+  .bt.az{background:var(--azul);color:#fff} .bt.vd{background:var(--verde);color:#fff}
+  .bt.vm{background:var(--vermelho);color:#fff}
+  .bt.gh{background:var(--bg3);color:var(--azul);border:1px solid var(--border)}
+  .grupo{font-weight:800;color:var(--azul-esc);padding:8px 2px;font-size:14px}
+  .grupo small{font-weight:400;color:var(--text3)}
+  .graf{display:flex;align-items:flex-end;gap:26px;height:180px;padding:8px 4px 0}
+  .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+  .col .b{width:100%;max-width:88px;border-radius:7px 7px 0 0;background:linear-gradient(180deg,var(--teal),var(--azul))}
+  .col .v{font-size:12px;font-weight:800;color:var(--azul-esc);margin-bottom:5px}
+  .col .l{font-size:12px;color:var(--text3);margin-top:7px;text-align:center}
+  .vazio{padding:24px;text-align:center;color:var(--text3);font-size:13px}
+  .aviso{padding:11px 13px;border-radius:8px;font-size:13px;margin-bottom:10px;display:none}
+  .aviso.ok{background:#e7f5ec;border:1px solid #9dd3b4;color:var(--verde-esc);display:block}
+  .aviso.err{background:#fbeae7;border:1px solid #e2a493;color:var(--vermelho);display:block}
+  .edit{width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--branco);color:var(--text)}
+  #det{position:fixed;inset:0;background:rgba(26,51,71,.55);display:none;align-items:center;justify-content:center;z-index:60;padding:16px}
+  #det .box{background:var(--branco);border-radius:12px;max-width:880px;width:100%;max-height:92vh;overflow:auto;padding:22px;position:relative}
+  #det .x{position:absolute;top:12px;right:16px;font-size:22px;color:var(--text3);cursor:pointer}
+  .grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:9px;margin:14px 0}
+  .item{border:1px solid var(--border2);border-radius:8px;padding:9px 11px}
+  .item small{display:block;color:var(--text3);font-size:10px;font-weight:800;text-transform:uppercase}
+  .item b{font-size:14px;color:var(--azul-esc)}
+  .cx{background:var(--bg2);border:1px dashed var(--border);border-radius:8px;padding:11px;font-size:12px;line-height:1.7;margin-top:5px}
+  .tarja{background:#fff6e0;border:1px solid #e8cf94;color:#7a5b12;padding:9px 12px;border-radius:8px;font-size:12px;margin-bottom:12px}
+  @media(max-width:640px){.hsub,.chip-extr{display:none}}
+</style>
+</head>
+<body>
+  <header>
+    <div class="wrap hbar">
+      <span class="logo"><img src="img/logo.png" alt="Morais" onerror="this.style.display='none'"></span>
+      <div><div class="htitle">Simulações · Reserva do Ipês</div><div class="hsub">Morais Engenharia</div></div>
+      <div class="hspace"></div>
+      <span class="net on" id="net-status">online</span>
+      <div class="user">
+        <div style="text-align:right"><div class="nome" id="u-nome">—</div><span class="badge" id="u-tipo">—</span></div>
+        <button class="sair" onclick="sair()">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="crumb">
+      <a class="btn-voltar" href="index.html">← Voltar para o Dashboard</a>
+      <span style="flex:1"></span>
+      <span class="chip-extr" id="lido-em"></span>
+    </div>
+
+    <div id="sem-acesso" class="semacesso hide">
+      <h2>Sem acesso</h2>
+      <p>Seu login não tem o acesso <b>SIMULAÇÕES</b>. Fale com um ADM.</p>
+      <a class="bt az" href="index.html" style="display:inline-block;margin-top:10px;text-decoration:none">Voltar ao portal</a>
+    </div>
+
+    <div id="conteudo" class="hide">
+      <div id="tarja-teste" class="tarja hide">Perfil <b>TESTES</b>: os campos abrem, mas nada é gravado.</div>
+
+      <div class="tabs-outer"><div class="tabs">
+        <button class="tab on" data-tab="sims" onclick="trocarTab('sims')">Simulações</button>
+        <button class="tab" data-tab="unidades" onclick="trocarTab('unidades')">Unidades</button>
+      </div></div>
+
+      <!-- ============ SIMULAÇÕES ============ -->
+      <section id="tab-sims">
+        <div class="sec"><span class="cond">Panorama</span></div>
+        <div class="kpis" id="kpis"><div class="vazio" style="grid-column:1/-1">Carregando…</div></div>
+
+        <div class="sec"><span class="cond">Médias dos proponentes</span></div>
+        <div class="card"><div class="graf" id="grafico"></div></div>
+
+        <div class="sec"><span class="cond">Por cliente · ordem de solicitação</span></div>
+        <div class="card">
+          <div class="barra">
+            <input type="search" id="busca" placeholder="Cliente, CPF ou corretor…" oninput="renderLista()">
+            <select id="filtro" onchange="renderLista()">
+              <option value="">Todas</option>
+              <option value="PENDENTE">Pendentes</option>
+              <option value="APROVADA">Aprovadas</option>
+              <option value="REJEITADA">Rejeitadas</option>
+            </select>
+            <button class="bt gh" onclick="carregarSims(true)">Atualizar</button>
+          </div>
+          <div id="lista"><div class="vazio">Carregando…</div></div>
+        </div>
+      </section>
+
+      <!-- ============ UNIDADES ============ -->
+      <section id="tab-unidades" class="hide">
+        <div class="sec"><span class="cond">Editar unidades · reflete no mapa de vendas</span></div>
+        <div class="card">
+          <div id="avisoUn" class="aviso"></div>
+          <div class="barra">
+            <input type="search" id="buscaUn" placeholder="Unidade ou tipo…" oninput="renderUnidades()">
+            <button class="bt gh" onclick="carregarUnidades(true)">Recarregar</button>
+          </div>
+          <div style="overflow:auto;max-height:68vh"><table id="tabUn"></table></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="det"><div class="box"><span class="x" onclick="fecharDet()">×</span><div id="detBox"></div></div></div>
+
+<script src="app.js"></script>
+<script>
+  /* Sessão e permissão: mesmo padrão das outras telas do portal. */
+  const S = exigirSessao();
+  let SIMS = [], UNS = [];
+
+  document.getElementById('u-nome').textContent = (S && (S.nome || S.login)) || '—';
+  document.getElementById('u-tipo').textContent = (S && S.tipo) || '—';
+  if (!podeAcessar(S, 'SIMULAÇÕES')) {
+    document.getElementById('sem-acesso').classList.remove('hide');
+  } else {
+    document.getElementById('conteudo').classList.remove('hide');
+    if (ehSomenteLeitura(S)) document.getElementById('tarja-teste').classList.remove('hide');
+    iniciar();
+  }
+  function net(on){ const e=document.getElementById('net-status'); e.textContent=on?'online':'offline'; e.className='net '+(on?'on':'off'); }
+  addEventListener('online',()=>net(true)); addEventListener('offline',()=>net(false)); net(navigator.onLine);
+
+  const brl = v => 'R$ ' + (Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  function dataBR(d){ if(!d) return '—'; const x=new Date(d); return isNaN(x)?'—':x.toLocaleDateString('pt-BR')+' '+x.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+
+  function trocarTab(t){
+    document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on', b.dataset.tab===t));
+    document.getElementById('tab-sims').classList.toggle('hide', t!=='sims');
+    document.getElementById('tab-unidades').classList.toggle('hide', t!=='unidades');
+    if(t==='unidades' && !UNS.length) carregarUnidades();
+  }
+
+  async function iniciar(){
+    const r = await ler({action:'simsBoot'}, 'sims_boot');
+    if(r && r.simulacoes){ SIMS=r.simulacoes; pintarSims(r); }
+    else document.getElementById('lista').innerHTML='<div class="vazio">Não foi possível carregar.</div>';
+  }
+  async function carregarSims(forcar){
+    const r = await ler({action:'simsLista'}, forcar?null:'sims_lista');
+    if(r && r.simulacoes){ SIMS=r.simulacoes; pintarSims(r); }
+  }
+  function pintarSims(r){
+    if(r.lidoEm) document.getElementById('lido-em').textContent = 'Atualizado ' + dataBR(r.lidoEm);
+    renderKpis(); renderGrafico(); renderLista();
+  }
+  const media = campo => { const v=SIMS.map(s=>Number(s[campo])||0).filter(x=>x>0); return v.length? v.reduce((a,b)=>a+b,0)/v.length : 0; };
+
+  function renderKpis(){
+    const pend=SIMS.filter(s=>(s.aprovacao||'PENDENTE')==='PENDENTE').length;
+    const apr=SIMS.filter(s=>s.aprovacao==='APROVADA');
+    const rej=SIMS.filter(s=>s.aprovacao==='REJEITADA').length;
+    const com=apr.reduce((a,s)=>a+(Number(s.comissaoValor)||0),0);
+    document.getElementById('kpis').innerHTML =
+      [['Simulações',SIMS.length],['Pendentes',pend],['Aprovadas',apr.length],['Rejeitadas',rej],
+       ['Comissão das aprovadas',brl(com)]]
+      .map(k=>`<div class="kpi"><small>${k[0]}</small><b>${k[1]}</b></div>`).join('');
+  }
+  function renderGrafico(){
+    const dados=[['Renda média',media('renda')],['FGTS médio',media('fgts')],['Subsídio médio',media('subsidio')]];
+    const max=Math.max(...dados.map(d=>d[1]))||1;
+    document.getElementById('grafico').innerHTML = dados.map(d=>
+      `<div class="col"><span class="v">${brl(d[1])}</span><div class="b" style="height:${Math.max(4,(d[1]/max)*100)}%"></div><span class="l">${d[0]}</span></div>`).join('');
+  }
+  const tagAp = a => { a=a||'PENDENTE'; const c=a==='APROVADA'?'t-apr':(a==='REJEITADA'?'t-rej':'t-pend'); return `<span class="tag ${c}">${a}</span>`; };
+  const tagSt = s => { const n=(s||'').toUpperCase(); const c=n==='ERRO'?'t-err':(n==='CONCLUIDO'?'t-apr':'t-proc'); return n?`<span class="tag ${c}">${n}</span>`:'—'; };
+
+  function renderLista(){
+    const termo=(document.getElementById('busca').value||'').toLowerCase();
+    const filtro=document.getElementById('filtro').value;
+    const vis=SIMS.filter(s=>{
+      const alvo=`${s.cliente||''} ${s.cpf||''} ${s.corretor||''} ${s.imobiliaria||''}`.toLowerCase();
+      return alvo.includes(termo) && (!filtro || (s.aprovacao||'PENDENTE')===filtro);
+    });
+    if(!vis.length){ document.getElementById('lista').innerHTML='<div class="vazio">Nenhuma simulação encontrada.</div>'; return; }
+    const grupos={}, ordem=[];
+    vis.forEach(s=>{ const k=(s.cliente||'—').trim().toUpperCase(); if(!grupos[k]){grupos[k]=[];ordem.push(k);} grupos[k].push(s); });
+    document.getElementById('lista').innerHTML = ordem.map(k=>{
+      const itens=grupos[k];
+      const linhas=itens.map(s=>`<tr class="clic" onclick="verDet('${s.id}')">
+        <td>${dataBR(s.criadoEm)}</td>
+        <td>Un. ${s.unidade||'—'} <small style="color:var(--text3)">(T${s.tipo||'—'})</small></td>
+        <td>${s.corretor||'—'}</td>
+        <td>${s.financiado?brl(s.financiado):'—'}</td>
+        <td>${s.entrada?brl(s.entrada):'—'}</td>
+        <td>${s.parcela?brl(s.parcela):'—'}</td>
+        <td>${tagSt(s.status)}</td><td>${tagAp(s.aprovacao)}</td></tr>`).join('');
+      return `<div style="margin-bottom:16px">
+        <div class="grupo">${k} <small>· ${itens.length} simulação(ões) · CPF ${itens[0].cpf||'—'}</small></div>
+        <table><thead><tr><th>Data</th><th>Unidade</th><th>Corretor</th><th>Financiado</th>
+        <th>Entrada</th><th>Parcela</th><th>Status</th><th>Aprovação</th></tr></thead><tbody>${linhas}</tbody></table></div>`;
+    }).join('');
+  }
+
+  function verDet(id){
+    const s=SIMS.find(x=>x.id===id); if(!s) return;
+    const it=(r,v)=>`<div class="item"><small>${r}</small><b>${v||'—'}</b></div>`;
+    const podeGravar = !ehSomenteLeitura(S);
+    document.getElementById('detBox').innerHTML=`
+      <h2 style="margin:0 0 2px;color:var(--azul-esc)">${s.cliente||'—'}</h2>
+      <div style="color:var(--text3);font-size:13px">CPF ${s.cpf||'—'} · ${dataBR(s.criadoEm)} · ${tagAp(s.aprovacao)}</div>
+      <div class="grade">
+        ${it('Corretor',s.corretor)}${it('Imobiliária',s.imobiliaria)}${it('E-mail',s.email)}
+        ${it('Unidade','Un. '+(s.unidade||'—')+' (Tipo '+(s.tipo||'—')+')')}
+        ${it('Valor de venda',brl(s.valorVenda))}${it('Avaliação',brl(s.avaliacao))}
+        ${it('Renda',brl(s.renda))}${it('FGTS',brl(s.fgts))}${it('Subsídio',brl(s.subsidio))}
+        ${it('Valor financiado',brl(s.financiado))}${it('Parcela',brl(s.parcela))}
+        ${it('Valor da entrada',brl(s.entrada))}
+        ${it('Prazo da entrada',(s.prazoEntrada||'—')+' meses')}
+        ${it('Comissão',(s.comissaoPct?(s.comissaoPct*100).toFixed(2).replace('.',',')+'% · ':'')+brl(s.comissaoValor))}
+        ${it('Produto',s.produtos)}${it('Seguradora',s.seguradora)}
+      </div>
+      ${s.prestacoes?`<div><b style="font-size:13px;color:var(--azul)">Prestações da entrada</b><div class="cx">${s.prestacoes}</div></div>`:''}
+      ${s.esquema?`<div style="margin-top:9px"><b style="font-size:13px;color:var(--azul)">Esquema de entrada</b><div class="cx">${s.esquema}</div></div>`:''}
+      ${s.mensagem?`<div style="margin-top:9px"><b style="font-size:13px;color:var(--azul)">Mensagem do worker</b><div class="cx">${s.mensagem}</div></div>`:''}
+      <div style="display:flex;gap:9px;margin-top:16px;flex-wrap:wrap">
+        ${podeGravar?`<button class="bt vd" onclick="decidir('${s.id}','APROVADA')">Aprovar</button>
+        <button class="bt vm" onclick="decidir('${s.id}','REJEITADA')">Rejeitar</button>`:''}
+        <button class="bt gh" onclick="fecharDet()">Fechar</button>
+      </div>
+      <div id="detAviso" class="aviso" style="margin-top:10px"></div>`;
+    document.getElementById('det').style.display='flex';
+  }
+  function fecharDet(){ document.getElementById('det').style.display='none'; }
+
+  async function decidir(id,decisao){
+    const av=document.getElementById('detAviso');
+    av.className='aviso ok'; av.textContent='Salvando…';
+    const r = await chamar({action:'simsAprovar', pageId:id, decisao:decisao}, 30000, true);
+    if(r && r.ok){
+      const s=SIMS.find(x=>x.id===id); if(s) s.aprovacao=decisao;
+      av.className='aviso ok'; av.textContent='Marcada como '+decisao+'.';
+      renderKpis(); renderLista(); setTimeout(fecharDet,700);
+    } else {
+      av.className='aviso err';
+      av.textContent = (r&&r.erro==='MODO_TESTE') ? 'Perfil TESTES não grava.' : ((r&&r.erro)||'Não foi possível salvar.');
+    }
+  }
+
+  /* ---------------- UNIDADES ---------------- */
+  const COLS=[['unidade','UNIDADE','ro'],['tipo','TIPO','num'],['valorVenda','VALOR DE VENDA','num'],
+              ['avaliacao','AVALIACAO','num'],['informacoes','INFORMACOES','txt'],
+              ['decorado','DECORADO','sn'],['disponivel','DISPONIVEL','sn'],['vendido','VENDIDA','sn']];
+  async function carregarUnidades(forcar){
+    const r = await ler({action:'simsUnidades'}, forcar?null:'sims_unidades');
+    if(r && r.unidades){ UNS=r.unidades; renderUnidades(); }
+    else avisoUn('err','Não foi possível carregar as unidades.');
+  }
+  function avisoUn(t,m){ const a=document.getElementById('avisoUn'); a.className='aviso '+(t==='ok'?'ok':'err'); a.textContent=m; }
+  function renderUnidades(){
+    const termo=(document.getElementById('buscaUn').value||'').toLowerCase();
+    const vis=UNS.filter(u=>`${u.unidade} tipo ${u.tipo}`.toLowerCase().includes(termo));
+    const cab='<thead><tr>'+COLS.map(c=>`<th>${c[1]}</th>`).join('')+'<th></th></tr></thead>';
+    const corpo=vis.map(u=>{
+      const i=UNS.indexOf(u);
+      const tds=COLS.map(c=>{
+        const [campo,,tipo]=c, v=u[campo];
+        if(tipo==='ro') return `<td><b>${v||''}</b></td>`;
+        if(tipo==='sn') return `<td><select class="edit" data-i="${i}" data-c="${campo}">
+            <option value="true"${v?' selected':''}>SIM</option>
+            <option value="false"${!v?' selected':''}>NÃO</option></select></td>`;
+        return `<td><input class="edit" type="${tipo==='num'?'number':'text'}" data-i="${i}" data-c="${campo}" value="${v==null?'':String(v).replace(/"/g,'&quot;')}"></td>`;
+      }).join('');
+      return `<tr>${tds}<td><button class="bt az" onclick="salvarUnidade(${i})">Salvar</button></td></tr>`;
+    }).join('');
+    document.getElementById('tabUn').innerHTML=cab+'<tbody>'+corpo+'</tbody>';
+  }
+  const NOME_NOTION={unidade:'UNIDADE',tipo:'TIPO',valorVenda:'VALOR DE VENDA',avaliacao:'AVALIACAO',
+                     informacoes:'INFORMACOES',decorado:'DECORADO',disponivel:'DISPONIVEL',vendido:'VENDIDA'};
+  async function salvarUnidade(i){
+    const u=UNS[i]; if(!u||!u.id){ avisoUn('err','Unidade sem identificador — recarregue.'); return; }
+    const campos={};
+    document.querySelectorAll(`.edit[data-i="${i}"]`).forEach(el=>{
+      const c=el.dataset.c, v=el.value;
+      if(['decorado','disponivel','vendido'].includes(c)){ u[c]=(v==='true'); campos[NOME_NOTION[c]]= u[c]?'SIM':'NÃO'; }
+      else if(['valorVenda','avaliacao','tipo'].includes(c)){ u[c]=Number(v)||0; campos[NOME_NOTION[c]]=u[c]; }
+      else { u[c]=v; campos[NOME_NOTION[c]]=v; }
+    });
+    avisoUn('ok','Salvando no Notion…');
+    const r = await chamar({action:'simsUnidadeUpdate', pageId:u.id, campos:campos}, 30000, true);
+    if(r && r.ok){ avisoUn('ok','Unidade '+u.unidade+' atualizada. O mapa de vendas será republicado.'); renderUnidades(); }
+    else avisoUn('err', (r&&r.erro==='MODO_TESTE') ? 'Perfil TESTES não grava.' : ((r&&r.erro)||'Não foi possível salvar.'));
+  }
+</script>
+</body>
+</html>

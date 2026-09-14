@@ -172,7 +172,10 @@ def main():
         data = r.json()
         for row in data["results"]:
             pr = row["properties"]
-            vendida = sim_nao(pr, "VENDIDA") is True
+            # VENDIDA tem tres estados: SIM, NAO e RESERVADA.
+            vend_cru = _norm(txt(pr, "VENDIDA") or "")
+            vendida = vend_cru == "SIM"
+            reservada = vend_cru in ("RESERVADA", "RESERVADO")
             disp = sim_nao(pr, "DISPONIVEL")
             unidades.append({
                 "unidade": txt(pr, "UNIDADE"),
@@ -184,8 +187,11 @@ def main():
                 "decorado": sim_nao(pr, "DECORADO") is True,
                 # coluna ausente/vazia = disponivel; vendida sempre tira de
                 # disponivel, mesmo se esquecerem de trocar as duas colunas.
-                "disponivel": (True if disp is None else disp) and not vendida,
+                "disponivel": (True if disp is None else disp)
+                              and not vendida and not reservada,
+                "reservado": reservada,
                 "vendido": vendida,
+                "vendidaCru": vend_cru or "NAO",
             })
         if not data.get("has_more"):
             break
@@ -203,9 +209,10 @@ def main():
         json.dump(unidades, f, ensure_ascii=False, indent=2)
     disp = sum(1 for u in unidades if u["disponivel"])
     vend = sum(1 for u in unidades if u["vendido"])
+    res = sum(1 for u in unidades if u["reservado"])
     print(f"{len(unidades)} unidades -> unidades.json "
-          f"({disp} disponiveis, {vend} vendidas, "
-          f"{len(unidades) - disp - vend} em breve)")
+          f"({disp} disponiveis, {res} reservadas, {vend} vendidas, "
+          f"{len(unidades) - disp - vend - res} em breve)")
 
 
 if __name__ == "__main__":

@@ -18,7 +18,10 @@
   .tcard b{display:block;font-size:17px;color:var(--marrom);margin-bottom:2px;} .tcard small{color:var(--texto-suave);font-size:13px;}
   .tcard .preco{display:block;margin-top:6px;font-size:13px;font-weight:700;color:var(--marrom2);}
   .selo{display:inline-block;margin-top:10px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:.5px;color:#fff;}
-  .selo.breve{background:#E4322B;} .selo.vend{background:#2A2118;} .selo.disp{background:#2E7D52;}
+  /* set/26 — VENDIDA passou a ser VERMELHA (antes era quase preta e ficava
+     igual a "em breve" no mapa). "Em breve" virou cinza e RESERVADA, azul. */
+  .selo.breve{background:#8A8A8A;} .selo.vend{background:#E4322B;}
+  .selo.res{background:#1F6FB2;} .selo.disp{background:#2E7D52;}
   .btn-sim{padding:7px 12px;border-radius:6px;border:none;background:var(--amarelo);color:var(--marrom);font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;}
   .btn-sim:hover{background:var(--amarelo2);}
   .vazio{padding:16px;font-size:13px;color:var(--texto-suave);}
@@ -158,9 +161,17 @@
   var FALLBACK=(function(){var a=[];for(var n=1;n<=62;n++)a.push({unidade:n,tipo:'1',valorVenda:305000,avaliacao:306000,planta:'',informacoes:(n===1?'Decorado':''),decorado:(n===1),disponivel:true});return a;})();
   function fmt(v){return 'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
   function porNum(n){return UNIDADES.find(function(u){return String(u.unidade)===String(n);});}
-  function indisponivel(u){return u && u.disponivel===false;}
+  /* Tres estados vem do Notion pela coluna VENDIDA (SIM / NAO / RESERVADA).
+     RESERVADA e escrita pela aba de propostas quando a proposta e aceita ou
+     reservada — a unidade sai da venda sem ser dada como vendida. */
+  function reservado(u){
+    if(!u) return false;
+    if(u.reservado===true) return true;
+    return String(u.vendidaCru||'').toUpperCase()==='RESERVADA';
+  }
+  function indisponivel(u){return u && u.disponivel===false && !vendido(u) && !reservado(u);}
   function vendido(u){return u && u.vendido===true;}
-  function disponivelParaVenda(u){return u && u.disponivel!==false && u.vendido!==true;}
+  function disponivelParaVenda(u){return u && u.disponivel!==false && u.vendido!==true && !reservado(u);}
 
   // ---- cards por tipo (+ decorado) ----
   function renderCards(){
@@ -168,6 +179,7 @@
     var html='';
     function selo(us){
       if(us.length && us.every(vendido)) return '<span class="selo vend">VENDIDO</span>';
+      if(us.length && us.every(reservado)) return '<span class="selo res">RESERVADA</span>';
       if(!us.some(disponivelParaVenda)) return '<span class="selo breve">EM BREVE</span>';
       return '<span class="selo disp">'+us.filter(disponivelParaVenda).length+' disponível(is)</span>';
     }
@@ -187,6 +199,7 @@
     var leg=tiposOrdenados.map(function(t){return '<span><i style="background:'+corDoTipo(t,false)+'"></i>Tipo '+t+'</span>';}).join('');
     if(dec) leg+='<span><i style="background:'+DEC_COR+'"></i>Decorado</span>';
     if(UNIDADES.some(indisponivel)) leg+='<span><i style="background:'+COR_INDISP+'"></i>Em breve</span>';
+    if(UNIDADES.some(reservado)) leg+='<span><i style="background:'+COR_RESERVADA+'"></i>Reservada</span>';
     if(UNIDADES.some(vendido)) leg+='<span><i style="background:'+COR_VENDIDO+'"></i>Vendida</span>';
     var elLeg=document.getElementById('legenda'); if(elLeg) elLeg.innerHTML=leg;
   }
@@ -200,7 +213,7 @@
     // lista das unidades desse tipo
     document.getElementById('mUns').innerHTML = us.map(function(x){
       var livre = disponivelParaVenda(x);
-      var est = vendido(x)?'Vendida':(indisponivel(x)?'Em breve':'Disponível');
+      var est = vendido(x)?'Vendida':(reservado(x)?'Reservada':(indisponivel(x)?'Em breve':'Disponível'));
       var clique = livre ? ' onclick="simular(\''+x.tipo+'\',\''+x.unidade+'\')"' : '';
       return '<div class="un-chip'+(livre?' ok':' off')+'"'+clique+'><b>Un. '+x.unidade+'</b>'+
              '<small>'+(x.valorVenda?fmt(x.valorVenda):'—')+'<br>'+est+'</small>'+
@@ -235,8 +248,13 @@
   }
 
   // ---- cor das unidades por tipo (só cores; listeners ficam no ligarMapa) ----
-  var COR_INDISP='#9AA0A6', COR_VENDIDO='#5B5045';
-  function corUnidade(u){ if(vendido(u)) return COR_VENDIDO; if(indisponivel(u)) return COR_INDISP; return corDoTipo(u.tipo,u.decorado); }
+  var COR_INDISP='#9AA0A6', COR_VENDIDO='#E4322B', COR_RESERVADA='#1F6FB2';
+  function corUnidade(u){
+    if(vendido(u)) return COR_VENDIDO;
+    if(reservado(u)) return COR_RESERVADA;
+    if(indisponivel(u)) return COR_INDISP;
+    return corDoTipo(u.tipo,u.decorado);
+  }
   function pintarMapa(){
     for(var n=1;n<=62;n++){
       var u=porNum(n), pol=document.getElementById(String(n).padStart(2,'0'));

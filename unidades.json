@@ -4,11 +4,11 @@
     "tipo": "1",
     "valorVenda": 550000,
     "avaliacao": 306000,
-    "planta": "assets/plantas/decorado.jpg",
+    "planta": "assets/plantas/tipo-1.jpg",
     "informacoes": "Decorado",
-    "decorado": true,
+    "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "vendido": true
   },
   {
     "unidade": "2",

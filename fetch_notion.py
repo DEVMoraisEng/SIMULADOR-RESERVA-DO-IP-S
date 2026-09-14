@@ -42,6 +42,10 @@ def _val(prop):
         return (prop.get("status") or {}).get("name", "")
     if t == "checkbox":
         return prop.get("checkbox")
+    # multi_select FALTAVA: a coluna voltava None, o sel() caía no valor
+    # padrao "SIM" e unidade marcada como NAO no Notion saia disponivel.
+    if t == "multi_select":
+        return "|".join(x.get("name", "") for x in prop.get("multi_select") or [])
     if t == "formula":
         f = prop.get("formula", {})
         return f.get("number", f.get("string", f.get("boolean")))
@@ -89,6 +93,33 @@ def num(pr, nome):
 
 def sel(pr, nome, default=""):
     return _norm(txt(pr, nome) or default)
+
+
+def sim_nao(pr, nome):
+    """True / False / None (coluna nao existe ou esta vazia).
+
+    Nao usar `valor or default`: um checkbox desmarcado vale False e cairia no
+    default, invertendo a resposta. Por isso a ausencia da coluna e tratada
+    separadamente de um NAO explicito.
+    """
+    prop = _find(pr, nome)
+    if prop is None:
+        return None
+    if prop.get("type") == "checkbox":
+        return bool(prop.get("checkbox"))
+    v = _val(prop)
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, (int, float)):
+        return v != 0
+    t = _norm(v or "")
+    if not t:
+        return None
+    if t in ("NAO", "FALSE", "N", "0"):
+        return False
+    if t in ("SIM", "TRUE", "S", "1"):
+        return True
+    return None
 
 
 PASTA_PLANTAS = "assets/plantas"
@@ -141,6 +172,8 @@ def main():
         data = r.json()
         for row in data["results"]:
             pr = row["properties"]
+            vendida = sim_nao(pr, "VENDIDA") is True
+            disp = sim_nao(pr, "DISPONIVEL")
             unidades.append({
                 "unidade": txt(pr, "UNIDADE"),
                 "tipo": str(txt(pr, "TIPO") or ""),
@@ -148,9 +181,11 @@ def main():
                 "avaliacao": num(pr, "AVALIACAO"),
                 "planta": txt(pr, "PLANTA") or "",
                 "informacoes": txt(pr, "INFORMACOES") or "",
-                "decorado": sel(pr, "DECORADO") == "SIM",
-                "disponivel": sel(pr, "DISPONIVEL", "SIM") != "NAO",
-                "vendido": sel(pr, "VENDIDA") == "SIM",
+                "decorado": sim_nao(pr, "DECORADO") is True,
+                # coluna ausente/vazia = disponivel; vendida sempre tira de
+                # disponivel, mesmo se esquecerem de trocar as duas colunas.
+                "disponivel": (True if disp is None else disp) and not vendida,
+                "vendido": vendida,
             })
         if not data.get("has_more"):
             break
@@ -166,7 +201,11 @@ def main():
     unidades.sort(key=chave)
     with open("unidades.json", "w", encoding="utf-8") as f:
         json.dump(unidades, f, ensure_ascii=False, indent=2)
-    print(f"{len(unidades)} unidades -> unidades.json")
+    disp = sum(1 for u in unidades if u["disponivel"])
+    vend = sum(1 for u in unidades if u["vendido"])
+    print(f"{len(unidades)} unidades -> unidades.json "
+          f"({disp} disponiveis, {vend} vendidas, "
+          f"{len(unidades) - disp - vend} em breve)")
 
 
 if __name__ == "__main__":

@@ -181,17 +181,16 @@
       <h2>Enviar simulação</h2>
       <div class="resumo">Vamos simular na CAIXA as linhas selecionadas e enviar o resultado por e-mail, no papel timbrado da Morais, com o fluxo de entrada e a comissão. O processamento leva alguns minutos.</div><br>
       <div class="linha">
-        <div class="campo"><label>Corretor<span class="obrig">*</span></label><input type="text" name="corretor" required></div>
-        <div class="campo"><label>Imobiliária</label><input type="text" name="imobiliaria"></div>
+        <div class="campo"><label>Corretor<span class="obrig">*</span></label><input type="text" name="corretor" data-padrao="texto" required></div>
+        <div class="campo"><label>Imobiliária</label><input type="text" name="imobiliaria" data-padrao="texto"></div>
       </div>
       <div class="linha">
-        <div class="campo"><label>Nome do cliente<span class="obrig">*</span></label><input type="text" name="nomeCliente" required></div>
+        <div class="campo"><label>Nome do cliente<span class="obrig">*</span></label><input type="text" name="nomeCliente" data-padrao="texto" required></div>
         <div class="campo"><label>CPF do cliente<span class="obrig">*</span></label><input type="text" name="cpfCliente" placeholder="000.000.000-00" required></div>
       </div>
       <div class="campo full">
         <label>E-mail para receber o resultado<span class="obrig">*</span></label>
         <input type="email" name="emailDestino" required>
-        <span class="copia">Uma cópia é sempre enviada para <strong>vendasreservadosipes@gmail.com</strong>.</span>
       </div>
       <div class="campo full" style="margin-top:12px;">
         <label class="check" style="font-weight:400;color:var(--texto-suave);">
@@ -226,6 +225,23 @@
 
   var UNIDADES=[];
   var FALLBACK=(function(){var a=[];for(var n=1;n<=62;n++)a.push({unidade:n,tipo:'1',valorVenda:305000,avaliacao:306000,planta:'',informacoes:(n===1?'Decorado':''),decorado:(n===1)});return a;})();
+
+  /* ===== PADRONIZAÇÃO DO QUE VAI PARA O NOTION (set/26) ==================
+     Sem isto, "Felipe", "FELIPE" e "Felipe " viram TRÊS corretores diferentes
+     no ranking e no banco. A regra é uma só: MAIÚSCULO, sem acento, espaços
+     colapsados. Vale para corretor, imobiliária e nome do cliente.
+     CPF vira só dígitos (é a chave da pessoa) e o e-mail vai em minúsculo —
+     e-mail em maiúsculo não quebra o envio, mas polui a base e atrapalha na
+     hora de conferir duplicidade.
+     A mesma função existe no Apps Script (padronizar_): a tela padroniza para
+     a pessoa VER o que vai gravar, e o servidor padroniza de novo porque quem
+     grava é ele. ==================================================== */
+  function padrao(v){
+    return String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .toUpperCase().replace(/\s+/g,' ').trim();
+  }
+  function padraoCpf(v){ return String(v==null?'':v).replace(/\D/g,''); }
+  function padraoEmail(v){ return String(v==null?'':v).trim().toLowerCase(); }
 
   function fmt(v){return (v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
   function parseMoeda(s){if(s==null)return 0;s=String(s).replace(/\./g,'').replace(',','.').replace(/[^0-9.]/g,'');return parseFloat(s)||0;}
@@ -290,6 +306,18 @@
     window.scrollTo({top:0,behavior:'smooth'});
   }
 
+  /* Enquanto digita já sobe para maiúsculo: a pessoa vê exatamente o que
+     será gravado, em vez de descobrir depois que o nome mudou sozinho. */
+  document.querySelectorAll('[data-padrao="texto"]').forEach(function(c){
+    c.addEventListener('input',function(e){
+      var pos=e.target.selectionStart;
+      e.target.value=String(e.target.value||'').normalize('NFD')
+        .replace(/[\u0300-\u036f]/g,'').toUpperCase();
+      try{ e.target.setSelectionRange(pos,pos); }catch(x){}
+    });
+    c.addEventListener('blur',function(e){ e.target.value=padrao(e.target.value); });
+  });
+
   document.querySelectorAll('input[inputmode="numeric"]').forEach(function(c){
     c.addEventListener('input',function(e){var d=e.target.value.replace(/\D/g,'');if(!d){e.target.value='';return;}var v=(parseInt(d,10)/100).toFixed(2);e.target.value=v.replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');});
   });
@@ -334,9 +362,10 @@
       sistemaAmortizacao:f.sistemaAmortizacao.value,
       prazoEntrada:Number(prazo), comissaoPct:COMISSAO[prazo], comissaoValor:u.valorVenda*COMISSAO[prazo],
       subsidio:parseMoeda(f.subsidio.value), fgtsDisponivel:parseMoeda(f.fgtsDisponivel.value),
-      produtos:produtosSelecionados, corretor:f.corretor.value, imobiliaria:f.imobiliaria.value,
-      nomeCliente:f.nomeCliente.value, cpfCliente:f.cpfCliente.value,
-      emailDestino:f.emailDestino.value, emailCopia:EMAIL_COPIA });
+      produtos:produtosSelecionados,
+      corretor:padrao(f.corretor.value), imobiliaria:padrao(f.imobiliaria.value),
+      nomeCliente:padrao(f.nomeCliente.value), cpfCliente:padraoCpf(f.cpfCliente.value),
+      emailDestino:padraoEmail(f.emailDestino.value), emailCopia:EMAIL_COPIA });
     botao.disabled=true; mostrarStatus('processando','Enviando sua solicitação...');
     try{
       var r=await enviarComRetentativas(dados,3);

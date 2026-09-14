@@ -297,11 +297,31 @@
   function apiPost(payload){return fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}).then(function(r){return r.json();});}
   function apiGet(params){return fetch(APPS_SCRIPT_URL+'?'+new URLSearchParams(params)).then(function(r){return r.json();});}
 
+  /* Uma boa parte das "falhas de conexão" é instabilidade momentânea (rede
+     do celular, cold start do Apps Script) e não uma queda real do
+     serviço — nesses casos o doPost() do backend pode ter rodado e criado
+     a solicitação mesmo que a resposta não tenha chegado ao navegador.
+     Por isso tentamos de novo silenciosamente antes de admitir falha. */
+  function espera(ms){return new Promise(function(res){setTimeout(res,ms);});}
+  async function enviarComRetentativas(dados,tentativas){
+    var esperas=[0,1500,3500];
+    var ultimoErro=null;
+    for(var i=0;i<tentativas;i++){
+      if(esperas[i]) await espera(esperas[i]);
+      try{ return await apiPost({acao:'criar',dados:dados}); }
+      catch(err){
+        ultimoErro=err;
+        if(i<tentativas-1) mostrarStatus('processando','Conexão instável — tentando novamente ('+(i+2)+'/'+tentativas+')...');
+      }
+    }
+    throw ultimoErro;
+  }
+
   document.getElementById('formSimulacao').addEventListener('submit',async function(e){
     e.preventDefault();
     var u=unidadeAtual();if(!u){mostrarStatus('erro','Selecione a unidade.');return;}
     if(!produtosSelecionados.length){mostrarStatus('erro','Selecione ao menos uma linha de financiamento (passo 2).');return;}
-    var f=e.target,botao=f.querySelector('button[type="submit"]');
+    var f=e.target,botao=f.querySelector('button[type="submit"]'),textoBotao=botao.textContent;
     var prazo=(document.querySelector('[name="prazoEntrada"]:checked')||{}).value||'48';
     var dados=Object.assign({},TRAVADOS,{
       tipo:document.getElementById('tipo').value, unidade:u.unidade,
@@ -319,10 +339,25 @@
       emailDestino:f.emailDestino.value, emailCopia:EMAIL_COPIA });
     botao.disabled=true; mostrarStatus('processando','Enviando sua solicitação...');
     try{
-      var r=await apiPost({acao:'criar',dados:dados});
-      if(!r.ok){mostrarStatus('erro',r.mensagem||'Não foi possível enviar.');botao.disabled=false;return;}
+      var r=await enviarComRetentativas(dados,3);
+      if(!r.ok){mostrarStatus('erro',r.mensagem||'Não foi possível enviar.');botao.disabled=false;botao.textContent=textoBotao;return;}
       localStorage.setItem('ultimaSimulacao',r.id); acompanhar(r.id,botao);
-    }catch(err){mostrarStatus('erro','Falha de conexão. Tente novamente.');botao.disabled=false;}
+    }catch(err){
+      /* Mesmo depois de 3 tentativas, isso só prova que a RESPOSTA não
+         chegou — não que a solicitação não foi criada do outro lado.
+         Por isso não convidamos a reenviar na hora: o botão volta sozinho
+         depois de um tempo, dando espaço para conferir antes de duplicar. */
+      mostrarStatus('erro','Não conseguimos confirmar o envio depois de várias tentativas.<br>'+
+        'Pode ser que a solicitação já tenha sido registrada do outro lado — '+
+        'aguarde um pouco e confira com o setor de vendas antes de enviar de novo, para evitar duplicidade.');
+      var restam=60;
+      botao.disabled=true; botao.textContent='Aguarde '+restam+'s…';
+      var t=setInterval(function(){
+        restam--;
+        if(restam<=0){ clearInterval(t); botao.disabled=false; botao.textContent=textoBotao; }
+        else{ botao.textContent='Aguarde '+restam+'s…'; }
+      },1000);
+    }
   });
 
   function acompanhar(id,botao){

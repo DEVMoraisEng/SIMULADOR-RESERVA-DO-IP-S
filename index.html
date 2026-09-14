@@ -338,28 +338,41 @@
     }, {passive:false});
 
     // arrastar com o botão esquerdo = mover o mapa
-    var arrastando=false, x0=0, y0=0, sl=0, st=0, moveu=0;
+    // IMPORTANTE: só chamamos setPointerCapture() depois de confirmar que é
+    // um arrasto de verdade (passou do limiar de movimento). Capturar o
+    // ponteiro já no pointerdown fazia o navegador redirecionar o "click"
+    // seguinte para o próprio wrap em vez do polígono — por isso as
+    // unidades pararam de abrir o pop-up depois que o arrasto foi ligado.
+    var arrastando=false, capturado=false, x0=0, y0=0, sl=0, st=0, moveu=0;
+    var LIMIAR_ARRASTO=6; // px — abaixo disso é clique; acima, é arrasto
     wrap.addEventListener('pointerdown', function(e){
       if(e.button!==0 || !svgMapa()) return;
-      arrastando=true; moveu=0;
+      arrastando=true; capturado=false; moveu=0;
       x0=e.clientX; y0=e.clientY; sl=wrap.scrollLeft; st=wrap.scrollTop;
-      wrap.setPointerCapture(e.pointerId);
       wrap.style.cursor='grabbing';
     });
     wrap.addEventListener('pointermove', function(e){
       if(!arrastando) return;
       var dx=e.clientX-x0, dy=e.clientY-y0;
       moveu=Math.max(moveu, Math.abs(dx)+Math.abs(dy));
+      // só captura o ponteiro quando o arrasto é confirmado — um clique
+      // parado nunca chega a capturar, então o "click" nativo continua
+      // sendo entregue ao polígono normalmente
+      if(!capturado && moveu>LIMIAR_ARRASTO){
+        capturado=true;
+        try{ wrap.setPointerCapture(e.pointerId); }catch(err){}
+      }
       wrap.scrollLeft=sl-dx; wrap.scrollTop=st-dy;
     });
     function soltar(e){
       if(!arrastando) return;
       arrastando=false; wrap.style.cursor='grab';
-      try{ wrap.releasePointerCapture(e.pointerId); }catch(err){}
+      if(capturado){ try{ wrap.releasePointerCapture(e.pointerId); }catch(err){} }
+      capturado=false;
       /* Arrastou de verdade? Então o "click" que vem a seguir é fim de
          arrasto, não escolha de unidade — senão o pop-up abre sozinho
          toda vez que a pessoa move o mapa. */
-      if(moveu>6){ wrap.dataset.arrastou='1'; setTimeout(function(){ delete wrap.dataset.arrastou; },0); }
+      if(moveu>LIMIAR_ARRASTO){ wrap.dataset.arrastou='1'; setTimeout(function(){ delete wrap.dataset.arrastou; },0); }
     }
     wrap.addEventListener('pointerup', soltar);
     wrap.addEventListener('pointercancel', soltar);

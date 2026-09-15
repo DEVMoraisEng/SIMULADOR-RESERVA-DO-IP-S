@@ -70,7 +70,24 @@
   #pop .b1{background:var(--amarelo);color:var(--marrom);} #pop .b2{background:#fff;color:var(--marrom);border:1px solid var(--borda);}
   #pop .x{position:absolute;top:6px;right:10px;cursor:pointer;color:var(--texto-suave);font-size:18px;}
   #pop .band{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:10px;display:none;}
-  #pop .band::before{content:'EM BREVE!';position:absolute;top:50%;left:-10%;width:120%;text-align:center;transform:translateY(-50%) rotate(-22deg);background:#E4322B;color:#fff;font-weight:800;font-size:15px;letter-spacing:1px;padding:6px 0;box-shadow:0 2px 8px rgba(0,0,0,.35);}
+  /* A faixa tinha o texto "EM BREVE!" preso no CSS, então unidade reservada
+     ou vendida também saía como "em breve". O texto agora vem do estado. */
+  #pop .band::before{content:attr(data-texto);position:absolute;top:50%;left:-10%;width:120%;text-align:center;transform:translateY(-50%) rotate(-22deg);background:#8A8A8A;color:#fff;font-weight:800;font-size:15px;letter-spacing:1px;padding:6px 0;box-shadow:0 2px 8px rgba(0,0,0,.35);}
+  #pop .band.vend::before{background:#C1121F;}
+  #pop .band.res::before{background:#1F6FB2;}
+  #pop .acoes button:disabled{opacity:.45;cursor:not-allowed;}
+  /* Véu de carregamento: o mapa aparece opaco até os dados de verdade
+     chegarem, em vez de mostrar o retrato antigo e trocar na cara da pessoa. */
+  #veu{position:fixed;inset:0;background:rgba(251,247,238,.92);z-index:60;display:flex;
+       align-items:center;justify-content:center;flex-direction:column;gap:14px;
+       transition:opacity .35s ease;}
+  #veu.sumindo{opacity:0;pointer-events:none;}
+  #veu .giro{width:42px;height:42px;border:4px solid #E7DCC7;border-top-color:var(--marrom);
+             border-radius:50%;animation:girar .9s linear infinite;}
+  @keyframes girar{to{transform:rotate(360deg);}}
+  #veu span{font-size:14px;font-weight:700;color:var(--marrom);letter-spacing:.3px;}
+  main{transition:opacity .35s ease;}
+  main.carregando{opacity:.35;}
   #pop.indisponivel .band{display:block;}
   #pop .band.vend::before{content:'VENDIDA';background:#2A2118;}
   /* modal tipo */
@@ -112,14 +129,17 @@
   </div>
 </main>
 
+<div id="veu"><div class="giro"></div><span>Carregando informações…</span></div>
+
 <div id="pop">
   <div class="band"></div>
   <span class="x" onclick="fecharPop()">×</span>
   <h4 id="popTit"></h4>
   <div class="val">Valor de venda: <b id="popVal"></b></div>
   <div class="val">Avaliação: <b id="popAval"></b></div>
-  <div class="val" id="popInfo" style="margin-top:6px;color:#6B5A45;"></div>
+  <div class="val" id="popInfo" style="margin-top:6px;color:#6B5A45;white-space:pre-wrap;"></div>
   <img id="popImg" loading="lazy" decoding="async" style="display:none;">
+  <div id="popAvisoProp" style="display:none;margin-top:8px;font-size:11px;color:#1F6FB2;background:#EAF2FA;border:1px solid #BBD5EC;border-radius:6px;padding:6px 8px;"></div>
   <div class="acoes">
     <button class="b1" id="popSim">Fazer simulação</button>
     <button class="b2" id="popProp">Enviar proposta</button>
@@ -173,17 +193,25 @@
   var FALLBACK=(function(){var a=[];for(var n=1;n<=62;n++)a.push({unidade:n,tipo:'1',valorVenda:305000,avaliacao:306000,planta:'',informacoes:(n===1?'Decorado':''),decorado:(n===1),disponivel:true});return a;})();
   function fmt(v){return 'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
   function porNum(n){return UNIDADES.find(function(u){return String(u.unidade)===String(n);});}
-  /* Tres estados vem do Notion pela coluna VENDIDA (SIM / NAO / RESERVADA).
-     RESERVADA e escrita pela aba de propostas quando a proposta e aceita ou
-     reservada — a unidade sai da venda sem ser dada como vendida. */
-  function reservado(u){
-    if(!u) return false;
-    if(u.reservado===true) return true;
-    return String(u.vendidaCru||'').toUpperCase()==='RESERVADA';
+  /* =====================================================================
+     UM LUGAR SÓ DECIDE O ESTADO DA UNIDADE.
+     Antes cada pedaço da tela reimplementava a regra à sua maneira — e foi
+     por isso que a unidade RESERVADA ficava azul no mapa e "EM BREVE!" na
+     faixa do pop-up ao mesmo tempo. Agora todo mundo pergunta a estadoUn().
+     ===================================================================== */
+  function estadoUn(u){
+    if(!u) return 'BREVE';
+    var cru=String(u.vendidaCru||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
+    if(u.vendido===true || cru==='SIM') return 'VENDIDA';
+    if(u.reservado===true || cru==='RESERVADA' || cru==='RESERVADO') return 'RESERVADA';
+    if(u.disponivel===false) return 'BREVE';
+    return 'DISPONIVEL';
   }
-  function indisponivel(u){return u && u.disponivel===false && !vendido(u) && !reservado(u);}
-  function vendido(u){return u && u.vendido===true;}
-  function disponivelParaVenda(u){return u && u.disponivel!==false && u.vendido!==true && !reservado(u);}
+  var ROTULO_ESTADO={VENDIDA:'VENDIDA', RESERVADA:'RESERVADA', BREVE:'EM BREVE', DISPONIVEL:'Disponível'};
+  function vendido(u){ return estadoUn(u)==='VENDIDA'; }
+  function reservado(u){ return estadoUn(u)==='RESERVADA'; }
+  function indisponivel(u){ return estadoUn(u)==='BREVE'; }
+  function disponivelParaVenda(u){ return estadoUn(u)==='DISPONIVEL'; }
 
   // ---- cards por tipo (+ decorado) ----
   function renderCards(){
@@ -300,13 +328,30 @@
     var pop=document.getElementById('pop');
     var acoes=pop.querySelector('.acoes');
     var band=pop.querySelector('.band');
-    band.classList.toggle('vend', vendido(u));
-    if(!disponivelParaVenda(u)){
-      pop.classList.add('indisponivel'); acoes.style.display='none';
-    }else{
+    var est=estadoUn(u);
+    band.classList.toggle('vend', est==='VENDIDA');
+    band.classList.toggle('res',  est==='RESERVADA');
+    band.setAttribute('data-texto', est==='VENDIDA' ? 'VENDIDA!' :
+                                    (est==='RESERVADA' ? 'RESERVADA!' : 'EM BREVE!'));
+    document.getElementById('popSim').onclick=function(){simular(u.tipo,u.unidade);};
+    document.getElementById('popProp').onclick=function(){proposta(u.tipo,u.unidade);};
+    var avisoProp=document.getElementById('popAvisoProp');
+    if(est==='DISPONIVEL'){
       pop.classList.remove('indisponivel'); acoes.style.display='flex';
-      document.getElementById('popSim').onclick=function(){simular(u.tipo,u.unidade);};
-      document.getElementById('popProp').onclick=function(){proposta(u.tipo,u.unidade);};
+      document.getElementById('popProp').disabled=false;
+      document.getElementById('popProp').title='';
+      avisoProp.style.display='none';
+    }else if(est==='RESERVADA'){
+      /* Item 14: reservada não aceita nova proposta, mas continua podendo
+         simular — o corretor precisa do número mesmo sem a unidade livre. */
+      pop.classList.remove('indisponivel'); acoes.style.display='flex';
+      document.getElementById('popProp').disabled=true;
+      document.getElementById('popProp').title='Unidade reservada — proposta bloqueada.';
+      avisoProp.style.display='block';
+      avisoProp.textContent='Unidade reservada. Dá para simular, mas não para enviar proposta.';
+    }else{
+      pop.classList.add('indisponivel'); acoes.style.display='none';
+      avisoProp.style.display='none';
     }
     pop.style.display='block';
     var x=Math.min(evt.clientX+12, window.innerWidth-250);
@@ -481,33 +526,60 @@
   function buscarUnidades(){
     return buscarLocal().catch(function(){return buscarAoVivo();});
   }
-  var ultimoHash='';
-  function aplicar(d){
+  var ultimoHash='', dadosAoVivo=false;
+  function aplicar(d, aoVivo){
+    /* Uma vez que os dados AO VIVO chegaram, o retrato antigo (unidades.json
+       ou cache) não pode mais sobrescrevê-los. Era isso que fazia a unidade
+       reservada voltar a aparecer como disponível alguns segundos depois. */
+    if(dadosAoVivo && !aoVivo) return;
+    if(aoVivo) dadosAoVivo=true;
     var hash=JSON.stringify(d);
-    if(hash===ultimoHash && unidadesProntas) return;   // nada mudou
+    if(hash===ultimoHash && unidadesProntas){ tirarVeu(); return; }
     ultimoHash=hash; UNIDADES=d;
     try{ localStorage.setItem('unidadesCache', hash); }catch(e){}
     renderCards(); renderTabela();
     unidadesProntas=true; if(svgPronto) pintarMapa();
+    tirarVeu();
+  }
+  function tirarVeu(){
+    var v=document.getElementById('veu');
+    if(!v || v.classList.contains('sumindo')) return;
+    v.classList.add('sumindo');
+    document.querySelector('main').classList.remove('carregando');
+    setTimeout(function(){ v.style.display='none'; }, 420);
   }
   function carregar(primeira){
     if(primeira){
-      buscarLocal().then(function(d){aplicar(d);})
-        .catch(function(){ if(!unidadesProntas) aplicar(FALLBACK); })
-        .then(function(){ buscarAoVivo().then(function(d){aplicar(d);}).catch(function(){}); });
+      /* AO VIVO primeiro: é a única fonte que reflete o Notion agora.
+         O unidades.json (republicado de 6 em 6 h) e o cache do navegador
+         entram só se o Apps Script demorar mais de 3,5 s ou falhar — e
+         ainda assim são substituídos assim que o ao vivo chega. */
+      var socorro=setTimeout(function(){
+        if(dadosAoVivo) return;
+        buscarLocal().then(function(d){ aplicar(d,false); })
+          .catch(function(){ if(!unidadesProntas) aplicar(FALLBACK,false); });
+      }, 3500);
+      buscarAoVivo()
+        .then(function(d){ clearTimeout(socorro); aplicar(d,true); })
+        .catch(function(){
+          clearTimeout(socorro);
+          buscarLocal().then(function(d){ aplicar(d,false); })
+            .catch(function(){ if(!unidadesProntas) aplicar(FALLBACK,false); });
+        });
+      // se nada responder, o véu não pode prender a página para sempre
+      setTimeout(tirarVeu, 12000);
     }else{
-      buscarAoVivo().then(function(d){aplicar(d);})
-        .catch(function(){ buscarLocal().then(function(d){aplicar(d);}).catch(function(){}); });
+      buscarAoVivo().then(function(d){aplicar(d,true);}).catch(function(){});
     }
   }
   function ocupado(){
     return document.getElementById('pop').style.display==='block'
         || document.getElementById('modal').style.display==='flex';
   }
-  try{                                   // dados em cache -> cards/tabela na hora
-    var cacheU=localStorage.getItem('unidadesCache');
-    if(cacheU) aplicar(JSON.parse(cacheU));
-  }catch(e){}
+  /* O cache NÃO é mais pintado de cara. Ele existe só para o caso de o
+     Apps Script e o unidades.json falharem os dois — pintar antes era o que
+     mostrava o estado antigo por um instante a cada F5. */
+  document.querySelector('main').classList.add('carregando');
   carregarSVG();      // carrega o mapa já, sem esperar os dados
   carregar(true);     // dados em paralelo (atualiza o cache)
   // auto-atualiza a cada 60s (sem atrapalhar se um pop-up estiver aberto)

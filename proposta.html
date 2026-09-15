@@ -194,16 +194,6 @@
       <span class="ajuda">O saldo de FGTS do cônjuge entra na composição da entrada junto com o do titular.</span>
     </div>
 
-    <div class="secao">Referências</div>
-    <div class="linha">
-      <div class="campo"><label>Referência 1</label><input type="text" name="referencia1" data-pad="1"></div>
-      <div class="campo"><label>Telefone</label>
-        <input type="text" name="telRef1" inputmode="numeric" maxlength="15" placeholder="(00) 00000-0000"></div>
-      <div class="campo"><label>Referência 2</label><input type="text" name="referencia2" data-pad="1"></div>
-      <div class="campo"><label>Telefone</label>
-        <input type="text" name="telRef2" inputmode="numeric" maxlength="15" placeholder="(00) 00000-0000"></div>
-    </div>
-
     <div class="rodape">
       <span></span>
       <button type="button" class="btn-primario" onclick="irPara(2)">Continuar</button>
@@ -269,6 +259,44 @@
         <select name="possuiContaCorrente"><option>NÃO</option><option>SIM</option></select></div>
     </div>
 
+    <div class="secao" id="secaoSiop">Dados para a simulação da CAIXA</div>
+    <div id="boxSiop">
+      <p class="ajuda" style="margin:0 0 10px">
+        Quando o crédito bate no teto de 80%, o sistema roda a simulação no SIOP
+        automaticamente. Ele precisa exatamente destes campos — são os mesmos do
+        simulador. Sem eles a parcela sairia de um perfil padrão, que raramente é
+        o do cliente.
+      </p>
+      <div class="linha">
+        <div class="campo"><label>Prazo do financiamento (meses)</label>
+          <input type="number" name="prazoMeses" min="60" max="420" step="1" value="420">
+          <span class="ajuda">Máximo permitido: 420 meses.</span></div>
+        <div class="campo"><label>Seguradora</label>
+          <select name="seguradora">
+            <option>CAIXA RESIDENCIAL HABITACIONAL</option>
+            <option>TOKIO MARINE SEGURADORA</option>
+            <option>TOO SEGUROS</option>
+          </select></div>
+        <div class="campo"><label>% de agravamento do seguro</label>
+          <input type="number" name="agravamento" min="0" max="100" step="1" value="0"></div>
+      </div>
+      <div class="checks" style="margin-top:4px">
+        <label class="check"><input type="checkbox" name="possuiImovelCidade"> Possui imóvel na cidade</label>
+        <label class="check"><input type="checkbox" name="fgts3anos"> Tem 3 anos de FGTS</label>
+        <label class="check"><input type="checkbox" name="maisDeUmComprador"> Mais de um comprador</label>
+        <label class="check"><input type="checkbox" name="jaBeneficiado" onchange="verSiopSub()"> Já foi beneficiado com subsídio FGTS/União</label>
+        <div class="campo" id="boxConcessaoProp" style="display:none;margin:2px 0 8px 26px;max-width:260px">
+          <label>Data da concessão do benefício</label>
+          <input type="date" name="dataConcessaoBeneficio">
+        </div>
+        <label class="check"><input type="checkbox" name="relacionamentoCaixa" onchange="verSiopSub()"> Tem ou gostaria de ter relacionamento com a CAIXA</label>
+        <div id="boxRelacionamentoProp" style="display:none;margin:2px 0 8px 26px">
+          <label class="check"><input type="checkbox" name="servidorPublico"> Algum dos participantes é servidor público</label>
+          <label class="check"><input type="checkbox" name="creditoSalarioCaixa"> Tem ou gostaria de ter crédito salário na CAIXA ou produto de Previdência</label>
+        </div>
+      </div>
+    </div>
+
     <div class="secao">Entrada — fluxo de pagamento</div>
     <div id="fluxo"></div>
 
@@ -281,10 +309,6 @@
   <!-- ============================ PASSO 3 · FIADORES ============================ -->
   <section class="card" data-etapa="3" style="display:none">
     <h2>Fiadores</h2>
-    <div class="resumo" style="margin-bottom:18px">
-      <b>Requisitos pra ser fiador:</b> ter mais de 18 anos e nome limpo no SPC/SERASA.
-    </div>
-
     <div class="secao">Fiador 1</div>
     <div class="linha">
       <div class="campo full"><label>Nome</label><input type="text" name="fiador1" data-pad="1"></div>
@@ -462,24 +486,33 @@
     var sobra = total<0 ? -total : 0;   // quanto passou do necessário
     if(total<0) total=0;
 
-    /* ITEM 11 — entrada menor que o fluxo cheio NÃO elimina parcela.
-       Rateia proporcionalmente sinais, balões e as parcelas de 1 a 24 pelo
-       mesmo fator. O PÓS-CHAVES fica FORA do rateio: mantém o valor base e é
-       atendido primeiro, porque é a parte recebida depois da entrega e não
-       deve encolher junto com a entrada.
-       Só quando a entrada é menor que o próprio pós-chaves é que ele também
-       entra no rateio — senão o restante ficaria negativo. */
+    /* ITEM 8 — como a entrada é distribuída.
+       BASE_CHEIA = sinais + balões + parcelas 1–12 + 13–24 + pós-chaves.
+
+       Entrada MENOR que a base cheia  -> rateia TUDO pelo mesmo fator,
+         pós-chaves incluído. Parcela nunca é eliminada: ela encolhe junto.
+         (Era aqui que a versão anterior zerava as parcelas quando a entrada
+         ficava abaixo dos R$ 27.000 de sinais e balões.)
+
+       Entrada MAIOR que a base cheia  -> é o caso do financiamento travado
+         nos 80% da avaliação, que joga a diferença na entrada. Aí o
+         PÓS-CHAVES fica FORA do rebalanceamento: mantém o valor base e todo
+         o excedente é distribuído entre sinais, balões e parcelas. */
     var fixos=[], t12=0, t1324=0, tpos=0;
-    var baseRateavel=TOTAL_FIXO+B12+B1324;
+    var BASE_RATEAVEL=TOTAL_FIXO+B12+B1324;
+    var BASE_CHEIA=BASE_RATEAVEL+BPOS;
+
     if(total<=0){
       fixos=[];
-    } else if(total<=BPOS){
-      tpos=total;
+    } else if(total<=BASE_CHEIA){
+      var g=total/BASE_CHEIA;
+      fixos=FIXOS.map(function(x){ return [x[0], x[1]*g, x[2]]; });
+      t12=B12*g; t1324=B1324*g; tpos=BPOS*g;
     } else {
       tpos=BPOS;
-      var g=(total-BPOS)/baseRateavel;
-      fixos=FIXOS.map(function(x){ return [x[0], x[1]*g, x[2]]; });
-      t12=B12*g; t1324=B1324*g;
+      var ge=(total-BPOS)/BASE_RATEAVEL;
+      fixos=FIXOS.map(function(x){ return [x[0], x[1]*ge, x[2]]; });
+      t12=B12*ge; t1324=B1324*ge;
     }
 
     var meses=(dataRef.getFullYear()-2026)*12+((dataRef.getMonth()+1)-11);
@@ -518,6 +551,7 @@
                    fgtsTotal, moeda(f.valorEntrada.value), d, u.avaliacao);
     document.getElementById('valorFinanciado').value=brl(q.financiado);
     aplicarRegraParcela(q);
+    verBlocoSiop();
     alvo.dataset.esquema=q.fluxo.map(function(x){return x[0]+': '+brl(x[1])+' ('+x[2]+')';}).join('; ');
 
     var cab='<table class="tabfluxo">'+
@@ -596,6 +630,23 @@
 
   /* ITEM 16 — sem crédito aprovado, some o campo de crédito e a origem das
      rendas passa a ser exigida (é o que substitui a análise do banco). */
+  function verSiopSub(){
+    var f=F();
+    document.getElementById('boxConcessaoProp').style.display = f.jaBeneficiado.checked ? '' : 'none';
+    document.getElementById('boxRelacionamentoProp').style.display = f.relacionamentoCaixa.checked ? '' : 'none';
+    if(!f.jaBeneficiado.checked) f.dataConcessaoBeneficio.value='';
+    if(!f.relacionamentoCaixa.checked){ f.servidorPublico.checked=false; f.creditoSalarioCaixa.checked=false; }
+  }
+  /* O bloco do SIOP só faz sentido quando a simulação vai rodar. Fora disso
+     ele some, para não pedir dez informações que ninguém vai usar. */
+  function verBlocoSiop(){
+    var f=F(), u=unidadeAtual();
+    var vai = f.creditoAprovadoCaixa.value==='SIM' && u &&
+              (u.avaliacao||0)>0 && moeda(f.creditoAprovado.value) >= (u.avaliacao||0)*0.8-0.5;
+    document.getElementById('boxSiop').style.display = vai ? '' : 'none';
+    document.getElementById('secaoSiop').style.display = vai ? '' : 'none';
+  }
+
   function verCredito(){
     var com = F().creditoAprovadoCaixa.value==='SIM';
     document.getElementById('boxCredito').style.display = com ? '' : 'none';
@@ -883,8 +934,6 @@
       possuiFinanciamento:f.possuiFinanciamento.value==='SIM',
       possuiCredPessoal:f.possuiCredPessoal.value==='SIM',
       possuiContaCorrente:f.possuiContaCorrente.value==='SIM',
-      referencia1:padrao(f.referencia1.value), telRef1:dig(f.telRef1.value),
-      referencia2:padrao(f.referencia2.value), telRef2:dig(f.telRef2.value),
       vendedor:padrao(f.vendedor.value), creci:padrao(f.creci.value),
       imobiliaria:padrao(f.imobiliaria.value), email:String(f.email.value).trim().toLowerCase(),
       emailSimulacao:String(f.emailSimulacao.value||'').trim().toLowerCase(),
@@ -901,6 +950,19 @@
       /* ITEM 13 — crédito no teto: o SIOP é quem sabe a parcela real, então a
          proposta pede a simulação. Abaixo do teto o simulador não reproduz o
          valor, e vale o que foi digitado. */
+      /* Dados que o SIOP exige. Sem eles a simulação rodaria com um perfil
+         padrão e devolveria uma parcela que não é a do cliente. */
+      prazoMeses:Math.min(420, Number(f.prazoMeses.value)||420),
+      seguradora:f.seguradora.value,
+      agravamento:Number(f.agravamento.value)||0,
+      possuiImovelCidade:f.possuiImovelCidade.checked,
+      fgts3anos:f.fgts3anos.checked,
+      maisDeUmComprador:f.maisDeUmComprador.checked,
+      jaBeneficiado:f.jaBeneficiado.checked,
+      dataConcessaoBeneficio:(f.jaBeneficiado.checked ? f.dataConcessaoBeneficio.value : ''),
+      relacionamentoCaixa:f.relacionamentoCaixa.checked,
+      servidorPublico:(f.relacionamentoCaixa.checked && f.servidorPublico.checked),
+      creditoSalarioCaixa:(f.relacionamentoCaixa.checked && f.creditoSalarioCaixa.checked),
       simularParcela:(f.creditoAprovadoCaixa.value==='SIM' &&
                       moeda(f.creditoAprovado.value) >= (u.avaliacao||0)*0.8 - 0.5 &&
                       (u.avaliacao||0) > 0),
@@ -929,6 +991,10 @@
               ? '<br><br><b>A parcela está sendo simulada na CAIXA.</b> Como o crédito bate no '+
                 'teto de 80% da avaliação, o sistema roda a simulação e manda um segundo '+
                 'e-mail com o fluxo definitivo em alguns minutos.'
+              : '')+
+            (r.emailOk===false
+              ? '<br><br><b style="color:#B0431F">Atenção: a proposta foi gravada, mas o e-mail NÃO saiu.</b><br>'+
+                (r.aviso||'')+'<br>Avise a Morais — o Apps Script precisa autorizar o envio de e-mail.'
               : ''));
           bt.style.display='none';
         } else {
@@ -947,7 +1013,9 @@
   ligarMascaras();
   montarAnexos();
   verConjuge();
+  verSiopSub();
   verCredito();
+  verBlocoSiop();
   somarRenda();
   F().unidade.addEventListener('change', aoTrocarUnidade);
   carregarUnidades();

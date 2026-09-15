@@ -373,6 +373,27 @@
      será gravado, em vez de descobrir depois que o nome mudou sozinho. */
   verSubcampos();
 
+  /* ITEM 7 — o max="420" do HTML só bloqueia no submit nativo; digitando
+     500 o número ficava lá, e a pessoa só descobria depois. Agora o campo
+     se corrige sozinho e avisa o que fez. */
+  (function(){
+    var p=document.querySelector('[name="prazoMeses"]'); if(!p) return;
+    var aviso=p.parentNode.querySelector('.ajuda');
+    function limitar(){
+      var v=Number(p.value)||0;
+      if(v>420){
+        p.value=420;
+        if(aviso){ aviso.textContent='O máximo é 420 meses — ajustei para 420.'; aviso.style.color='#B0431F'; }
+      }else if(v && v<60){
+        if(aviso){ aviso.textContent='O mínimo é 60 meses.'; aviso.style.color='#B0431F'; }
+      }else if(aviso){
+        aviso.textContent='Máximo permitido: 420 meses.'; aviso.style.color='';
+      }
+    }
+    p.addEventListener('input',limitar);
+    p.addEventListener('blur',function(){ if(!Number(p.value)) p.value=420; limitar(); });
+  })();
+
   document.querySelectorAll('[data-padrao="texto"]').forEach(function(c){
     c.addEventListener('input',function(e){
       var pos=e.target.selectionStart;

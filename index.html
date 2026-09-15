@@ -246,6 +246,12 @@
   function simular(tipo,unidade){
     location.href='simulador.html?tipo='+encodeURIComponent(tipo)+'&unidade='+encodeURIComponent(unidade);
   }
+  /* A proposta sai do mapa pelo mesmo caminho da simulação: mesma unidade,
+     mesmos parâmetros na URL. A diferença é o destino — proposta.html grava
+     na base PROPOSTAS e é lá que a unidade é de fato aceita ou reservada. */
+  function proposta(tipo,unidade){
+    location.href='proposta.html?tipo='+encodeURIComponent(tipo)+'&unidade='+encodeURIComponent(unidade);
+  }
 
   // ---- cor das unidades por tipo (só cores; listeners ficam no ligarMapa) ----
   var COR_INDISP='#9AA0A6', COR_VENDIDO='#E4322B', COR_RESERVADA='#1F6FB2';
@@ -285,7 +291,7 @@
     }else{
       pop.classList.remove('indisponivel'); acoes.style.display='flex';
       document.getElementById('popSim').onclick=function(){simular(u.tipo,u.unidade);};
-      document.getElementById('popProp').onclick=function(){alert('Enviar proposta — em breve (aguardando o banco de propostas).');};
+      document.getElementById('popProp').onclick=function(){proposta(u.tipo,u.unidade);};
     }
     pop.style.display='block';
     var x=Math.min(evt.clientX+12, window.innerWidth-250);

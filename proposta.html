@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proposta de Compra – Reserva do Ipês</title>
+<style>
+  :root{
+    --marrom:#7A4A16; --marrom2:#A86018; --amarelo:#EFB700; --amarelo2:#D8A818;
+    --rosa:#D87890; --lilas:#9078A8; --cinza:#C9C9C9;
+    --texto:#2A2118; --texto-suave:#6B5A45; --borda:#E7DCC7; --fundo:#FBF7EE;
+    --branco:#FFFFFF; --erro:#B0431F;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:var(--fundo);color:var(--texto);}
+  header{background:linear-gradient(135deg,var(--marrom),var(--marrom2));color:#fff;padding:16px 28px;display:flex;align-items:center;gap:18px;}
+  header .logos{display:flex;align-items:center;gap:12px;}
+  header .logos img{height:48px;width:auto;background:#fff;border-radius:8px;padding:4px;}
+  header .titulo{display:flex;flex-direction:column;line-height:1.25;}
+  header h1{font-size:17px;font-weight:700;margin:0;letter-spacing:.2px;}
+  header span{font-size:12px;color:var(--amarelo);font-weight:600;}
+  main{max-width:800px;margin:28px auto 80px;padding:0 20px;}
+  .passos{display:flex;gap:6px;margin-bottom:24px;}
+  .passo{flex:1;text-align:center;padding:10px 6px;font-size:13px;font-weight:600;color:var(--texto-suave);background:var(--branco);border:1px solid var(--borda);border-radius:6px;}
+  .passo.ativo{background:var(--marrom);border-color:var(--marrom);color:#fff;}
+  .passo.concluido{background:#FBEEC8;border-color:var(--amarelo);color:var(--marrom);}
+  .card{background:var(--branco);border:1px solid var(--borda);border-radius:10px;padding:26px;}
+  .card h2{margin-top:0;font-size:16px;color:var(--marrom);border-bottom:2px solid var(--amarelo);padding-bottom:12px;margin-bottom:20px;}
+  .linha{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+  .campo{display:flex;flex-direction:column;gap:6px;}
+  .campo.full{grid-column:1 / -1;}
+  label{font-size:13px;font-weight:600;color:var(--texto-suave);}
+  label .obrig{color:var(--erro);margin-left:2px;}
+  input,select{padding:10px 12px;border:1px solid var(--borda);border-radius:6px;font-size:14px;color:var(--texto);background:var(--branco);}
+  input:focus,select:focus{outline:none;border-color:var(--marrom2);box-shadow:0 0 0 3px rgba(168,96,24,.15);}
+  input[readonly]{background:#FBEEC8;color:var(--marrom);font-weight:700;}
+  .ajuda{font-size:12px;color:var(--texto-suave);}
+  .checks{display:flex;flex-direction:column;gap:10px;margin-top:4px;}
+  .check{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--marrom);font-weight:600;}
+  .check input{margin-top:2px;width:auto;}
+  .fixo{background:#FBEEC8;border:1px solid var(--amarelo);border-radius:6px;padding:10px 12px;font-size:14px;color:var(--marrom);font-weight:700;}
+  .rodape{display:flex;justify-content:space-between;margin-top:24px;}
+  button{padding:11px 22px;border-radius:6px;border:none;font-size:14px;font-weight:700;cursor:pointer;}
+  .btn-primario{background:var(--amarelo);color:var(--marrom);}
+  .btn-primario:hover{background:var(--amarelo2);}
+  .btn-secundario{background:var(--branco);color:var(--marrom);border:1px solid var(--borda);}
+  .btn-secundario:hover{border-color:var(--marrom2);}
+  .oculto{display:none;}
+  .prazo-opts{display:flex;gap:10px;}
+  .prazo-opt{flex:1;border:1px solid var(--borda);border-radius:8px;padding:12px;text-align:center;cursor:pointer;}
+  .prazo-opt:has(input:checked){border-color:var(--marrom2);background:#FBEEC8;}
+  .prazo-opt input{display:none;}
+  .prazo-opt b{display:block;font-size:16px;color:var(--marrom);}
+  .prazo-opt small{color:var(--texto-suave);}
+  .produtos{display:flex;flex-direction:column;gap:8px;}
+  .produto{border:1px solid var(--borda);border-left:4px solid var(--borda);border-radius:6px;padding:11px 14px;font-size:13px;font-weight:700;color:var(--texto-suave);background:#fff;cursor:pointer;display:flex;align-items:center;gap:10px;transition:.12s;}
+  .produto:hover{border-color:var(--marrom2);}
+  .produto .marca{width:18px;height:18px;border-radius:4px;border:2px solid var(--borda);flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;}
+  .produto.on{border-left-color:var(--amarelo);color:var(--marrom2);background:#FFFBF0;}
+  .produto.on .marca{background:var(--amarelo);border-color:var(--amarelo);color:var(--marrom);}
+  .comissao-box{background:var(--marrom);color:#fff;border-radius:8px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+  .comissao-box b{font-size:18px;color:var(--amarelo);}
+  .aviso-offline{display:none;background:#7A2E12;color:#fff;padding:12px 20px;font-size:14px;text-align:center;}
+  .aviso-offline.visivel{display:block;}
+  .status{margin-top:20px;padding:16px;border-radius:8px;font-size:14px;line-height:1.6;border:1px solid var(--borda);}
+  .status.processando{background:#FBEEC8;border-color:var(--amarelo);color:var(--marrom);}
+  .status.ok{background:#EAF6EF;border-color:#8CC9A5;color:#1D5433;}
+  .status.erro{background:#FBEDEA;border-color:#E2A493;color:#8A2E17;}
+  .resumo{background:var(--fundo);border:1px dashed var(--borda);border-radius:8px;padding:16px;font-size:13px;color:var(--texto-suave);line-height:1.6;}
+  .copia{font-size:12px;color:var(--texto-suave);margin-top:6px;}
+  @media(max-width:640px){.linha{grid-template-columns:1fr;}header h1{font-size:15px;}}
+
+  .tabfluxo{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;}
+  .tabfluxo td{border:1px solid var(--borda);padding:6px 10px;}
+  .tabfluxo td.num{text-align:right;font-weight:600;}
+  .tabfluxo tr.tot td{background:#FBEEC8;color:var(--marrom);font-weight:700;}
+  .tabfluxo td small{color:var(--texto-suave);font-weight:400;}
+  .secao{font-size:14px;font-weight:700;color:var(--marrom);margin:22px 0 10px;
+         border-bottom:1px solid var(--borda);padding-bottom:6px;}
+  .secao:first-of-type{margin-top:0;}
+</style>
+</head>
+<body>
+
+<div id="avisoOffline" class="aviso-offline">
+  <strong>Serviço temporariamente indisponível.</strong>
+  <span>Tente novamente em alguns minutos.</span>
+</div>
+
+<header>
+  <div class="logos">
+    <img src="assets/logo-morais.png" alt="Morais Engenharia">
+    <img src="assets/logo-ipes.jpg" alt="Reserva do Ipês">
+  </div>
+  <div class="titulo">
+    <h1>Proposta de Compra</h1>
+    <span>CONDOMÍNIO RESERVA DOS IPÊS</span>
+  </div>
+</header>
+
+<main>
+  <div class="passos">
+    <div class="passo ativo" data-p="1">1. Unidade e proponente</div>
+    <div class="passo" data-p="2">2. Renda e financiamento</div>
+    <div class="passo" data-p="3">3. Enviar</div>
+  </div>
+
+  <form id="formProposta" autocomplete="off">
+
+  <!-- ============================ PASSO 1 ============================ -->
+  <section class="card" data-etapa="1">
+    <h2>Unidade e proponente</h2>
+
+    <div class="linha">
+      <div class="campo">
+        <label>Unidade<span class="obrig">*</span></label>
+        <select name="unidade" required></select>
+      </div>
+      <div class="campo">
+        <label>Preço</label>
+        <input type="text" id="preco" readonly>
+      </div>
+    </div>
+
+    <div class="resumo" style="margin-bottom:18px">
+      <b>3 QUARTOS SENDO 1 SUÍTE — MCMV FAIXA 3</b> · 70,27 m² · entrega 15/10/2028<br>
+      Rua RPB 24, Quadra 269, Lote 03, 75257-005, Setor Parque dos Buritis, Senador Canedo – GO<br>
+      <span style="color:#B0431F">Memorial de incorporação: pendente de registro.</span>
+    </div>
+
+    <div class="secao">Dados do proponente</div>
+    <div class="linha">
+      <div class="campo full"><label>Nome completo<span class="obrig">*</span></label>
+        <input type="text" name="cliente" data-pad="1" required></div>
+      <div class="campo"><label>CPF<span class="obrig">*</span></label>
+        <input type="text" name="cpf" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" required>
+        <span class="ajuda" id="cpfAviso" style="display:none;color:#8A2E17">CPF inválido — confira os números.</span></div>
+      <div class="campo"><label>Identidade</label><input type="text" name="identidade" data-pad="1"></div>
+      <div class="campo"><label>Estado civil<span class="obrig">*</span></label>
+        <select name="estadoCivil" onchange="verConjuge()">
+          <option>SOLTEIRO</option><option>CASADO</option><option>DIVORCIADO</option>
+          <option>VIUVO</option><option>UNIAO ESTAVEL</option></select></div>
+      <div class="campo"><label>Nacionalidade</label><input type="text" name="nacionalidade" value="BR" data-pad="1"></div>
+      <div class="campo"><label>Profissão</label><input type="text" name="profissao" data-pad="1"></div>
+      <div class="campo"><label>Data de nascimento</label><input type="date" name="dataNascimento"></div>
+      <div class="campo full"><label>Endereço</label><input type="text" name="endereco" data-pad="1"></div>
+      <div class="campo"><label>Telefone</label>
+        <input type="text" name="telefone" inputmode="numeric" maxlength="15" placeholder="(00) 0000-0000"></div>
+      <div class="campo"><label>Celular<span class="obrig">*</span></label>
+        <input type="text" name="celular" inputmode="numeric" maxlength="15" placeholder="(00) 00000-0000" required></div>
+      <div class="campo"><label>Participação (%)</label><input type="number" name="participacao" value="100"></div>
+      <div class="campo"><label>Possui imóvel próprio</label>
+        <select name="possuiImovel"><option>NÃO</option><option>SIM</option></select></div>
+    </div>
+
+    <div id="boxConjuge" style="display:none">
+      <div class="secao">Cônjuge</div>
+      <div class="linha">
+        <div class="campo"><label>Nome do cônjuge</label><input type="text" name="conjuge" data-pad="1"></div>
+        <div class="campo"><label>CPF do cônjuge</label>
+          <input type="text" name="cpfConjuge" inputmode="numeric" maxlength="14" placeholder="000.000.000-00"></div>
+      </div>
+    </div>
+
+    <div class="secao">Referências</div>
+    <div class="linha">
+      <div class="campo"><label>Referência 1</label><input type="text" name="referencia1" data-pad="1"></div>
+      <div class="campo"><label>Telefone</label>
+        <input type="text" name="telRef1" inputmode="numeric" maxlength="15" placeholder="(00) 00000-0000"></div>
+      <div class="campo"><label>Referência 2</label><input type="text" name="referencia2" data-pad="1"></div>
+      <div class="campo"><label>Telefone</label>
+        <input type="text" name="telRef2" inputmode="numeric" maxlength="15" placeholder="(00) 00000-0000"></div>
+    </div>
+
+    <div class="rodape">
+      <span></span>
+      <button type="button" class="btn-primario" onclick="irPara(2)">Continuar</button>
+    </div>
+  </section>
+
+  <!-- ============================ PASSO 2 ============================ -->
+  <section class="card" data-etapa="2" style="display:none">
+    <h2>Renda e financiamento</h2>
+
+    <div class="secao">Trabalho e renda</div>
+    <div class="linha">
+      <div class="campo"><label>Cargo</label><input type="text" name="cargo" data-pad="1"></div>
+      <div class="campo"><label>Empresa</label><input type="text" name="empresa" data-pad="1"></div>
+      <div class="campo"><label>Tempo de serviço</label><input type="text" name="tempoServico" data-pad="1"></div>
+      <div class="campo"><label>Renda formal (R$)</label>
+        <input type="text" name="rendaFormal" inputmode="numeric" placeholder="0,00" oninput="somarRenda()"></div>
+      <div class="campo"><label>Origem</label><input type="text" name="origemFormal" data-pad="1"></div>
+      <div class="campo"><label>Renda informal (R$)</label>
+        <input type="text" name="rendaInformal" inputmode="numeric" placeholder="0,00" oninput="somarRenda()"></div>
+      <div class="campo"><label>Origem</label><input type="text" name="origemInformal" data-pad="1"></div>
+      <div class="campo"><label>Renda total</label><input type="text" id="rendaTotal" readonly></div>
+    </div>
+
+    <div class="secao">Recursos para a entrada</div>
+    <div class="linha">
+      <div class="campo"><label>Saldo FGTS (R$)</label>
+        <input type="text" name="saldoFgts" inputmode="numeric" placeholder="0,00" oninput="montarFluxo()"></div>
+      <div class="campo"><label>Subsídio (R$)</label>
+        <input type="text" name="subsidio" inputmode="numeric" placeholder="0,00" oninput="montarFluxo()"></div>
+      <div class="campo"><label>Valor para entrada (R$)</label>
+        <input type="text" name="valorEntrada" inputmode="numeric" placeholder="0,00" oninput="montarFluxo()">
+        <span class="ajuda">Recursos próprios. Abate a entrada junto com FGTS e subsídio.</span></div>
+      <div class="campo"><label>Crédito aprovado (R$)<span class="obrig">*</span></label>
+        <input type="text" name="creditoAprovado" inputmode="numeric" placeholder="0,00" oninput="montarFluxo()">
+        <span class="ajuda">O valor que o banco aprovou na análise.</span></div>
+    </div>
+
+    <div class="secao">Análise</div>
+    <div class="linha">
+      <div class="campo"><label>Banco</label><input type="text" name="banco" value="CEF FGTS" data-pad="1"></div>
+      <div class="campo"><label>Prazo (meses)</label><input type="number" name="prazo" value="420"></div>
+      <div class="campo"><label>Plano do simulador</label><input type="text" name="planoSimulador" data-pad="1"></div>
+      <div class="campo"><label>Score</label><input type="text" name="score" data-pad="1"></div>
+      <div class="campo"><label>Validade da análise</label><input type="date" name="validadeAnalise"></div>
+      <div class="campo"><label>Data de referência</label>
+        <input type="date" name="dataRef" onchange="montarFluxo()">
+        <span class="ajuda">Em branco = hoje.</span></div>
+      <div class="campo"><label>Possui financiamento</label>
+        <select name="possuiFinanciamento"><option>NÃO</option><option>SIM</option></select></div>
+      <div class="campo"><label>Possui créd. pessoal</label>
+        <select name="possuiCredPessoal"><option>NÃO</option><option>SIM</option></select></div>
+      <div class="campo"><label>Possui conta corrente</label>
+        <select name="possuiContaCorrente"><option>NÃO</option><option>SIM</option></select></div>
+    </div>
+
+    <div class="secao">Entrada — fluxo de pagamento</div>
+    <div id="fluxo"></div>
+
+    <div class="rodape">
+      <button type="button" class="btn-secundario" onclick="irPara(1)">Voltar</button>
+      <button type="button" class="btn-primario" onclick="irPara(3)">Continuar</button>
+    </div>
+  </section>
+
+  <!-- ============================ PASSO 3 ============================ -->
+  <section class="card" data-etapa="3" style="display:none">
+    <h2>Enviar proposta</h2>
+
+    <div class="resumo" style="margin-bottom:18px">
+      A proposta entra como <b>RECEBIDA</b> e é analisada pela Morais. A unidade
+      só sai da venda quando a proposta for aceita ou reservada — você é avisado
+      por e-mail em qualquer decisão.
+    </div>
+
+    <div class="linha">
+      <div class="campo"><label>Corretor<span class="obrig">*</span></label>
+        <input type="text" name="vendedor" data-pad="1" required></div>
+      <div class="campo"><label>CRECI</label><input type="text" name="creci" data-pad="1"></div>
+      <div class="campo"><label>Imobiliária</label><input type="text" name="imobiliaria" data-pad="1"></div>
+      <div class="campo"><label>E-mail para receber a proposta<span class="obrig">*</span></label>
+        <input type="email" name="email" required></div>
+      <div class="campo full"><label>Observações</label><input type="text" name="observacoes" data-pad="1"></div>
+    </div>
+
+    <div class="checks">
+      <label class="check">
+        <input type="checkbox" id="aceite" checked>
+        <span>Autorizo o uso dos dados informados para análise desta proposta e
+        para receber o retorno por e-mail.</span>
+      </label>
+    </div>
+
+    <div class="rodape">
+      <button type="button" class="btn-secundario" onclick="irPara(2)">Voltar</button>
+      <button type="submit" class="btn-primario" id="btEnviar">Enviar proposta</button>
+    </div>
+
+    <div id="status" class="status" style="display:none"></div>
+  </section>
+
+  </form>
+</main>
+
+<script>
+  /* =====================================================================
+   * PROPOSTA DE COMPRA — RESERVA DO IPÊS
+   * ---------------------------------------------------------------------
+   * Mesma porta do simulador: o Apps Script do simulador, ação
+   * 'criarProposta', que grava na base PROPOSTAS do Notion e dispara o
+   * e-mail. Chega-se aqui pelo botão "Enviar proposta" do mapa, que passa
+   * ?unidade= e ?tipo= — igual ao simulador.
+   * =================================================================== */
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzwUIApU5nKXi1vG3cEs_V2DWCdkLDwY_vo0zBxO59ZBLbEihIxuOqbHdNLm-8pVVwVJQ/exec';
+
+  var UNIDADES = [], PASSO = 1;
+
+  function apiPost(p){
+    return fetch(APPS_SCRIPT_URL,{method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(p)}).then(function(r){return r.json();});
+  }
+  function fmt(v){return (Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function brl(v){return 'R$ '+fmt(v);}
+  function param(n){return new URLSearchParams(location.search).get(n)||'';}
+  var F = function(){ return document.getElementById('formProposta'); };
+
+  /* ---------- padronização: MAIÚSCULO sem acento ----------
+     A mesma regra do simulador. O Apps Script padroniza de novo na hora de
+     gravar — aqui é só para a pessoa ver o que vai ser gravado. */
+  function padrao(v){
+    return String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .toUpperCase().replace(/\s+/g,' ').trim();
+  }
+  var dig = function(v){ return String(v==null?'':v).replace(/\D/g,''); };
+
+  function fmtCpf(v){
+    var d=dig(v).slice(0,11);
+    if(d.length>9) return d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6,9)+'-'+d.slice(9);
+    if(d.length>6) return d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6);
+    if(d.length>3) return d.slice(0,3)+'.'+d.slice(3);
+    return d;
+  }
+  function cpfValido(v){
+    var c=dig(v);
+    if(c.length!==11 || /^(\d)\1{10}$/.test(c)) return false;
+    for(var t=9;t<11;t++){
+      var soma=0;
+      for(var i=0;i<t;i++) soma+=parseInt(c.charAt(i),10)*((t+1)-i);
+      var d2=(soma*10)%11; if(d2===10) d2=0;
+      if(d2!==parseInt(c.charAt(t),10)) return false;
+    }
+    return true;
+  }
+  function fmtTel(v){
+    var d=dig(v).slice(0,11);
+    if(d.length<=2) return d.length?'('+d:'';
+    if(d.length<=6) return '('+d.slice(0,2)+') '+d.slice(2);
+    if(d.length<=10) return '('+d.slice(0,2)+') '+d.slice(2,6)+'-'+d.slice(6);
+    return '('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7);
+  }
+  function moeda(v){
+    var s=String(v||'').replace(/\./g,'').replace(',','.').replace(/[^0-9.]/g,'');
+    return parseFloat(s)||0;
+  }
+
+  /* ---------- fluxo da entrada ----------
+     Cópia fiel de email_timbrado.calcular(), igual à do simulador e à do
+     portal. Base: preço da unidade menos o crédito aprovado, menos FGTS,
+     subsídio e valor para entrada. A regra do 20/11/2026 vale igual:
+     passada a data, o bloco "1 a 12" perde uma parcela por mês e o valor se
+     redistribui nas que sobram.
+     Se a conta mudar, muda nos QUATRO lugares — não há um quinto. */
+  var FIXOS=[['Na assinatura',1000,'Sinal / ato'],['30 dias',3000,'Sinal 30 dias'],
+             ['60 dias',3000,'Sinal 60 dias'],['90 dias',3000,'Sinal 90 dias'],
+             ['20/12/2027',10000,'Balão em dezembro/2027'],
+             ['Entrega das chaves',7000,'Balão na entrega das chaves']];
+  var TOTAL_FIXO=27000, B12=12*860, B1324=12*330, BPOS=24*788.3332806666667;
+  var BFLEX=B12+B1324+BPOS;
+
+  function calcular(preco, credito, subsidio, fgts, entrada, dataRef){
+    var bruta=(preco||0)-(credito||0);
+    var total=bruta-(fgts||0)-(subsidio||0)-(entrada||0);
+    var fixos=FIXOS.slice(), flex=0;
+    if(total<=0){ total=0; fixos=[]; }
+    else if(total<TOTAL_FIXO){
+      var f=total/TOTAL_FIXO;
+      fixos=FIXOS.map(function(x){return [x[0],x[1]*f,x[2]];});
+    } else flex=total-TOTAL_FIXO;
+
+    var t12,t1324,tpos;
+    if(flex<=BFLEX){ var g=BFLEX?flex/BFLEX:0; t12=B12*g; t1324=B1324*g; tpos=BPOS*g; }
+    else { tpos=BPOS; var r=flex-BPOS, b=B12+B1324; t12=r*(B12/b); t1324=r*(B1324/b); }
+
+    var meses=(dataRef.getFullYear()-2026)*12+((dataRef.getMonth()+1)-11);
+    var n1=Math.max(1,Math.min(12,12-Math.max(0,meses)));
+    var fluxo=fixos.slice();
+    if(t12/n1>0.005)   fluxo.push([n1+' X', t12/n1, 'parcelas (meses 1 a '+n1+')']);
+    if(t1324/12>0.005) fluxo.push(['12 X', t1324/12, 'parcelas (meses 13 a 24)']);
+    if(tpos/24>0.005)  fluxo.push(['24 X', tpos/24, 'pós-chaves']);
+    return {total:total, fluxo:fluxo, n1:n1};
+  }
+
+  function unidadeAtual(){
+    var v=F().unidade.value;
+    for(var i=0;i<UNIDADES.length;i++) if(String(UNIDADES[i].unidade)===String(v)) return UNIDADES[i];
+    return null;
+  }
+  function montarFluxo(){
+    var alvo=document.getElementById('fluxo');
+    var u=unidadeAtual(), f=F();
+    var credito=moeda(f.creditoAprovado.value);
+    if(!u || !credito){
+      alvo.innerHTML='<span class="ajuda">Informe o crédito aprovado para montar o fluxo da entrada.</span>';
+      alvo.dataset.esquema=''; return;
+    }
+    var dtxt=f.dataRef.value;
+    var d=dtxt?new Date(dtxt+'T12:00:00'):new Date();
+    var q=calcular(u.valorVenda, credito, moeda(f.subsidio.value),
+                   moeda(f.saldoFgts.value), moeda(f.valorEntrada.value), d);
+    alvo.dataset.esquema=q.fluxo.map(function(x){return x[0]+': '+brl(x[1])+' ('+x[2]+')';}).join('; ');
+    alvo.innerHTML='<table class="tabfluxo"><tr class="tot"><td>ENTRADA TOTAL A PAGAR</td>'+
+      '<td class="num">'+brl(q.total)+'</td><td><small>bloco 1 a 12 com '+q.n1+' parcela(s)</small></td></tr>'+
+      q.fluxo.map(function(x){
+        return '<tr><td>'+x[0]+'</td><td class="num">'+brl(x[1])+'</td><td><small>'+x[2]+'</small></td></tr>';
+      }).join('')+'</table>';
+  }
+
+  function somarRenda(){
+    var f=F();
+    document.getElementById('rendaTotal').value =
+      brl(moeda(f.rendaFormal.value)+moeda(f.rendaInformal.value));
+  }
+  function verConjuge(){
+    var v=F().estadoCivil.value;
+    document.getElementById('boxConjuge').style.display =
+      (v==='CASADO'||v==='UNIAO ESTAVEL') ? 'block' : 'none';
+  }
+
+  /* ---------- navegação entre os passos ---------- */
+  function irPara(n){
+    if(n>PASSO && !validarPasso(PASSO)) return;
+    PASSO=n;
+    document.querySelectorAll('[data-etapa]').forEach(function(s){
+      s.style.display = (s.dataset.etapa===String(n)) ? 'block' : 'none';
+    });
+    document.querySelectorAll('.passo').forEach(function(p){
+      var i=Number(p.dataset.p);
+      p.classList.toggle('ativo', i===n);
+      p.classList.toggle('concluido', i<n);
+    });
+    if(n===2) montarFluxo();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function validarPasso(n){
+    var f=F();
+    if(n===1){
+      if(!f.unidade.value) return erro('Selecione a unidade.');
+      if(!f.cliente.value.trim()) return erro('Informe o nome do proponente.');
+      if(!cpfValido(f.cpf.value)){
+        document.getElementById('cpfAviso').style.display='block';
+        return erro('CPF inválido. Confira os números.');
+      }
+      if(!dig(f.celular.value)) return erro('Informe o celular.');
+    }
+    if(n===2){
+      if(!moeda(f.creditoAprovado.value)) return erro('Informe o crédito aprovado.');
+    }
+    return true;
+  }
+  function erro(m){ mostrar('erro', m); return false; }
+  function mostrar(tipo, msg){
+    var el=document.getElementById('status');
+    el.style.display='block';
+    el.className='status '+tipo;
+    el.innerHTML=msg;
+    if(PASSO!==3) alert(msg.replace(/<[^>]+>/g,''));
+  }
+
+  /* ---------- máscaras ---------- */
+  function ligarMascaras(){
+    ['cpf','cpfConjuge'].forEach(function(nome){
+      var el=F()[nome]; if(!el) return;
+      el.addEventListener('input',function(e){
+        e.target.value=fmtCpf(e.target.value);
+        var av=document.getElementById('cpfAviso'); if(av) av.style.display='none';
+      });
+    });
+    ['telefone','celular','telRef1','telRef2'].forEach(function(nome){
+      var el=F()[nome]; if(!el) return;
+      el.addEventListener('input',function(e){ e.target.value=fmtTel(e.target.value); });
+    });
+    ['rendaFormal','rendaInformal','saldoFgts','subsidio','valorEntrada','creditoAprovado']
+      .forEach(function(nome){
+        var el=F()[nome]; if(!el) return;
+        el.addEventListener('input',function(e){
+          var d=dig(e.target.value);
+          e.target.value = d ? (parseInt(d,10)/100).toFixed(2).replace('.',',')
+                                  .replace(/\B(?=(\d{3})+(?!\d))/g,'.') : '';
+        });
+      });
+    document.querySelectorAll('[data-pad="1"]').forEach(function(el){
+      el.addEventListener('input',function(e){
+        var pos=e.target.selectionStart;
+        e.target.value=String(e.target.value||'').normalize('NFD')
+          .replace(/[\u0300-\u036f]/g,'').toUpperCase();
+        try{ e.target.setSelectionRange(pos,pos); }catch(x){}
+      });
+      el.addEventListener('blur',function(e){ e.target.value=padrao(e.target.value); });
+    });
+  }
+
+  /* ---------- unidades ---------- */
+  function carregarUnidades(){
+    return fetch(APPS_SCRIPT_URL+'?acao=unidades')
+      .then(function(r){return r.json();})
+      .then(function(j){
+        if(!j || !j.ok) throw new Error(j && j.mensagem);
+        UNIDADES=j.unidades||[];
+        montarSelect();
+      })
+      .catch(function(){
+        /* Sem o Apps Script, cai no arquivo publicado: é o mesmo caminho do
+           mapa, então a página não fica inutilizável se o serviço oscilar. */
+        return fetch('unidades.json').then(function(r){return r.json();})
+          .then(function(l){ UNIDADES=l||[]; montarSelect(); })
+          .catch(function(){
+            document.getElementById('avisoOffline').classList.add('visivel');
+          });
+      });
+  }
+  function montarSelect(){
+    var sel=F().unidade;
+    var livres=UNIDADES.filter(function(u){return u.disponivel;});
+    var lista=livres.length?livres:UNIDADES;
+    sel.innerHTML=lista.map(function(u){
+      return '<option value="'+u.unidade+'">Unidade '+u.unidade+' — T'+(u.tipo||'—')+
+             ' · '+brl(u.valorVenda)+'</option>';
+    }).join('');
+    var pedida=param('unidade');
+    if(pedida) sel.value=pedida;
+    aoTrocarUnidade();
+  }
+  function aoTrocarUnidade(){
+    var u=unidadeAtual();
+    document.getElementById('preco').value = u ? brl(u.valorVenda) : '';
+    montarFluxo();
+  }
+
+  /* ---------- envio ---------- */
+  F().addEventListener('submit', function(e){
+    e.preventDefault();
+    var f=F();
+    if(!validarPasso(1)){ irPara(1); return; }
+    if(!validarPasso(2)){ irPara(2); return; }
+    if(!f.vendedor.value.trim()) return erro('Informe o corretor.');
+    if(!f.email.value.trim()) return erro('Informe o e-mail para receber a proposta.');
+    if(!document.getElementById('aceite').checked) return erro('É preciso autorizar o uso dos dados.');
+
+    var u=unidadeAtual();
+    var bt=document.getElementById('btEnviar');
+    bt.disabled=true;
+    mostrar('processando','<b>Enviando a proposta…</b>');
+
+    var dados={
+      unidade:String(u.unidade), tipo:String(u.tipo||''), preco:u.valorVenda,
+      cliente:padrao(f.cliente.value), cpf:dig(f.cpf.value),
+      identidade:padrao(f.identidade.value), estadoCivil:f.estadoCivil.value,
+      conjuge:padrao(f.conjuge.value), cpfConjuge:dig(f.cpfConjuge.value),
+      nacionalidade:padrao(f.nacionalidade.value), profissao:padrao(f.profissao.value),
+      dataNascimento:f.dataNascimento.value, endereco:padrao(f.endereco.value),
+      telefone:dig(f.telefone.value), celular:dig(f.celular.value),
+      participacao:f.participacao.value,
+      cargo:padrao(f.cargo.value), empresa:padrao(f.empresa.value),
+      tempoServico:padrao(f.tempoServico.value),
+      rendaFormal:moeda(f.rendaFormal.value), origemFormal:padrao(f.origemFormal.value),
+      rendaInformal:moeda(f.rendaInformal.value), origemInformal:padrao(f.origemInformal.value),
+      saldoFgts:moeda(f.saldoFgts.value), subsidio:moeda(f.subsidio.value),
+      valorEntrada:moeda(f.valorEntrada.value), creditoAprovado:moeda(f.creditoAprovado.value),
+      banco:padrao(f.banco.value), prazo:f.prazo.value,
+      planoSimulador:padrao(f.planoSimulador.value), score:padrao(f.score.value),
+      validadeAnalise:f.validadeAnalise.value, dataRef:f.dataRef.value,
+      possuiImovel:f.possuiImovel.value==='SIM',
+      possuiFinanciamento:f.possuiFinanciamento.value==='SIM',
+      possuiCredPessoal:f.possuiCredPessoal.value==='SIM',
+      possuiContaCorrente:f.possuiContaCorrente.value==='SIM',
+      referencia1:padrao(f.referencia1.value), telRef1:dig(f.telRef1.value),
+      referencia2:padrao(f.referencia2.value), telRef2:dig(f.telRef2.value),
+      vendedor:padrao(f.vendedor.value), creci:padrao(f.creci.value),
+      imobiliaria:padrao(f.imobiliaria.value), email:String(f.email.value).trim().toLowerCase(),
+      observacoes:padrao(f.observacoes.value),
+      esquema:(document.getElementById('fluxo').dataset.esquema||'')
+    };
+
+    apiPost({acao:'criarProposta', dados:dados})
+      .then(function(r){
+        if(r && r.ok){
+          mostrar('ok','<b>Proposta '+r.proposta+' enviada.</b><br>'+
+            'Ela entra como RECEBIDA e será analisada pela Morais. '+
+            'O retorno chega no e-mail informado.');
+          bt.style.display='none';
+        } else {
+          bt.disabled=false;
+          mostrar('erro', r && r.erro==='CPF_INVALIDO' ? 'CPF inválido.' :
+            ('Não foi possível enviar: '+((r&&(r.erro||r.mensagem))||'erro desconhecido')));
+        }
+      })
+      .catch(function(){
+        bt.disabled=false;
+        mostrar('erro','Não deu para confirmar o envio. <b>Antes de reenviar, '+
+          'confirme com a Morais</b> — a proposta pode ter sido criada mesmo assim.');
+      });
+  });
+
+  ligarMascaras();
+  verConjuge();
+  somarRenda();
+  F().unidade.addEventListener('change', aoTrocarUnidade);
+  carregarUnidades();
+</script>
+</body>
+</html>

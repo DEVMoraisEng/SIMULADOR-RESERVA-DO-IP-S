@@ -20,10 +20,16 @@
   .selo{display:inline-block;margin-top:10px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:.5px;color:#fff;}
   /* set/26 — VENDIDA passou a ser VERMELHA (antes era quase preta e ficava
      igual a "em breve" no mapa). "Em breve" virou cinza e RESERVADA, azul. */
-  .selo.breve{background:#8A8A8A;} .selo.vend{background:#E4322B;}
+  .selo.breve{background:#8A8A8A;} .selo.vend{background:#C1121F;}
   .selo.res{background:#1F6FB2;} .selo.disp{background:#2E7D52;}
   .btn-sim{padding:7px 12px;border-radius:6px;border:none;background:var(--amarelo);color:var(--marrom);font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;}
   .btn-sim:hover{background:var(--amarelo2);}
+  /* Proposta ao lado de Simular na faixa de preço: quem já sabe o valor e a
+     unidade não precisa passar pela simulação para propor. Cor diferente
+     porque a ação é diferente — uma calcula, a outra compromete. */
+  .btn-prop{padding:7px 12px;border-radius:6px;border:1px solid var(--marrom);background:var(--branco);color:var(--marrom);font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;}
+  .btn-prop:hover{background:var(--marrom);color:#fff;}
+  .acoes{display:flex;gap:6px;justify-content:flex-end;}
   .vazio{padding:16px;font-size:13px;color:var(--texto-suave);}
   #modal .uns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
   .layout{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;}
@@ -125,8 +131,12 @@
 
 <script>
 
-  // Paleta do empreendimento (flores do ipê): amarelo, rosa, lilás, branco/cinza
-  var PALETA=['#EFB700','#D87890','#9078A8','#BFC4C9'];
+  /* Paleta do empreendimento. O rosa #D87890 do Tipo 2 estava perto demais do
+     vermelho de VENDIDA — no mapa, com a casa pequena, as duas se confundiam.
+     O Tipo 2 foi para um verde-água, que não disputa com nada da legenda
+     (amarelo, lilás, cinza, vermelho), e o vermelho de vendida ficou saturado
+     de verdade (#C1121F). */
+  var PALETA=['#EFB700','#2E9E9B','#9078A8','#BFC4C9'];
   var DEC_COR='#7A4A16';
   var tiposOrdenados=[];
   function corDoTipo(t,decorado){
@@ -240,7 +250,10 @@
       var p=us[0];
       return '<tr><td>'+fmt(v)+'<div class="un">Unid.: '+nums.join(', ')+'</div></td>'+
              '<td class="tot">'+us.length+'</td>'+
-             '<td><button class="btn-sim" onclick="simular(\''+p.tipo+'\',\''+p.unidade+'\')">Simular</button></td></tr>';
+             '<td><div class="acoes">'+
+               '<button class="btn-sim" onclick="simular(\''+p.tipo+'\',\''+p.unidade+'\')">Simular</button>'+
+               '<button class="btn-prop" onclick="proposta(\''+p.tipo+'\',\''+p.unidade+'\')">Proposta</button>'+
+             '</div></td></tr>';
     }).join('');
   }
   function simular(tipo,unidade){
@@ -254,7 +267,7 @@
   }
 
   // ---- cor das unidades por tipo (só cores; listeners ficam no ligarMapa) ----
-  var COR_INDISP='#9AA0A6', COR_VENDIDO='#E4322B', COR_RESERVADA='#1F6FB2';
+  var COR_INDISP='#9AA0A6', COR_VENDIDO='#C1121F', COR_RESERVADA='#1F6FB2';
   function corUnidade(u){
     if(vendido(u)) return COR_VENDIDO;
     if(reservado(u)) return COR_RESERVADA;

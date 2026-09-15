@@ -651,20 +651,31 @@
     var u=unidadeAtual();
     if(!q.teto){ av.style.display='none'; aj.textContent='Informe a parcela.'; return; }
 
+    /* A referência dos 80% aparece SEMPRE, não só quando estoura o teto:
+       é o número que o corretor precisa ter na cabeça para conversar com o
+       cliente, mesmo quando o crédito está abaixo dele. */
+    av.style.display='block';
     if(q.credito>q.teto+0.5){
-      av.style.display='block';
       av.className='status processando';
       av.innerHTML='<b>Crédito acima do teto da Caixa.</b><br>'+
-        'A avaliação é '+brl(q.avaliacao)+', então o financiamento não pode passar de '+
-        '<b>'+brl(q.teto)+'</b> (80%). O crédito informado ('+brl(q.credito)+') foi limitado a esse teto, '+
-        'e a diferença de '+brl(q.credito-q.teto)+' voltou para a entrada.';
+        'Avaliação '+brl(q.avaliacao)+' → teto de financiamento <b>'+brl(q.teto)+'</b> (80%).<br>'+
+        'O crédito informado ('+brl(q.credito)+') foi limitado a esse teto, e a diferença de '+
+        '<b>'+brl(q.credito-q.teto)+'</b> voltou para a entrada.<br>'+
+        '<span style="font-size:12px">Como o valor bate no teto, a parcela sai da simulação '+
+        'da CAIXA — não precisa preencher.</span>';
       /* Crédito no teto: quem sabe a parcela é o SIOP. O campo some — pedir
          um número que o sistema vai sobrescrever só confunde. */
       document.getElementById('boxParcela').style.display='none';
       campo.value='';
       campo.classList.remove('destaque-sim');
     }else{
-      av.style.display='none';
+      av.className='status ok';
+      var folga=q.teto-q.credito;
+      av.innerHTML='<b>Crédito dentro do teto da Caixa.</b><br>'+
+        'Avaliação '+brl(q.avaliacao)+' → teto de financiamento <b>'+brl(q.teto)+'</b> (80%).<br>'+
+        'O crédito informado é '+brl(q.credito)+', ou seja, <b>'+brl(folga)+'</b> abaixo do teto.<br>'+
+        '<span style="font-size:12px">A CAIXA não simula um valor abaixo do teto, então a '+
+        '<b>parcela precisa ser informada</b> logo abaixo.</span>';
       document.getElementById('boxParcela').style.display='';
       aj.textContent='Crédito abaixo do teto de '+brl(q.teto)+' — a CAIXA não simula esse valor, então a parcela precisa ser informada.';
       campo.classList.add('destaque-sim');

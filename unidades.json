@@ -7,10 +7,10 @@
     "planta": "assets/plantas/tipo-1.jpg",
     "informacoes": "Decorado",
     "decorado": false,
-    "disponivel": false,
+    "disponivel": true,
     "reservado": false,
-    "vendido": true,
-    "vendidaCru": "SIM"
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "2",
@@ -21,9 +21,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "reservado": false,
+    "reservado": true,
     "vendido": false,
-    "vendidaCru": "NAO"
+    "vendidaCru": "RESERVADA"
   },
   {
     "unidade": "3",
@@ -566,10 +566,10 @@
     "planta": "assets/plantas/tipo-2.jpg",
     "informacoes": "",
     "decorado": false,
-    "disponivel": true,
-    "reservado": false,
+    "disponivel": false,
+    "reservado": true,
     "vendido": false,
-    "vendidaCru": "NAO"
+    "vendidaCru": "RESERVADA"
   },
   {
     "unidade": "45",

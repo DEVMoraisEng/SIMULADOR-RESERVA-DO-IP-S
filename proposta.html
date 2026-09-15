@@ -78,6 +78,7 @@
   .secao{font-size:14px;font-weight:700;color:var(--marrom);margin:22px 0 10px;
          border-bottom:1px solid var(--borda);padding-bottom:6px;}
   .secao:first-of-type{margin-top:0;}
+  .faltando{border-color:#B0431F !important;box-shadow:0 0 0 3px rgba(176,67,31,.18) !important;}
 </style>
 </head>
 <body>
@@ -188,25 +189,25 @@
       <div class="campo"><label>Empresa</label><input type="text" name="empresa" data-pad="1"></div>
       <div class="campo"><label>Tempo de serviço</label><input type="text" name="tempoServico" data-pad="1"></div>
       <div class="campo"><label>Renda formal (R$)</label>
-        <input type="text" name="rendaFormal" inputmode="numeric" placeholder="0,00" oninput="somarRenda()"></div>
-      <div class="campo"><label>Origem</label><input type="text" name="origemFormal" data-pad="1"></div>
+        <input type="text" name="rendaFormal" inputmode="numeric" placeholder="0,00"></div>
+      <div class="campo"><label>Origem da renda formal</label><input type="text" name="origemFormal" data-pad="1"></div>
       <div class="campo"><label>Renda informal (R$)</label>
-        <input type="text" name="rendaInformal" inputmode="numeric" placeholder="0,00" oninput="somarRenda()"></div>
-      <div class="campo"><label>Origem</label><input type="text" name="origemInformal" data-pad="1"></div>
+        <input type="text" name="rendaInformal" inputmode="numeric" placeholder="0,00"></div>
+      <div class="campo"><label>Origem da renda informal</label><input type="text" name="origemInformal" data-pad="1"></div>
       <div class="campo"><label>Renda total</label><input type="text" id="rendaTotal" readonly></div>
     </div>
 
     <div class="secao">Recursos para a entrada</div>
     <div class="linha">
       <div class="campo"><label>Saldo FGTS (R$)</label>
-        <input type="text" name="saldoFgts" inputmode="numeric" placeholder="0,00" oninput="montarFluxo()"></div>
+        <input type="text" name="saldoFgts" inputmode="numeric" placeholder="0,00"></div>
       <div class="campo"><label>Subsídio (R$)</label>
-        <input type="text" name="subsidio" inputmode="numeric" placeholder="0,00" oninput="montarFluxo()"></div>
+        <input type="text" name="subsidio" inputmode="numeric" placeholder="0,00"></div>
       <div class="campo"><label>Valor para entrada (R$)</label>
-        <input type="text" name="valorEntrada" inputmode="numeric" placeholder="0,00" oninput="montarFluxo()">
+        <input type="text" name="valorEntrada" inputmode="numeric" placeholder="0,00">
         <span class="ajuda">Recursos próprios. Abate a entrada junto com FGTS e subsídio.</span></div>
       <div class="campo"><label>Crédito aprovado (R$)<span class="obrig">*</span></label>
-        <input type="text" name="creditoAprovado" inputmode="numeric" placeholder="0,00" oninput="montarFluxo()">
+        <input type="text" name="creditoAprovado" inputmode="numeric" placeholder="0,00">
         <span class="ajuda">O valor que o banco aprovou na análise.</span></div>
     </div>
 
@@ -354,7 +355,9 @@
 
   function calcular(preco, credito, subsidio, fgts, entrada, dataRef){
     var bruta=(preco||0)-(credito||0);
-    var total=bruta-(fgts||0)-(subsidio||0)-(entrada||0);
+    var recursos=(fgts||0)+(subsidio||0)+(entrada||0);
+    var total=bruta-recursos;
+    var sobra = total<0 ? -total : 0;   // quanto passou do necessário
     var fixos=FIXOS.slice(), flex=0;
     if(total<=0){ total=0; fixos=[]; }
     else if(total<TOTAL_FIXO){
@@ -372,7 +375,9 @@
     if(t12/n1>0.005)   fluxo.push([n1+' X', t12/n1, 'parcelas (meses 1 a '+n1+')']);
     if(t1324/12>0.005) fluxo.push(['12 X', t1324/12, 'parcelas (meses 13 a 24)']);
     if(tpos/24>0.005)  fluxo.push(['24 X', tpos/24, 'pós-chaves']);
-    return {total:total, fluxo:fluxo, n1:n1};
+    return {total:total, fluxo:fluxo, n1:n1, bruta:bruta,
+            fgts:(fgts||0), subsidio:(subsidio||0), entradaInformada:(entrada||0),
+            recursos:recursos, sobra:sobra};
   }
 
   function unidadeAtual(){
@@ -393,11 +398,43 @@
     var q=calcular(u.valorVenda, credito, moeda(f.subsidio.value),
                    moeda(f.saldoFgts.value), moeda(f.valorEntrada.value), d);
     alvo.dataset.esquema=q.fluxo.map(function(x){return x[0]+': '+brl(x[1])+' ('+x[2]+')';}).join('; ');
-    alvo.innerHTML='<table class="tabfluxo"><tr class="tot"><td>ENTRADA TOTAL A PAGAR</td>'+
-      '<td class="num">'+brl(q.total)+'</td><td><small>bloco 1 a 12 com '+q.n1+' parcela(s)</small></td></tr>'+
-      q.fluxo.map(function(x){
+
+    var cab='<table class="tabfluxo">'+
+      '<tr><td>Valor de venda</td><td class="num">'+brl(u.valorVenda)+'</td><td></td></tr>'+
+      '<tr><td>(–) Crédito aprovado</td><td class="num">'+brl(credito)+'</td><td></td></tr>'+
+      '<tr><td><b>= Entrada</b></td><td class="num">'+brl(q.bruta)+'</td><td></td></tr>'+
+      (q.fgts?'<tr><td>(–) FGTS</td><td class="num">'+brl(q.fgts)+'</td><td></td></tr>':'')+
+      (q.subsidio?'<tr><td>(–) Subsídio</td><td class="num">'+brl(q.subsidio)+'</td><td></td></tr>':'')+
+      (q.entradaInformada?'<tr><td>(–) Valor para entrada</td><td class="num">'+brl(q.entradaInformada)+
+        '</td><td><small>recursos próprios</small></td></tr>':'')+
+      '<tr class="tot"><td>= ENTRADA A PAGAR</td><td class="num">'+brl(q.total)+'</td>'+
+      '<td><small>'+(q.fluxo.length?'dividida no fluxo abaixo':'—')+'</small></td></tr>';
+
+    var recado='';
+    if(q.sobra>0){
+      /* Item 12: recursos maiores que a entrada. Diz o que acontece e quanto
+         sobrou, em vez de mostrar zero e deixar a pessoa adivinhar. */
+      recado='<div class="status ok" style="margin-top:10px">'+
+        '<b>O pró-soluto seria quitado 100%.</b><br>'+
+        'FGTS, subsídio e valor para entrada somam '+brl(q.recursos)+' e a entrada é '+brl(q.bruta)+'. '+
+        'Sobram <b>'+brl(q.sobra)+'</b> que não seriam necessários para esta unidade — '+
+        'o cliente pode reduzir esse valor ou aproveitá-lo em outra unidade.</div>';
+    } else if(q.total>0 && q.total<27000){
+      /* Não é bug: abaixo de R$ 27.000 o valor só cobre os sinais e balões,
+         que são rateados proporcionalmente. Não sobra nada para parcelar —
+         e é melhor dizer isso do que sumir com as parcelas em silêncio. */
+      recado='<div class="status processando" style="margin-top:10px">'+
+        '<b>Sem parcelas mensais nesta configuração.</b><br>'+
+        'A entrada a pagar ('+brl(q.total)+') é menor que o total dos sinais e balões '+
+        '(R$ 27.000,00), então ela é distribuída proporcionalmente entre eles e não sobra '+
+        'saldo para as parcelas mensais. Para ter parcelas, reduza o valor para entrada '+
+        'ou o FGTS aplicado.</div>';
+    }
+
+    alvo.innerHTML=cab+
+      (q.fluxo.length ? q.fluxo.map(function(x){
         return '<tr><td>'+x[0]+'</td><td class="num">'+brl(x[1])+'</td><td><small>'+x[2]+'</small></td></tr>';
-      }).join('')+'</table>';
+      }).join('') : '')+'</table>'+recado;
   }
 
   function somarRenda(){
@@ -429,26 +466,37 @@
   function validarPasso(n){
     var f=F();
     if(n===1){
-      if(!f.unidade.value) return erro('Selecione a unidade.');
-      if(!f.cliente.value.trim()) return erro('Informe o nome do proponente.');
+      if(!f.unidade.value) return erro('Selecione a unidade.', f.unidade);
+      if(!f.cliente.value.trim()) return erro('Informe o <b>nome do proponente</b>.', f.cliente);
       if(!cpfValido(f.cpf.value)){
         document.getElementById('cpfAviso').style.display='block';
-        return erro('CPF inválido. Confira os números.');
+        return erro('<b>CPF</b> inválido. Confira os números.', f.cpf);
       }
-      if(!dig(f.celular.value)) return erro('Informe o celular.');
+      if(!dig(f.celular.value)) return erro('Informe o <b>celular</b> do proponente — é por onde a Morais confirma a proposta.', f.celular);
     }
     if(n===2){
-      if(!moeda(f.creditoAprovado.value)) return erro('Informe o crédito aprovado.');
+      if(!moeda(f.creditoAprovado.value)) return erro('Informe o <b>crédito aprovado</b> pelo banco.', f.creditoAprovado);
     }
     return true;
   }
-  function erro(m){ mostrar('erro', m); return false; }
+  /* Em vez de um alert genérico, o campo que falta ganha contorno vermelho,
+     recebe o foco e rola para a vista. "Informe o celular" sem dizer ONDE é
+     o que não dá para entender. */
+  function erro(m, campo){
+    mostrar('erro', m);
+    if(campo){
+      document.querySelectorAll('.faltando').forEach(function(x){ x.classList.remove('faltando'); });
+      campo.classList.add('faltando');
+      try{ campo.scrollIntoView({block:'center',behavior:'smooth'}); campo.focus({preventScroll:true}); }catch(e){}
+      campo.addEventListener('input', function limpa(){ campo.classList.remove('faltando'); campo.removeEventListener('input', limpa); });
+    }
+    return false;
+  }
   function mostrar(tipo, msg){
     var el=document.getElementById('status');
     el.style.display='block';
     el.className='status '+tipo;
     el.innerHTML=msg;
-    if(PASSO!==3) alert(msg.replace(/<[^>]+>/g,''));
   }
 
   /* ---------- máscaras ---------- */
@@ -471,6 +519,11 @@
           var d=dig(e.target.value);
           e.target.value = d ? (parseInt(d,10)/100).toFixed(2).replace('.',',')
                                   .replace(/\B(?=(\d{3})+(?!\d))/g,'.') : '';
+          /* O recálculo tem de vir DEPOIS da máscara, nunca num oninput no
+             HTML. O listener inline roda primeiro e lê o texto cru: digitar
+             7.500,00 passava "750,000" para o parser, que entendia 750 —
+             era essa a renda total errada. */
+          somarRenda(); montarFluxo();
         });
       });
     document.querySelectorAll('[data-pad="1"]').forEach(function(el){
@@ -527,8 +580,8 @@
     var f=F();
     if(!validarPasso(1)){ irPara(1); return; }
     if(!validarPasso(2)){ irPara(2); return; }
-    if(!f.vendedor.value.trim()) return erro('Informe o corretor.');
-    if(!f.email.value.trim()) return erro('Informe o e-mail para receber a proposta.');
+    if(!f.vendedor.value.trim()) return erro('Informe o <b>corretor</b>.', f.vendedor);
+    if(!f.email.value.trim()) return erro('Informe o <b>e-mail</b> para receber a proposta.', f.email);
     if(!document.getElementById('aceite').checked) return erro('É preciso autorizar o uso dos dados.');
 
     var u=unidadeAtual();

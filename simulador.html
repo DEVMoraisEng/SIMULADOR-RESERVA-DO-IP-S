@@ -177,17 +177,7 @@
         </div>
       </div>
 
-      <div class="campo full" style="margin-top:6px;">
-        <label>Pré-visualização do fluxo de entrada</label>
-        <div style="background:#FFFBF0;border:1px dashed var(--amarelo);border-radius:8px;padding:14px;">
-          <div class="linha" style="margin-bottom:10px;">
-            <div class="campo"><label>Financiamento estimado (R$)</label><input type="text" id="financTeste" inputmode="numeric" placeholder="0,00"></div>
-            <div class="campo"></div>
-          </div>
-          <div id="fluxoTeste"></div>
-          <span class="ajuda">Só visualização: reproduz exatamente a conta do worker (email_timbrado.calcular). O financiamento e a parcela reais vêm do SIOP no envio.</span>
-        </div>
-      </div>
+
       <div class="campo full">
         <label>Linhas de financiamento que serão simuladas</label>
         <div class="produtos" id="produtos"></div>
@@ -349,82 +339,10 @@
     return false;
   }
 
-  /* ===== PRE-VISUALIZACAO DO FLUXO DE ENTRADA ==========================
-     Copia fiel de email_timbrado.calcular(). Serve para o item 8: conferir,
-     sem rodar o SIOP, que passada a data de 20/11/2026 o bloco "1 a 12"
-     perde uma parcela e o valor se redistribui nas que sobraram.
-     Se a conta mudar no worker, mudar aqui tambem — sao os dois unicos
-     lugares onde ela existe. ========================================= */
-  var FIXOS=[['Na assinatura',1000,'Sinal / ato'],['30 dias',3000,'Sinal 30 dias'],
-             ['60 dias',3000,'Sinal 60 dias'],['90 dias',3000,'Sinal 90 dias'],
-             ['20/12/2027',10000,'Balão em dezembro/2027'],
-             ['Entrega das chaves',7000,'Balão na entrega das chaves']];
-  var TOTAL_FIXO=27000;
-  var BASE_M1A12=12*860, BASE_M13A24=12*330, BASE_POS=24*788.3332806666667;
-  var BASE_FLEX=BASE_M1A12+BASE_M13A24+BASE_POS;
-  var ANCORA={ano:2026, mes:11};   // 1a parcela pre-chave: 20/11/2026
-
-  function mesesEntreAncora(d){
-    return (d.getFullYear()-ANCORA.ano)*12 + ((d.getMonth()+1)-ANCORA.mes);
-  }
-  function calcularFluxo(valorVenda, financiamento, subsidio, fgts, valorEntrada, dataRef){
-    var entradaBruta=(valorVenda||0)-(financiamento||0);
-    var entradaTotal=entradaBruta-(fgts||0)-(subsidio||0)-(valorEntrada||0);
-    var fixos=FIXOS.slice(), flex=0;
-    if(entradaTotal<=0){ entradaTotal=0; fixos=[]; flex=0; }
-    else if(entradaTotal<TOTAL_FIXO){
-      var f=entradaTotal/TOTAL_FIXO;
-      fixos=FIXOS.map(function(x){return [x[0], x[1]*f, x[2]];});
-      flex=0;
-    } else { flex=entradaTotal-TOTAL_FIXO; }
-
-    var t12,t1324,tpos;
-    if(flex<=BASE_FLEX){
-      var g=BASE_FLEX?flex/BASE_FLEX:0;
-      t12=BASE_M1A12*g; t1324=BASE_M13A24*g; tpos=BASE_POS*g;
-    } else {
-      tpos=BASE_POS;
-      var resto=flex-BASE_POS, base12=BASE_M1A12+BASE_M13A24;
-      t12=resto*(BASE_M1A12/base12); t1324=resto*(BASE_M13A24/base12);
-    }
-    var n1=12-Math.max(0, mesesEntreAncora(dataRef));
-    n1=Math.max(1, Math.min(12, n1));
-    var fluxo=fixos.slice();
-    if(t12/n1>0.005)   fluxo.push([n1+' X', t12/n1, 'parcelas (meses 1 a '+n1+')']);
-    if(t1324/12>0.005) fluxo.push(['12 X', t1324/12, 'parcelas (meses 13 a 24)']);
-    if(tpos/24>0.005)  fluxo.push(['24 X', tpos/24, 'pós-chaves']);
-    return {entradaBruta:entradaBruta, entradaTotal:entradaTotal, fluxo:fluxo, n1:n1};
-  }
-  function renderFluxoTeste(){
-    var alvo=document.getElementById('fluxoTeste'); if(!alvo) return;
-    var u=unidadeAtual(); var f=document.getElementById('formSimulacao');
-    var fin=parseMoeda((document.getElementById('financTeste')||{}).value);
-    if(!u || !fin){ alvo.innerHTML='<span class="ajuda">Informe o financiamento estimado para ver o fluxo.</span>'; return; }
-    var dtxt=(f.dataSimulacao.value||'');
-    var d=dtxt?new Date(dtxt+'T12:00:00'):new Date();
-    var q=calcularFluxo(u.valorVenda, fin, parseMoeda(f.subsidio.value),
-                        parseMoeda(f.fgtsDisponivel.value), parseMoeda(f.valorEntrada.value), d);
-    var linhas=q.fluxo.map(function(x){
-      return '<tr><td style="padding:4px 8px;border:1px solid #E7DCC7">'+x[0]+'</td>'+
-             '<td style="padding:4px 8px;border:1px solid #E7DCC7;text-align:right">R$ '+fmt(x[1])+'</td>'+
-             '<td style="padding:4px 8px;border:1px solid #E7DCC7;color:#6B5A45">'+x[2]+'</td></tr>';}).join('');
-    alvo.innerHTML='<table style="border-collapse:collapse;width:100%;font-size:12px">'+
-      '<tr><td style="padding:4px 8px;border:1px solid #E7DCC7"><b>ENTRADA A PAGAR</b></td>'+
-      '<td style="padding:4px 8px;border:1px solid #E7DCC7;text-align:right"><b>R$ '+fmt(q.entradaTotal)+'</b></td>'+
-      '<td style="padding:4px 8px;border:1px solid #E7DCC7;color:#6B5A45">bloco 1 a 12 com '+q.n1+' parcela(s)</td></tr>'+
-      linhas+'</table>';
-  }
-  ['financTeste'].forEach(function(id){
-    var el=document.getElementById(id); if(el) el.addEventListener('input',renderFluxoTeste);
-  });
-  ['subsidio','fgtsDisponivel','valorEntrada','dataSimulacao'].forEach(function(nome){
-    var el=document.querySelector('[name="'+nome+'"]'); if(el) el.addEventListener('input',renderFluxoTeste);
-  });
-
   function irPara(n){
     document.querySelectorAll('.etapa').forEach(function(el){el.classList.toggle('oculto',el.dataset.etapa!==String(n));});
     document.querySelectorAll('.passo').forEach(function(el){var p=Number(el.dataset.passo);el.classList.remove('ativo','concluido');if(p===n)el.classList.add('ativo');else if(p<n)el.classList.add('concluido');});
-    if(n===2){renderProdutos();atualizarComissao();renderFluxoTeste();}
+    if(n===2){renderProdutos();atualizarComissao();}
     window.scrollTo({top:0,behavior:'smooth'});
   }
 

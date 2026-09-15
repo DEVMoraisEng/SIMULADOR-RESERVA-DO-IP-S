@@ -8,7 +8,9 @@
     "informacoes": "Decorado",
     "decorado": false,
     "disponivel": false,
-    "vendido": true
+    "reservado": false,
+    "vendido": true,
+    "vendidaCru": "SIM"
   },
   {
     "unidade": "2",
@@ -19,7 +21,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "3",
@@ -30,7 +34,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "4",
@@ -41,7 +47,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "5",
@@ -52,7 +60,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "6",
@@ -63,7 +73,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "7",
@@ -74,7 +86,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "8",
@@ -85,7 +99,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "9",
@@ -96,7 +112,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "10",
@@ -107,7 +125,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "11",
@@ -118,7 +138,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "12",
@@ -129,7 +151,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "13",
@@ -140,7 +164,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "14",
@@ -151,7 +177,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "15",
@@ -162,7 +190,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "16",
@@ -173,7 +203,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "17",
@@ -184,7 +216,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "18",
@@ -195,7 +229,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "19",
@@ -206,7 +242,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "20",
@@ -217,7 +255,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "21",
@@ -228,7 +268,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "22",
@@ -239,7 +281,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "23",
@@ -250,7 +294,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "24",
@@ -261,7 +307,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "25",
@@ -272,7 +320,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "26",
@@ -283,7 +333,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "27",
@@ -294,7 +346,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "28",
@@ -305,7 +359,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "29",
@@ -316,7 +372,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "30",
@@ -327,7 +385,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "31",
@@ -338,7 +398,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "32",
@@ -349,7 +411,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "33",
@@ -360,7 +424,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "34",
@@ -371,7 +437,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "35",
@@ -382,7 +450,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "36",
@@ -393,7 +463,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "37",
@@ -404,7 +476,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "38",
@@ -415,7 +489,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "39",
@@ -426,7 +502,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "40",
@@ -437,7 +515,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "41",
@@ -448,7 +528,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "42",
@@ -459,7 +541,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "43",
@@ -470,7 +554,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "44",
@@ -481,7 +567,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "45",
@@ -492,7 +580,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "46",
@@ -503,7 +593,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "47",
@@ -514,7 +606,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "48",
@@ -525,7 +619,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "49",
@@ -536,7 +632,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "50",
@@ -547,7 +645,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "51",
@@ -558,7 +658,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": true,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "52",
@@ -569,7 +671,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "53",
@@ -580,7 +684,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "54",
@@ -591,7 +697,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "55",
@@ -602,7 +710,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "56",
@@ -613,7 +723,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "57",
@@ -624,7 +736,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "58",
@@ -635,7 +749,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "59",
@@ -646,7 +762,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "60",
@@ -657,7 +775,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "61",
@@ -668,7 +788,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "62",
@@ -679,6 +801,8 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "vendido": false
+    "reservado": false,
+    "vendido": false,
+    "vendidaCru": "NAO"
   }
 ]

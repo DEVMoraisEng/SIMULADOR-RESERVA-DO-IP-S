@@ -83,14 +83,33 @@
     padding:8px 14px;border-radius:7px;font-size:13px;font-weight:700;white-space:nowrap;}
   .btn-voltar:hover{background:rgba(255,255,255,.3);}
   @media(max-width:640px){ .btn-voltar{margin:8px 0 0 0;} }
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(12px);
+    z-index:80;max-width:min(560px,92vw);padding:13px 42px 13px 16px;border-radius:9px;
+    font-size:13.5px;line-height:1.5;box-shadow:0 8px 26px rgba(0,0,0,.18);
+    opacity:0;pointer-events:none;transition:.22s ease;}
+  .toast.visivel{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0);}
+  .toast.erro{background:#FDECEA;border:1px solid #E3A79B;color:#8A2E17;}
+  .toast.ok{background:#EAF6EF;border:1px solid #8CC9A5;color:#1D5433;}
+  .toast.processando{background:#FBEEC8;border:1px solid #EFB700;color:#7A4A16;}
+  .toast .fecha{position:absolute;right:13px;top:10px;cursor:pointer;font-size:17px;opacity:.6;}
   .faltando{border-color:#B0431F !important;box-shadow:0 0 0 3px rgba(176,67,31,.18) !important;}
   .destaque-sim{background:#FFFBF0;border-color:var(--amarelo) !important;}
+  .produto{border:1px solid var(--borda);border-left:4px solid var(--borda);border-radius:6px;
+    padding:11px 14px;font-size:13px;font-weight:700;color:var(--texto-suave);background:#fff;
+    cursor:pointer;display:flex;align-items:center;gap:10px;transition:.12s;}
+  .produto:hover{border-color:var(--marrom2);}
+  .produto .marca{width:18px;height:18px;border-radius:4px;border:2px solid var(--borda);
+    flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;}
+  .produto.on{border-left-color:var(--amarelo);color:var(--marrom2);background:#FFFBF0;}
+  .produto.on .marca{background:var(--amarelo);border-color:var(--amarelo);color:var(--marrom);}
   .anexo{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--borda);}
   .anexo label{flex:1;font-size:13px;color:var(--texto);font-weight:600;margin:0;}
   .anexo input[type=file]{font-size:12px;max-width:290px;}
 </style>
 </head>
 <body>
+
+<div id="toast" class="toast"></div>
 
 <div id="avisoOffline" class="aviso-offline">
   <strong>Serviço temporariamente indisponível.</strong>
@@ -106,7 +125,7 @@
     <h1>Proposta de Compra</h1>
     <span>CONDOMÍNIO RESERVA DOS IPÊS</span>
   </div>
-  <a href="index.html" class="btn-voltar">← Voltar para o mapa</a>
+
 </header>
 
 <main>
@@ -201,7 +220,7 @@
     </div>
 
     <div class="rodape">
-      <a href="index.html" class="btn-secundario" style="text-decoration:none;display:inline-block">← Voltar para o mapa</a>
+      <span></span>
       <button type="button" class="btn-primario" onclick="irPara(2)">Continuar</button>
     </div>
   </section>
@@ -287,7 +306,7 @@
           <input type="number" name="agravamento" min="0" max="100" step="1" value="0"></div>
       </div>
       <div class="checks" style="margin-top:4px">
-        <label class="check"><input type="checkbox" name="possuiImovelCidade"> Possui imóvel na cidade</label>
+        <label class="check"><input type="checkbox" name="possuiImovelCidade" onchange="renderProdutos()"> Possui imóvel na cidade</label>
         <label class="check"><input type="checkbox" name="fgts3anos"> Tem 3 anos de FGTS</label>
         <label class="check"><input type="checkbox" name="maisDeUmComprador"> Mais de um comprador</label>
         <label class="check"><input type="checkbox" name="jaBeneficiado" onchange="verSiopSub()"> Já foi beneficiado com subsídio FGTS/União</label>
@@ -301,10 +320,18 @@
           <label class="check"><input type="checkbox" name="creditoSalarioCaixa"> Tem ou gostaria de ter crédito salário na CAIXA ou produto de Previdência</label>
         </div>
       </div>
+      <div style="margin-top:12px">
+        <label style="font-size:13px;font-weight:700;color:var(--marrom)">Linhas de financiamento que serão simuladas<span class="obrig">*</span></label>
+        <div id="produtos" style="display:flex;flex-direction:column;gap:7px;margin-top:7px"></div>
+        <span class="ajuda" id="produtosAjuda"></span>
+      </div>
     </div>
 
-    <div class="secao">Entrada — fluxo de pagamento</div>
-    <div id="fluxo"></div>
+    <!-- O fluxo continua sendo CALCULADO (é o que vai no e-mail e no
+         ESQUEMA ENTRADA do Notion), mas não é mais mostrado aqui: a tela
+         ficava enorme e o número só é definitivo depois da simulação. -->
+    <div id="fluxo" style="display:none"></div>
+    <div id="resumoEntrada"></div>
 
     <div class="rodape">
       <button type="button" class="btn-secundario" onclick="irPara(1)">Voltar</button>
@@ -393,6 +420,11 @@
   </section>
 
   </form>
+
+  <p class="ajuda" style="text-align:center;margin-top:24px;">
+    <a href="index.html" style="color:var(--marrom2);font-weight:600;">← Voltar ao mapa de vendas</a> ·
+    Proposta sujeita à análise e aprovação da Morais.
+  </p>
 </main>
 
 <script>
@@ -557,6 +589,17 @@
     verBlocoSiop();
     alvo.dataset.esquema=q.fluxo.map(function(x){return x[0]+': '+brl(x[1])+' ('+x[2]+')';}).join('; ');
 
+    var resumo=document.getElementById('resumoEntrada');
+    if(resumo){
+      resumo.innerHTML='<div class="resumo" style="margin:10px 0 0">'+
+        '<b>Entrada a pagar: '+brl(q.total)+'</b><br>'+
+        'Valor de venda '+brl(u.valorVenda)+' − financiado '+brl(q.financiado)+
+        (q.fgts?' − FGTS '+brl(q.fgts):'')+
+        (q.subsidio?' − subsídio '+brl(q.subsidio):'')+
+        (q.entradaInformada?' − valor para entrada '+brl(q.entradaInformada):'')+
+        '.<br><span style="font-size:12px;color:var(--texto-suave)">O fluxo completo '+
+        '(sinais, balões e parcelas) vai no e-mail da proposta.</span></div>';
+    }
     var cab='<table class="tabfluxo">'+
       '<tr><td>Valor de venda</td><td class="num">'+brl(u.valorVenda)+'</td><td></td></tr>'+
       '<tr><td>(–) Valor financiado pela Caixa</td><td class="num">'+brl(q.financiado)+'</td>'+
@@ -634,6 +677,31 @@
 
   /* ITEM 16 — sem crédito aprovado, some o campo de crédito e a origem das
      rendas passa a ser exigida (é o que substitui a análise do banco). */
+  /* Mesmas listas do simulador — se mudarem lá, mudam aqui. São as linhas
+     que o SIOP aceita conforme o cliente já tenha imóvel na cidade. */
+  var PROD_COM=['SBPE SFH - TR - AQUISIÇÃO DE IMÓVEL RESIDENCIAL NOVO'];
+  var PROD_SEM=['NPMCMV - IMÓVEL NOVO INDIVIDUAL','NPMCMV - IMÓVEL NOVO INDIVIDUAL','PRÓCOTISTA - AQUISIÇÃO DE IMÓVEL RESIDENCIAL NOVO'];
+  var produtosSelecionados=[];
+  function renderProdutos(){
+    var alvo=document.getElementById('produtos'); if(!alvo) return;
+    var comImovel=F().possuiImovelCidade.checked;
+    var l=comImovel?PROD_COM:PROD_SEM;
+    produtosSelecionados=[];
+    alvo.innerHTML=l.map(function(p,i){
+      return '<div class="produto" data-i="'+i+'" onclick="alternarProduto(this)">'+
+             '<span class="marca">✓</span><span>'+p+'</span></div>';
+    }).join('');
+    document.getElementById('produtosAjuda').textContent =
+      (comImovel ? 'Cliente com imóvel na cidade: apenas a linha SBPE é elegível. '
+                 : 'Cliente sem imóvel na cidade: linhas NPMCMV e Prócotista. ') +
+      'Clique para marcar/desmarcar quais serão simuladas.';
+  }
+  function alternarProduto(el){
+    el.classList.toggle('on');
+    produtosSelecionados=[].slice.call(document.querySelectorAll('#produtos .produto.on span:last-child'))
+      .map(function(x){return x.textContent;});
+  }
+
   function verSiopSub(){
     var f=F();
     document.getElementById('boxConcessaoProp').style.display = f.jaBeneficiado.checked ? '' : 'none';
@@ -647,8 +715,10 @@
     var f=F(), u=unidadeAtual();
     var vai = f.creditoAprovadoCaixa.value==='SIM' && u &&
               (u.avaliacao||0)>0 && moeda(f.creditoAprovado.value) >= (u.avaliacao||0)*0.8-0.5;
+    var antes=document.getElementById('boxSiop').style.display;
     document.getElementById('boxSiop').style.display = vai ? '' : 'none';
     document.getElementById('secaoSiop').style.display = vai ? '' : 'none';
+    if(vai && antes==='none') renderProdutos();
   }
 
   function verCredito(){
@@ -768,6 +838,9 @@
           return erro('A simulação precisa da <b>renda</b> do proponente.', f.rendaFormal);
         if(f.jaBeneficiado.checked && !f.dataConcessaoBeneficio.value)
           return erro('Informe a <b>data da concessão do benefício</b>.', f.dataConcessaoBeneficio);
+        if(!produtosSelecionados.length)
+          return erro('Marque pelo menos uma <b>linha de financiamento</b> para simular.',
+                      document.querySelector('#produtos .produto'));
       }
       if(f.creditoAprovadoCaixa.value==='NAO'){
         if(!f.origemFormal.value.trim() && !f.origemInformal.value.trim())
@@ -794,11 +867,19 @@
     }
     return false;
   }
+  /* A caixa #status mora no ÚLTIMO passo. Nos passos 1 a 4 ela está oculta,
+     então a mensagem de "falta preencher X" era escrita onde ninguém via — e
+     o botão Continuar parecia não fazer nada. Agora existe um aviso fixo na
+     tela, que aparece em qualquer passo. */
   function mostrar(tipo, msg){
     var el=document.getElementById('status');
-    el.style.display='block';
-    el.className='status '+tipo;
-    el.innerHTML=msg;
+    if(el){ el.style.display='block'; el.className='status '+tipo; el.innerHTML=msg; }
+    var t=document.getElementById('toast');
+    t.className='toast '+tipo;
+    t.innerHTML=msg+'<span class="fecha" onclick="this.parentNode.classList.remove(\'visivel\')">×</span>';
+    t.classList.add('visivel');
+    clearTimeout(t._t);
+    if(tipo!=='erro') t._t=setTimeout(function(){ t.classList.remove('visivel'); }, 6000);
   }
 
   /* ---------- máscaras ---------- */
@@ -973,6 +1054,7 @@
          padrão e devolveria uma parcela que não é a do cliente. */
       prazoMeses:Math.min(420, Number(f.prazoMeses.value)||420),
       seguradora:f.seguradora.value,
+      produtos:produtosSelecionados.slice(),
       agravamento:Number(f.agravamento.value)||0,
       possuiImovelCidade:f.possuiImovelCidade.checked,
       fgts3anos:f.fgts3anos.checked,
@@ -1038,6 +1120,7 @@
   montarAnexos();
   verConjuge();
   verSiopSub();
+  renderProdutos();
   verCredito();
   verBlocoSiop();
   somarRenda();

@@ -453,6 +453,9 @@
   /* ---------- padronização: MAIÚSCULO sem acento ----------
      A mesma regra do simulador. O Apps Script padroniza de novo na hora de
      gravar — aqui é só para a pessoa ver o que vai ser gravado. */
+  function esc_(v){
+    return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
   function padrao(v){
     return String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'')
       .toUpperCase().replace(/\s+/g,' ').trim();
@@ -807,6 +810,9 @@
   /* ---------- navegação entre os passos ---------- */
   function irPara(n){
     if(n>PASSO && !validarPasso(PASSO)) return;
+    /* O aviso vermelho ficava na tela mesmo depois de o campo ser
+       preenchido, dando a impressao de que o erro continuava. */
+    limparAviso();
     PASSO=n;
     document.querySelectorAll('[data-etapa]').forEach(function(s){
       s.style.display = (s.dataset.etapa===String(n)) ? 'block' : 'none';
@@ -844,7 +850,12 @@
         /* Vai rodar o SIOP: sem estes campos a simulação sai com um perfil
            padrão e devolve a parcela de outra pessoa. */
         if(!Number(f.prazoMeses.value)) return erro('Informe o <b>prazo do financiamento</b>.', f.prazoMeses);
-        if(!f.dataNascimento.value) return erro('A simulação precisa da <b>data de nascimento</b> do proponente.', f.dataNascimento);
+        if(!String(f.dataNascimento.value||'').trim()){
+          /* O campo mora no passo 1. Sem trocar de passo, a mensagem aparecia
+             apontando para um campo que nem estava na tela. */
+          irPara(1);
+          return erro('A simulação precisa da <b>data de nascimento</b> do proponente (passo 1).', f.dataNascimento);
+        }
         if(!moeda(document.getElementById('rendaTotal').value))
           return erro('A simulação precisa da <b>renda</b> do proponente.', f.rendaFormal);
         if(f.jaBeneficiado.checked && !f.dataConcessaoBeneficio.value)
@@ -868,6 +879,11 @@
   /* Em vez de um alert genérico, o campo que falta ganha contorno vermelho,
      recebe o foco e rola para a vista. "Informe o celular" sem dizer ONDE é
      o que não dá para entender. */
+  function limparAviso(){
+    var el=document.getElementById('status'); if(el) el.style.display='none';
+    var t=document.getElementById('toast'); if(t) t.classList.remove('visivel');
+    document.querySelectorAll('.faltando').forEach(function(x){ x.classList.remove('faltando'); });
+  }
   function erro(m, campo){
     mostrar('erro', m);
     if(campo){
@@ -1002,6 +1018,7 @@
   F().addEventListener('submit', function(e){
     e.preventDefault();
     var f=F();
+    limparAviso();
     if(!validarPasso(1)){ irPara(1); return; }
     if(!validarPasso(2)){ irPara(2); return; }
     if(!validarPasso(4)){ irPara(4); return; }
@@ -1109,6 +1126,10 @@
               ? '<br><br><b style="color:#B0431F">Atenção: '+r.ignoradas.length+' campo(s) não existem na base '+
                 'do Notion e não foram gravados:</b><br><span style="font-size:12px">'+
                 r.ignoradas.join(', ')+'</span>'
+              : '')+
+            (r.simulando===false && r.motivoSimulacao
+              ? '<br><br><b style="color:#B0431F">A simulação NÃO foi enfileirada.</b><br>'+
+                '<span style="font-size:12px">'+esc_(r.motivoSimulacao)+'</span>'
               : '')+
             (r.emailOk===false
               ? '<br><br><b style="color:#B0431F">Atenção: a proposta foi gravada, mas o e-mail NÃO saiu.</b><br>'+

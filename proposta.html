@@ -1118,9 +1118,10 @@
             'O retorno chega no e-mail informado.'+
             (r.simulando
               ? '<br><br><b>A parcela está sendo simulada na CAIXA.</b> Como o crédito bate no '+
-                'teto de 80% da avaliação, você recebe agora um recibo com os documentos, e '+
-                '<b>a proposta completa — com a parcela e o fluxo — chega por e-mail em alguns '+
-                'minutos</b>, quando a simulação terminar.'
+                'teto de 80% da avaliação, a proposta entrou na fila de simulação. '+
+                '<b>O e-mail com a proposta completa — parcela, fluxo e documentos — chega '+
+                'quando a simulação terminar</b> (alguns minutos). Se o sistema estiver fora '+
+                'do ar, a proposta fica na fila e o e-mail sai assim que ele voltar.'
               : '')+
             (r.ignoradas && r.ignoradas.length
               ? '<br><br><b style="color:#B0431F">Atenção: '+r.ignoradas.length+' campo(s) não existem na base '+

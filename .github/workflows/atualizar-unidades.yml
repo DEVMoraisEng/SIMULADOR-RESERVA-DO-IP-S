@@ -1,7 +1,7 @@
 name: Atualizar unidades (Notion -> unidades.json)
 on:
   schedule:
-    - cron: '0 */6 * * *'      # a cada 6h
+    - cron: '*/10 * * * *'      # a cada 10 min (o GitHub costuma atrasar alguns minutos)
   workflow_dispatch:            # botão manual
   repository_dispatch:          # disparado pelo portal ao editar uma unidade
     types: [unidades_update]

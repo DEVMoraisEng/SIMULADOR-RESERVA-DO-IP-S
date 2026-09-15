@@ -78,6 +78,11 @@
   .secao{font-size:14px;font-weight:700;color:var(--marrom);margin:22px 0 10px;
          border-bottom:1px solid var(--borda);padding-bottom:6px;}
   .secao:first-of-type{margin-top:0;}
+  .btn-voltar{margin-left:auto;align-self:center;background:rgba(255,255,255,.16);
+    border:1px solid rgba(255,255,255,.45);color:#fff;text-decoration:none;
+    padding:8px 14px;border-radius:7px;font-size:13px;font-weight:700;white-space:nowrap;}
+  .btn-voltar:hover{background:rgba(255,255,255,.3);}
+  @media(max-width:640px){ .btn-voltar{margin:8px 0 0 0;} }
   .faltando{border-color:#B0431F !important;box-shadow:0 0 0 3px rgba(176,67,31,.18) !important;}
   .destaque-sim{background:#FFFBF0;border-color:var(--amarelo) !important;}
   .anexo{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--borda);}
@@ -101,6 +106,7 @@
     <h1>Proposta de Compra</h1>
     <span>CONDOMÍNIO RESERVA DOS IPÊS</span>
   </div>
+  <a href="index.html" class="btn-voltar">← Voltar para o mapa</a>
 </header>
 
 <main>
@@ -195,7 +201,7 @@
     </div>
 
     <div class="rodape">
-      <span></span>
+      <a href="index.html" class="btn-secundario" style="text-decoration:none;display:inline-block">← Voltar para o mapa</a>
       <button type="button" class="btn-primario" onclick="irPara(2)">Continuar</button>
     </div>
   </section>

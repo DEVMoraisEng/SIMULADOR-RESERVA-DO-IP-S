@@ -534,6 +534,7 @@
     if(dadosAoVivo && !aoVivo) return;
     if(aoVivo) dadosAoVivo=true;
     var hash=JSON.stringify(d);
+    if(aoVivo){ var ar=document.getElementById('avisoRetrato'); if(ar) ar.style.display='none'; }
     if(hash===ultimoHash && unidadesProntas){ tirarVeu(); return; }
     ultimoHash=hash; UNIDADES=d;
     try{ localStorage.setItem('unidadesCache', hash); }catch(e){}

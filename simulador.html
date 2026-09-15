@@ -113,8 +113,19 @@
           <label class="check"><input type="checkbox" name="possuiImovelCidade"> Possui imóvel na cidade selecionada</label>
           <label class="check"><input type="checkbox" name="fgts3anos"> Possui 3 anos de trabalho sob regime do FGTS</label>
           <label class="check"><input type="checkbox" name="maisDeUmComprador"> Possui mais de um comprador e/ou dependente na proposta</label>
-          <label class="check"><input type="checkbox" name="jaBeneficiado"> Já foi beneficiado com subsídio FGTS/União</label>
-          <label class="check"><input type="checkbox" name="relacionamentoCaixa"> Tem ou gostaria de ter relacionamento com a CAIXA</label>
+          <label class="check"><input type="checkbox" name="jaBeneficiado" onchange="verSubcampos()"> Já foi beneficiado com subsídio FGTS/União</label>
+          <!-- O SIOP só mostra a data depois de marcar "já beneficiado"; aqui é
+               igual, para o formulário espelhar a tela da CAIXA. -->
+          <div class="campo" id="boxConcessao" style="display:none;margin:2px 0 8px 26px;max-width:260px">
+            <label>Data da concessão do benefício</label>
+            <input type="date" name="dataConcessaoBeneficio">
+          </div>
+
+          <label class="check"><input type="checkbox" name="relacionamentoCaixa" onchange="verSubcampos()"> Tem ou gostaria de ter relacionamento com a CAIXA</label>
+          <div id="boxRelacionamento" style="display:none;margin:2px 0 8px 26px">
+            <label class="check"><input type="checkbox" name="servidorPublico"> Algum dos participantes é servidor público</label>
+            <label class="check"><input type="checkbox" name="creditoSalarioCaixa"> Tem ou gostaria de ter crédito salário na CAIXA ou produto de Previdência</label>
+          </div>
         </div>
       </div>
       <div class="linha" style="margin-top:16px;">
@@ -339,6 +350,18 @@
     return false;
   }
 
+  /* Os subcampos seguem o mesmo comportamento do SIOP: só aparecem depois de
+     marcar o pai. Desmarcar o pai limpa o que estava embaixo — senão a
+     simulação seguiria com um dado que a pessoa não vê mais na tela. */
+  function verSubcampos(){
+    var f=document.getElementById('formSimulacao');
+    var ben=f.jaBeneficiado.checked, rel=f.relacionamentoCaixa.checked;
+    document.getElementById('boxConcessao').style.display = ben ? '' : 'none';
+    document.getElementById('boxRelacionamento').style.display = rel ? '' : 'none';
+    if(!ben) f.dataConcessaoBeneficio.value='';
+    if(!rel){ f.servidorPublico.checked=false; f.creditoSalarioCaixa.checked=false; }
+  }
+
   function irPara(n){
     document.querySelectorAll('.etapa').forEach(function(el){el.classList.toggle('oculto',el.dataset.etapa!==String(n));});
     document.querySelectorAll('.passo').forEach(function(el){var p=Number(el.dataset.passo);el.classList.remove('ativo','concluido');if(p===n)el.classList.add('ativo');else if(p<n)el.classList.add('concluido');});
@@ -348,6 +371,8 @@
 
   /* Enquanto digita já sobe para maiúsculo: a pessoa vê exatamente o que
      será gravado, em vez de descobrir depois que o nome mudou sozinho. */
+  verSubcampos();
+
   document.querySelectorAll('[data-padrao="texto"]').forEach(function(c){
     c.addEventListener('input',function(e){
       var pos=e.target.selectionStart;
@@ -414,7 +439,11 @@
       valorCompraVenda:u.valorVenda, valorAvaliacao:u.avaliacao,
       possuiImovelCidade:f.possuiImovelCidade.checked, fgts3anos:f.fgts3anos.checked,
       maisDeUmComprador:f.maisDeUmComprador.checked, jaBeneficiado:f.jaBeneficiado.checked,
-      relacionamentoCaixa:f.relacionamentoCaixa.checked, dataNascimento:f.dataNascimento.value,
+      dataConcessaoBeneficio:(f.jaBeneficiado.checked ? f.dataConcessaoBeneficio.value : ''),
+      relacionamentoCaixa:f.relacionamentoCaixa.checked,
+      servidorPublico:(f.relacionamentoCaixa.checked && f.servidorPublico.checked),
+      creditoSalarioCaixa:(f.relacionamentoCaixa.checked && f.creditoSalarioCaixa.checked),
+      dataNascimento:f.dataNascimento.value,
       rendaIndividual:parseMoeda(f.rendaIndividual.value), seguradora:f.seguradora.value,
       prazoMeses:Math.min(420,Number(f.prazoMeses.value)||420),
       sistemaAmortizacao:f.sistemaAmortizacao.value,

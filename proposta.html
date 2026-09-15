@@ -79,6 +79,10 @@
          border-bottom:1px solid var(--borda);padding-bottom:6px;}
   .secao:first-of-type{margin-top:0;}
   .faltando{border-color:#B0431F !important;box-shadow:0 0 0 3px rgba(176,67,31,.18) !important;}
+  .destaque-sim{background:#FFFBF0;border-color:var(--amarelo) !important;}
+  .anexo{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--borda);}
+  .anexo label{flex:1;font-size:13px;color:var(--texto);font-weight:600;margin:0;}
+  .anexo input[type=file]{font-size:12px;max-width:290px;}
 </style>
 </head>
 <body>
@@ -103,7 +107,9 @@
   <div class="passos">
     <div class="passo ativo" data-p="1">1. Unidade e proponente</div>
     <div class="passo" data-p="2">2. Renda e financiamento</div>
-    <div class="passo" data-p="3">3. Enviar</div>
+    <div class="passo" data-p="3">3. Fiadores</div>
+    <div class="passo" data-p="4">4. Anexos</div>
+    <div class="passo" data-p="5">5. Enviar</div>
   </div>
 
   <form id="formProposta" autocomplete="off">
@@ -120,6 +126,20 @@
       <div class="campo">
         <label>Preço</label>
         <input type="text" id="preco" readonly>
+      </div>
+    </div>
+
+    <div id="avisoUnidade" class="status erro" style="display:none;margin-bottom:14px"></div>
+
+    <div class="linha" style="margin-bottom:6px">
+      <div class="campo full">
+        <label>Cliente com crédito aprovado na Caixa<span class="obrig">*</span></label>
+        <select name="creditoAprovadoCaixa" onchange="verCredito()">
+          <option value="SIM">SIM — já tem carta de crédito aprovada</option>
+          <option value="NAO">NÃO — ainda não passou pela análise</option>
+        </select>
+        <span class="ajuda">Sem crédito aprovado, a proposta segue sem valor de financiamento
+        e a origem das rendas passa a ser obrigatória.</span>
       </div>
     </div>
 
@@ -144,12 +164,12 @@
       <div class="campo"><label>Nacionalidade</label><input type="text" name="nacionalidade" value="BR" data-pad="1"></div>
       <div class="campo"><label>Profissão</label><input type="text" name="profissao" data-pad="1"></div>
       <div class="campo"><label>Data de nascimento</label><input type="date" name="dataNascimento"></div>
+      <div class="campo"><label>E-mail do proponente</label><input type="email" name="emailProponente"></div>
       <div class="campo full"><label>Endereço</label><input type="text" name="endereco" data-pad="1"></div>
       <div class="campo"><label>Telefone</label>
         <input type="text" name="telefone" inputmode="numeric" maxlength="15" placeholder="(00) 0000-0000"></div>
       <div class="campo"><label>Celular<span class="obrig">*</span></label>
         <input type="text" name="celular" inputmode="numeric" maxlength="15" placeholder="(00) 00000-0000" required></div>
-      <div class="campo"><label>Participação (%)</label><input type="number" name="participacao" value="100"></div>
       <div class="campo"><label>Possui imóvel próprio</label>
         <select name="possuiImovel"><option>NÃO</option><option>SIM</option></select></div>
     </div>
@@ -160,7 +180,18 @@
         <div class="campo"><label>Nome do cônjuge</label><input type="text" name="conjuge" data-pad="1"></div>
         <div class="campo"><label>CPF do cônjuge</label>
           <input type="text" name="cpfConjuge" inputmode="numeric" maxlength="14" placeholder="000.000.000-00"></div>
+        <div class="campo"><label>Saldo FGTS do cônjuge (R$)</label>
+          <input type="text" name="saldoFgtsConjuge" inputmode="numeric" placeholder="0,00"></div>
+        <div class="campo"><label>Renda formal do cônjuge (R$)</label>
+          <input type="text" name="rendaFormalConjuge" inputmode="numeric" placeholder="0,00"></div>
+        <div class="campo campo-origem"><label>Origem da renda formal do cônjuge</label>
+          <input type="text" name="origemFormalConjuge" data-pad="1"></div>
+        <div class="campo"><label>Renda informal do cônjuge (R$)</label>
+          <input type="text" name="rendaInformalConjuge" inputmode="numeric" placeholder="0,00"></div>
+        <div class="campo campo-origem"><label>Origem da renda informal do cônjuge</label>
+          <input type="text" name="origemInformalConjuge" data-pad="1"></div>
       </div>
+      <span class="ajuda">O saldo de FGTS do cônjuge entra na composição da entrada junto com o do titular.</span>
     </div>
 
     <div class="secao">Referências</div>
@@ -190,10 +221,10 @@
       <div class="campo"><label>Tempo de serviço</label><input type="text" name="tempoServico" data-pad="1"></div>
       <div class="campo"><label>Renda formal (R$)</label>
         <input type="text" name="rendaFormal" inputmode="numeric" placeholder="0,00"></div>
-      <div class="campo"><label>Origem da renda formal</label><input type="text" name="origemFormal" data-pad="1"></div>
+      <div class="campo campo-origem"><label>Origem da renda formal</label><input type="text" name="origemFormal" data-pad="1"></div>
       <div class="campo"><label>Renda informal (R$)</label>
         <input type="text" name="rendaInformal" inputmode="numeric" placeholder="0,00"></div>
-      <div class="campo"><label>Origem da renda informal</label><input type="text" name="origemInformal" data-pad="1"></div>
+      <div class="campo campo-origem"><label>Origem da renda informal</label><input type="text" name="origemInformal" data-pad="1"></div>
       <div class="campo"><label>Renda total</label><input type="text" id="rendaTotal" readonly></div>
     </div>
 
@@ -206,9 +237,18 @@
       <div class="campo"><label>Valor para entrada (R$)</label>
         <input type="text" name="valorEntrada" inputmode="numeric" placeholder="0,00">
         <span class="ajuda">Recursos próprios. Abate a entrada junto com FGTS e subsídio.</span></div>
-      <div class="campo"><label>Crédito aprovado (R$)<span class="obrig">*</span></label>
+      <div class="campo" id="boxCredito"><label>Crédito aprovado (R$)<span class="obrig">*</span></label>
         <input type="text" name="creditoAprovado" inputmode="numeric" placeholder="0,00">
-        <span class="ajuda">O valor que o banco aprovou na análise.</span></div>
+        <span class="ajuda" id="ajudaCredito">O valor que o banco aprovou na análise.</span></div>
+    </div>
+    <div id="avisoTeto" class="status processando" style="display:none;margin-bottom:10px"></div>
+    <div class="linha">
+      <div class="campo"><label>Valor financiado (R$)</label>
+        <input type="text" id="valorFinanciado" readonly>
+        <span class="ajuda">Crédito aprovado, limitado ao teto de 80% da avaliação.</span></div>
+      <div class="campo"><label>Parcela do financiamento (R$)</label>
+        <input type="text" name="parcelaFinanciamento" inputmode="numeric" placeholder="0,00">
+        <span class="ajuda" id="ajudaParcela"></span></div>
     </div>
 
     <div class="secao">Análise</div>
@@ -238,8 +278,56 @@
     </div>
   </section>
 
-  <!-- ============================ PASSO 3 ============================ -->
+  <!-- ============================ PASSO 3 · FIADORES ============================ -->
   <section class="card" data-etapa="3" style="display:none">
+    <h2>Fiadores</h2>
+    <div class="resumo" style="margin-bottom:18px">
+      <b>Requisitos pra ser fiador:</b> ter mais de 18 anos e nome limpo no SPC/SERASA.
+    </div>
+
+    <div class="secao">Fiador 1</div>
+    <div class="linha">
+      <div class="campo full"><label>Nome</label><input type="text" name="fiador1" data-pad="1"></div>
+      <div class="campo"><label>CPF</label>
+        <input type="text" name="cpfFiador1" inputmode="numeric" maxlength="14" placeholder="000.000.000-00"></div>
+      <div class="campo"><label>E-mail</label><input type="email" name="emailFiador1"></div>
+      <div class="campo full"><label>Endereço</label><input type="text" name="enderecoFiador1" data-pad="1"></div>
+    </div>
+
+    <div class="secao">Fiador 2</div>
+    <div class="linha">
+      <div class="campo full"><label>Nome</label><input type="text" name="fiador2" data-pad="1"></div>
+      <div class="campo"><label>CPF</label>
+        <input type="text" name="cpfFiador2" inputmode="numeric" maxlength="14" placeholder="000.000.000-00"></div>
+      <div class="campo"><label>E-mail</label><input type="email" name="emailFiador2"></div>
+      <div class="campo full"><label>Endereço</label><input type="text" name="enderecoFiador2" data-pad="1"></div>
+    </div>
+
+    <div class="rodape">
+      <button type="button" class="btn-secundario" onclick="irPara(2)">Voltar</button>
+      <button type="button" class="btn-primario" onclick="irPara(4)">Continuar</button>
+    </div>
+  </section>
+
+  <!-- ============================ PASSO 4 · ANEXOS ============================ -->
+  <section class="card" data-etapa="4" style="display:none">
+    <h2>Anexos</h2>
+    <div class="resumo" style="margin-bottom:18px">
+      Os arquivos vão junto com o e-mail da proposta. Limite de <b>20 MB no total</b>.
+      Se faltar algum documento, dá para enviar depois — o que não for anexado aqui
+      pode ser juntado na página da proposta no Notion.
+    </div>
+    <div id="anexos"></div>
+    <div id="anexoResumo" class="ajuda" style="margin-top:10px"></div>
+
+    <div class="rodape">
+      <button type="button" class="btn-secundario" onclick="irPara(3)">Voltar</button>
+      <button type="button" class="btn-primario" onclick="irPara(5)">Continuar</button>
+    </div>
+  </section>
+
+  <!-- ============================ PASSO 3 ============================ -->
+  <section class="card" data-etapa="5" style="display:none">
     <h2>Enviar proposta</h2>
 
     <div class="resumo" style="margin-bottom:18px">
@@ -253,8 +341,11 @@
         <input type="text" name="vendedor" data-pad="1" required></div>
       <div class="campo"><label>CRECI</label><input type="text" name="creci" data-pad="1"></div>
       <div class="campo"><label>Imobiliária</label><input type="text" name="imobiliaria" data-pad="1"></div>
-      <div class="campo"><label>E-mail para receber a proposta<span class="obrig">*</span></label>
+      <div class="campo"><label>E-mail do corretor<span class="obrig">*</span></label>
         <input type="email" name="email" required></div>
+      <div class="campo"><label>E-mail de quem simulou</label>
+        <input type="email" name="emailSimulacao">
+        <span class="ajuda">Se a simulação foi feita para outra pessoa, ela também recebe a cópia.</span></div>
       <div class="campo full"><label>Observações</label><input type="text" name="observacoes" data-pad="1"></div>
     </div>
 
@@ -267,7 +358,7 @@
     </div>
 
     <div class="rodape">
-      <button type="button" class="btn-secundario" onclick="irPara(2)">Voltar</button>
+      <button type="button" class="btn-secundario" onclick="irPara(4)">Voltar</button>
       <button type="submit" class="btn-primario" id="btEnviar">Enviar proposta</button>
     </div>
 
@@ -353,21 +444,43 @@
   var TOTAL_FIXO=27000, B12=12*860, B1324=12*330, BPOS=24*788.3332806666667;
   var BFLEX=B12+B1324+BPOS;
 
-  function calcular(preco, credito, subsidio, fgts, entrada, dataRef){
-    var bruta=(preco||0)-(credito||0);
+  /* ITEM 12 — teto da Caixa: o financiado nunca passa de 80% da avaliação.
+     Crédito aprovado de R$ 400.000 numa avaliação de R$ 306.000 vira
+     R$ 244.800, e a diferença volta para a entrada. */
+  function tetoFinanciamento(avaliacao){ return (Number(avaliacao)||0)*0.8; }
+  function financiadoReal(credito, avaliacao){
+    var teto=tetoFinanciamento(avaliacao);
+    if(!teto) return credito||0;
+    return Math.min(credito||0, teto);
+  }
+
+  function calcular(preco, credito, subsidio, fgts, entrada, dataRef, avaliacao){
+    var financiado=financiadoReal(credito, avaliacao);
+    var bruta=(preco||0)-financiado;
     var recursos=(fgts||0)+(subsidio||0)+(entrada||0);
     var total=bruta-recursos;
     var sobra = total<0 ? -total : 0;   // quanto passou do necessário
-    var fixos=FIXOS.slice(), flex=0;
-    if(total<=0){ total=0; fixos=[]; }
-    else if(total<TOTAL_FIXO){
-      var f=total/TOTAL_FIXO;
-      fixos=FIXOS.map(function(x){return [x[0],x[1]*f,x[2]];});
-    } else flex=total-TOTAL_FIXO;
+    if(total<0) total=0;
 
-    var t12,t1324,tpos;
-    if(flex<=BFLEX){ var g=BFLEX?flex/BFLEX:0; t12=B12*g; t1324=B1324*g; tpos=BPOS*g; }
-    else { tpos=BPOS; var r=flex-BPOS, b=B12+B1324; t12=r*(B12/b); t1324=r*(B1324/b); }
+    /* ITEM 11 — entrada menor que o fluxo cheio NÃO elimina parcela.
+       Rateia proporcionalmente sinais, balões e as parcelas de 1 a 24 pelo
+       mesmo fator. O PÓS-CHAVES fica FORA do rateio: mantém o valor base e é
+       atendido primeiro, porque é a parte recebida depois da entrega e não
+       deve encolher junto com a entrada.
+       Só quando a entrada é menor que o próprio pós-chaves é que ele também
+       entra no rateio — senão o restante ficaria negativo. */
+    var fixos=[], t12=0, t1324=0, tpos=0;
+    var baseRateavel=TOTAL_FIXO+B12+B1324;
+    if(total<=0){
+      fixos=[];
+    } else if(total<=BPOS){
+      tpos=total;
+    } else {
+      tpos=BPOS;
+      var g=(total-BPOS)/baseRateavel;
+      fixos=FIXOS.map(function(x){ return [x[0], x[1]*g, x[2]]; });
+      t12=B12*g; t1324=B1324*g;
+    }
 
     var meses=(dataRef.getFullYear()-2026)*12+((dataRef.getMonth()+1)-11);
     var n1=Math.max(1,Math.min(12,12-Math.max(0,meses)));
@@ -376,10 +489,15 @@
     if(t1324/12>0.005) fluxo.push(['12 X', t1324/12, 'parcelas (meses 13 a 24)']);
     if(tpos/24>0.005)  fluxo.push(['24 X', tpos/24, 'pós-chaves']);
     return {total:total, fluxo:fluxo, n1:n1, bruta:bruta,
+            financiado:financiado, credito:(credito||0),
+            teto:tetoFinanciamento(avaliacao), avaliacao:(avaliacao||0),
             fgts:(fgts||0), subsidio:(subsidio||0), entradaInformada:(entrada||0),
             recursos:recursos, sobra:sobra};
   }
 
+  function livresDisponiveis(){
+    return UNIDADES.some(function(u){return estadoUn(u)==='DISPONIVEL';});
+  }
   function unidadeAtual(){
     var v=F().unidade.value;
     for(var i=0;i<UNIDADES.length;i++) if(String(UNIDADES[i].unidade)===String(v)) return UNIDADES[i];
@@ -395,15 +513,19 @@
     }
     var dtxt=f.dataRef.value;
     var d=dtxt?new Date(dtxt+'T12:00:00'):new Date();
+    var fgtsTotal=moeda(f.saldoFgts.value)+moeda(f.saldoFgtsConjuge.value);
     var q=calcular(u.valorVenda, credito, moeda(f.subsidio.value),
-                   moeda(f.saldoFgts.value), moeda(f.valorEntrada.value), d);
+                   fgtsTotal, moeda(f.valorEntrada.value), d, u.avaliacao);
+    document.getElementById('valorFinanciado').value=brl(q.financiado);
+    aplicarRegraParcela(q);
     alvo.dataset.esquema=q.fluxo.map(function(x){return x[0]+': '+brl(x[1])+' ('+x[2]+')';}).join('; ');
 
     var cab='<table class="tabfluxo">'+
       '<tr><td>Valor de venda</td><td class="num">'+brl(u.valorVenda)+'</td><td></td></tr>'+
-      '<tr><td>(–) Crédito aprovado</td><td class="num">'+brl(credito)+'</td><td></td></tr>'+
+      '<tr><td>(–) Valor financiado pela Caixa</td><td class="num">'+brl(q.financiado)+'</td>'+
+      '<td><small>'+(q.credito>q.teto&&q.teto?'limitado ao teto de 80% da avaliação':'crédito aprovado')+'</small></td></tr>'+
       '<tr><td><b>= Entrada</b></td><td class="num">'+brl(q.bruta)+'</td><td></td></tr>'+
-      (q.fgts?'<tr><td>(–) FGTS</td><td class="num">'+brl(q.fgts)+'</td><td></td></tr>':'')+
+      (q.fgts?'<tr><td>(–) FGTS (titular + cônjuge)</td><td class="num">'+brl(q.fgts)+'</td><td></td></tr>':'')+
       (q.subsidio?'<tr><td>(–) Subsídio</td><td class="num">'+brl(q.subsidio)+'</td><td></td></tr>':'')+
       (q.entradaInformada?'<tr><td>(–) Valor para entrada</td><td class="num">'+brl(q.entradaInformada)+
         '</td><td><small>recursos próprios</small></td></tr>':'')+
@@ -437,15 +559,113 @@
       }).join('') : '')+'</table>'+recado;
   }
 
+  /* ITENS 12 e 13 — teto de 80% e de onde vem a parcela.
+     Acima do teto, o valor é o que a Caixa financia e a parcela sai da
+     SIMULAÇÃO daquela unidade (é justamente o que o simulador calcula).
+     Abaixo do teto, o valor é particular daquele cliente e o simulador não
+     tem como reproduzir — então o campo fica liberado para digitar. */
+  function aplicarRegraParcela(q){
+    var av=document.getElementById('avisoTeto');
+    var aj=document.getElementById('ajudaParcela');
+    var campo=F().parcelaFinanciamento;
+    var u=unidadeAtual();
+    if(!q.teto){ av.style.display='none'; aj.textContent='Informe a parcela.'; return; }
+
+    if(q.credito>q.teto+0.5){
+      av.style.display='block';
+      av.className='status processando';
+      av.innerHTML='<b>Crédito acima do teto da Caixa.</b><br>'+
+        'A avaliação é '+brl(q.avaliacao)+', então o financiamento não pode passar de '+
+        '<b>'+brl(q.teto)+'</b> (80%). O crédito informado ('+brl(q.credito)+') foi limitado a esse teto, '+
+        'e a diferença de '+brl(q.credito-q.teto)+' voltou para a entrada.';
+      aj.innerHTML='Não precisa preencher: o crédito bate no teto, então a simulação da CAIXA '+
+        'roda sozinha ao enviar e a parcela é gravada na proposta. '+
+        '<a href="#" onclick="abrirSimulador();return false;">Abrir o simulador</a> só se quiser conferir antes.';
+      campo.placeholder='Será apurado pela simulação';
+      campo.classList.add('destaque-sim');
+    }else{
+      av.style.display='none';
+      aj.textContent='Crédito abaixo do teto de '+brl(q.teto)+' — o simulador não reproduz esse valor. Preencha a parcela manualmente.';
+      campo.classList.remove('destaque-sim');
+    }
+  }
+  function abrirSimulador(){
+    var u=unidadeAtual(); if(!u) return;
+    window.open('simulador.html?tipo='+encodeURIComponent(u.tipo)+'&unidade='+encodeURIComponent(u.unidade),'_blank');
+  }
+
+  /* ITEM 16 — sem crédito aprovado, some o campo de crédito e a origem das
+     rendas passa a ser exigida (é o que substitui a análise do banco). */
+  function verCredito(){
+    var com = F().creditoAprovadoCaixa.value==='SIM';
+    document.getElementById('boxCredito').style.display = com ? '' : 'none';
+    document.querySelectorAll('.campo-origem').forEach(function(c){
+      c.style.display = com ? 'none' : '';
+    });
+    if(!com){ F().creditoAprovado.value=''; }
+    montarFluxo();
+  }
+
   function somarRenda(){
     var f=F();
-    document.getElementById('rendaTotal').value =
-      brl(moeda(f.rendaFormal.value)+moeda(f.rendaInformal.value));
+    /* Renda total = titular + cônjuge. Na análise da Caixa é a renda
+       familiar que conta, não só a do titular. */
+    var t=moeda(f.rendaFormal.value)+moeda(f.rendaInformal.value)+
+          moeda(f.rendaFormalConjuge.value)+moeda(f.rendaInformalConjuge.value);
+    document.getElementById('rendaTotal').value = brl(t);
   }
   function verConjuge(){
     var v=F().estadoCivil.value;
     document.getElementById('boxConjuge').style.display =
       (v==='CASADO'||v==='UNIAO ESTAVEL') ? 'block' : 'none';
+  }
+
+  /* ---------- ITEM 9: anexos ----------
+     Os arquivos seguem junto com o e-mail da proposta. Não dá para mandá-los
+     para o Notion pela API (ela só aceita arquivo por URL externa), então o
+     e-mail é o canal — e é onde o pessoal de vendas já procura mesmo. */
+  var DOCS=[
+    ['docProponente','Documento pessoal do proponente'],
+    ['docConjuge','Documento pessoal do cônjuge'],
+    ['compEndereco','Comprovante de endereço'],
+    ['carteiraTrabalho','Carteira de trabalho'],
+    ['contracheques','3 últimos contracheques'],
+    ['certidao','Certidão de nascimento ou casamento'],
+    ['irExtratos','IR + 4 últimos extratos (se renda informal)'],
+    ['outros','Outros documentos']
+  ];
+  var LIMITE_ANEXOS=20*1024*1024;
+  function montarAnexos(){
+    document.getElementById('anexos').innerHTML=DOCS.map(function(d){
+      return '<div class="anexo"><label for="ax-'+d[0]+'">'+d[1]+'</label>'+
+             '<input type="file" id="ax-'+d[0]+'" data-rotulo="'+d[1]+'" multiple onchange="resumoAnexos()"></div>';
+    }).join('');
+  }
+  function arquivosAnexados(){
+    var out=[];
+    DOCS.forEach(function(d){
+      var el=document.getElementById('ax-'+d[0]); if(!el) return;
+      for(var i=0;i<el.files.length;i++) out.push({rotulo:d[1], arquivo:el.files[i]});
+    });
+    return out;
+  }
+  function resumoAnexos(){
+    var lista=arquivosAnexados();
+    var total=lista.reduce(function(a,x){return a+x.arquivo.size;},0);
+    var el=document.getElementById('anexoResumo');
+    if(!lista.length){ el.textContent='Nenhum arquivo selecionado ainda.'; el.style.color=''; return; }
+    var mb=(total/1048576).toFixed(1);
+    el.innerHTML=lista.length+' arquivo(s) · '+mb+' MB no total.';
+    el.style.color = total>LIMITE_ANEXOS ? '#B0431F' : '';
+    if(total>LIMITE_ANEXOS) el.innerHTML+=' <b>Acima do limite de 20 MB — tire algum arquivo.</b>';
+  }
+  function lerBase64(arquivo){
+    return new Promise(function(ok,err){
+      var r=new FileReader();
+      r.onload=function(){ ok(String(r.result).split(',')[1]||''); };
+      r.onerror=function(){ err(new Error('Falha ao ler '+arquivo.name)); };
+      r.readAsDataURL(arquivo);
+    });
   }
 
   /* ---------- navegação entre os passos ---------- */
@@ -461,6 +681,7 @@
       p.classList.toggle('concluido', i<n);
     });
     if(n===2) montarFluxo();
+    if(n===4) resumoAnexos();
     window.scrollTo({top:0,behavior:'smooth'});
   }
   function validarPasso(n){
@@ -475,7 +696,17 @@
       if(!dig(f.celular.value)) return erro('Informe o <b>celular</b> do proponente — é por onde a Morais confirma a proposta.', f.celular);
     }
     if(n===2){
-      if(!moeda(f.creditoAprovado.value)) return erro('Informe o <b>crédito aprovado</b> pelo banco.', f.creditoAprovado);
+      if(f.creditoAprovadoCaixa.value==='SIM' && !moeda(f.creditoAprovado.value))
+        return erro('Informe o <b>crédito aprovado</b> pelo banco.', f.creditoAprovado);
+      if(f.creditoAprovadoCaixa.value==='NAO'){
+        if(!f.origemFormal.value.trim() && !f.origemInformal.value.trim())
+          return erro('Sem crédito aprovado, informe pelo menos uma <b>origem de renda</b>.', f.origemFormal);
+      }
+    }
+    if(n===4){
+      var lista=arquivosAnexados();
+      var total=lista.reduce(function(a,x){return a+x.arquivo.size;},0);
+      if(total>LIMITE_ANEXOS) return erro('Os anexos somam mais de 20 MB. Tire algum arquivo antes de continuar.');
     }
     return true;
   }
@@ -501,7 +732,7 @@
 
   /* ---------- máscaras ---------- */
   function ligarMascaras(){
-    ['cpf','cpfConjuge'].forEach(function(nome){
+    ['cpf','cpfConjuge','cpfFiador1','cpfFiador2'].forEach(function(nome){
       var el=F()[nome]; if(!el) return;
       el.addEventListener('input',function(e){
         e.target.value=fmtCpf(e.target.value);
@@ -512,7 +743,8 @@
       var el=F()[nome]; if(!el) return;
       el.addEventListener('input',function(e){ e.target.value=fmtTel(e.target.value); });
     });
-    ['rendaFormal','rendaInformal','saldoFgts','subsidio','valorEntrada','creditoAprovado']
+    ['rendaFormal','rendaInformal','saldoFgts','subsidio','valorEntrada','creditoAprovado',
+     'saldoFgtsConjuge','rendaFormalConjuge','rendaInformalConjuge','parcelaFinanciamento']
       .forEach(function(nome){
         var el=F()[nome]; if(!el) return;
         el.addEventListener('input',function(e){
@@ -556,16 +788,45 @@
           });
       });
   }
+  function estadoUn(u){
+    if(!u) return 'BREVE';
+    var cru=String(u.vendidaCru||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
+    if(u.vendido===true || cru==='SIM') return 'VENDIDA';
+    if(u.reservado===true || cru==='RESERVADA' || cru==='RESERVADO') return 'RESERVADA';
+    if(u.disponivel===false) return 'BREVE';
+    return 'DISPONIVEL';
+  }
   function montarSelect(){
     var sel=F().unidade;
-    var livres=UNIDADES.filter(function(u){return u.disponivel;});
+    /* ITEM 14 — só unidade DISPONÍVEL aceita proposta. Reservada e vendida
+       ficam de fora da lista; a simulação continua liberada no simulador. */
+    var livres=UNIDADES.filter(function(u){return estadoUn(u)==='DISPONIVEL';});
     var lista=livres.length?livres:UNIDADES;
     sel.innerHTML=lista.map(function(u){
       return '<option value="'+u.unidade+'">Unidade '+u.unidade+' — T'+(u.tipo||'—')+
              ' · '+brl(u.valorVenda)+'</option>';
     }).join('');
     var pedida=param('unidade');
-    if(pedida) sel.value=pedida;
+    var av=document.getElementById('avisoUnidade');
+    if(pedida){
+      var achou=null;
+      for(var i=0;i<UNIDADES.length;i++) if(String(UNIDADES[i].unidade)===String(pedida)) achou=UNIDADES[i];
+      var est=achou?estadoUn(achou):'BREVE';
+      if(achou && est!=='DISPONIVEL'){
+        av.style.display='block';
+        av.innerHTML='<b>A unidade '+pedida+' está '+
+          (est==='RESERVADA'?'reservada':(est==='VENDIDA'?'vendida':'indisponível'))+
+          '.</b><br>Não dá para enviar proposta para ela. Escolha outra unidade na lista acima — '+
+          'a <b>simulação</b> continua liberada normalmente pelo mapa.';
+      } else {
+        av.style.display='none';
+        sel.value=pedida;
+      }
+    }
+    if(!livresDisponiveis()){
+      av.style.display='block';
+      av.innerHTML='<b>Nenhuma unidade disponível para proposta no momento.</b>';
+    }
     aoTrocarUnidade();
   }
   function aoTrocarUnidade(){
@@ -580,6 +841,10 @@
     var f=F();
     if(!validarPasso(1)){ irPara(1); return; }
     if(!validarPasso(2)){ irPara(2); return; }
+    if(!validarPasso(4)){ irPara(4); return; }
+    if(estadoUn(unidadeAtual())!=='DISPONIVEL'){
+      return erro('Esta unidade não está disponível para proposta.');
+    }
     if(!f.vendedor.value.trim()) return erro('Informe o <b>corretor</b>.', f.vendedor);
     if(!f.email.value.trim()) return erro('Informe o <b>e-mail</b> para receber a proposta.', f.email);
     if(!document.getElementById('aceite').checked) return erro('É preciso autorizar o uso dos dados.');
@@ -597,11 +862,18 @@
       nacionalidade:padrao(f.nacionalidade.value), profissao:padrao(f.profissao.value),
       dataNascimento:f.dataNascimento.value, endereco:padrao(f.endereco.value),
       telefone:dig(f.telefone.value), celular:dig(f.celular.value),
-      participacao:f.participacao.value,
+      emailProponente:String(f.emailProponente.value||'').trim().toLowerCase(),
       cargo:padrao(f.cargo.value), empresa:padrao(f.empresa.value),
       tempoServico:padrao(f.tempoServico.value),
       rendaFormal:moeda(f.rendaFormal.value), origemFormal:padrao(f.origemFormal.value),
       rendaInformal:moeda(f.rendaInformal.value), origemInformal:padrao(f.origemInformal.value),
+      saldoFgtsConjuge:moeda(f.saldoFgtsConjuge.value),
+      rendaFormalConjuge:moeda(f.rendaFormalConjuge.value),
+      origemFormalConjuge:padrao(f.origemFormalConjuge.value),
+      rendaInformalConjuge:moeda(f.rendaInformalConjuge.value),
+      origemInformalConjuge:padrao(f.origemInformalConjuge.value),
+      creditoAprovadoCaixa:f.creditoAprovadoCaixa.value,
+      parcelaFinanciamento:moeda(f.parcelaFinanciamento.value),
       saldoFgts:moeda(f.saldoFgts.value), subsidio:moeda(f.subsidio.value),
       valorEntrada:moeda(f.valorEntrada.value), creditoAprovado:moeda(f.creditoAprovado.value),
       banco:padrao(f.banco.value), prazo:f.prazo.value,
@@ -615,16 +887,49 @@
       referencia2:padrao(f.referencia2.value), telRef2:dig(f.telRef2.value),
       vendedor:padrao(f.vendedor.value), creci:padrao(f.creci.value),
       imobiliaria:padrao(f.imobiliaria.value), email:String(f.email.value).trim().toLowerCase(),
+      emailSimulacao:String(f.emailSimulacao.value||'').trim().toLowerCase(),
       observacoes:padrao(f.observacoes.value),
+      fiador1:padrao(f.fiador1.value), cpfFiador1:dig(f.cpfFiador1.value),
+      emailFiador1:String(f.emailFiador1.value||'').trim().toLowerCase(),
+      enderecoFiador1:padrao(f.enderecoFiador1.value),
+      fiador2:padrao(f.fiador2.value), cpfFiador2:dig(f.cpfFiador2.value),
+      emailFiador2:String(f.emailFiador2.value||'').trim().toLowerCase(),
+      enderecoFiador2:padrao(f.enderecoFiador2.value),
+      valorFinanciado:moeda(document.getElementById('valorFinanciado').value),
+      avaliacao:u.avaliacao||0,
+      rendaTotal:moeda(document.getElementById('rendaTotal').value),
+      /* ITEM 13 — crédito no teto: o SIOP é quem sabe a parcela real, então a
+         proposta pede a simulação. Abaixo do teto o simulador não reproduz o
+         valor, e vale o que foi digitado. */
+      simularParcela:(f.creditoAprovadoCaixa.value==='SIM' &&
+                      moeda(f.creditoAprovado.value) >= (u.avaliacao||0)*0.8 - 0.5 &&
+                      (u.avaliacao||0) > 0),
       esquema:(document.getElementById('fluxo').dataset.esquema||'')
     };
 
-    apiPost({acao:'criarProposta', dados:dados})
+    var lista=arquivosAnexados();
+    var anexos=[];
+    if(lista.length) mostrar('processando','<b>Preparando '+lista.length+' anexo(s)…</b>');
+    Promise.all(lista.map(function(x){
+      return lerBase64(x.arquivo).then(function(b64){
+        return {nome:x.arquivo.name, tipo:x.arquivo.type||'application/octet-stream',
+                rotulo:x.rotulo, base64:b64};
+      });
+    })).then(function(as){
+      anexos=as;
+      mostrar('processando','<b>Enviando a proposta…</b>');
+      return apiPost({acao:'criarProposta', dados:dados, anexos:anexos});
+    })
       .then(function(r){
         if(r && r.ok){
           mostrar('ok','<b>Proposta '+r.proposta+' enviada.</b><br>'+
             'Ela entra como RECEBIDA e será analisada pela Morais. '+
-            'O retorno chega no e-mail informado.');
+            'O retorno chega no e-mail informado.'+
+            (r.simulando
+              ? '<br><br><b>A parcela está sendo simulada na CAIXA.</b> Como o crédito bate no '+
+                'teto de 80% da avaliação, o sistema roda a simulação e manda um segundo '+
+                'e-mail com o fluxo definitivo em alguns minutos.'
+              : ''));
           bt.style.display='none';
         } else {
           bt.disabled=false;
@@ -640,7 +945,9 @@
   });
 
   ligarMascaras();
+  montarAnexos();
   verConjuge();
+  verCredito();
   somarRenda();
   F().unidade.addEventListener('change', aoTrocarUnidade);
   carregarUnidades();

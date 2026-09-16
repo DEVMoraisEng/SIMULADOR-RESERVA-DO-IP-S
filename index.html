@@ -143,7 +143,8 @@
   <div class="val">Valor de venda: <b id="popVal"></b></div>
   <div class="val">Avaliação: <b id="popAval"></b></div>
   <div class="val" id="popInfo" style="margin-top:6px;color:#6B5A45;white-space:pre-wrap;"></div>
-  <img id="popImg" loading="lazy" decoding="async" style="display:none;">
+  <img id="popImg" loading="lazy" decoding="async" width="1600" height="900"
+       style="display:none;width:100%;height:auto;aspect-ratio:16/9;background:#EFE7D8;">
   <div id="popAvisoProp" style="display:none;margin-top:8px;font-size:11px;color:#1F6FB2;background:#EAF2FA;border:1px solid #BBD5EC;border-radius:6px;padding:6px 8px;"></div>
   <div class="acoes">
     <button class="b1" id="popSim">Fazer simulação</button>
@@ -179,19 +180,48 @@
     if(!u) return '';
     return 'assets/plantas/' + (u.decorado ? 'decorado' : ('tipo-' + String(u.tipo).trim())) + '.jpg';
   }
+  /* ORDEM INVERTIDA — era esta a lentidão das imagens.
+     O que vem do Notion na leitura ao vivo é uma URL assinada da Amazon
+     (prod-files-secure.s3...), com centenas de caracteres e validade de 1
+     hora. Ela é lenta: sai do GitHub Pages, vai até a S3, e o navegador não
+     consegue guardar em cache porque a assinatura muda toda hora.
+     O arquivo local (assets/plantas/tipo-N.jpg) vem do mesmo servidor da
+     página, com cache do navegador. Agora ele é o PRIMEIRO; a URL do Notion
+     só entra se o arquivo não existir no repositório. */
   function mostrarPlanta(img, u){
     if(!u){ img.style.display='none'; return; }
-    // 1) o que veio do Notion/pipeline (já costuma ser assets/plantas/...),
-    // 2) se falhar, o arquivo local por convenção, 3) some.
-    var primeiro=u.planta||'', segundo=localPlanta(u);
-    if(!primeiro && !segundo){ img.style.display='none'; return; }
+    var local=localPlanta(u), remoto=u.planta||'';
+    if(!local && !remoto){ img.style.display='none'; return; }
     img.onerror=function(){
       img.onerror=null;
-      if(segundo && img.getAttribute('src')!==segundo){ img.src=segundo; }
+      if(remoto && img.getAttribute('src')!==remoto){ img.src=remoto; }
       else { img.style.display='none'; }
     };
     img.style.display='block';
-    img.src = primeiro || segundo;
+    img.src = local || remoto;
+  }
+
+  /* Pré-carrega as plantas dos tipos assim que a página fica ociosa. São
+     poucos arquivos (um por tipo, não um por unidade) e, otimizados, somam
+     pouco mais de 1 MB — depois disso abrir o pop-up de qualquer casa é
+     instantâneo.
+     Respeita o modo "economia de dados" do celular: quem ligou isso não quer
+     download especulativo, por menor que seja. */
+  function aquecerPlantas(){
+    try{
+      var c = navigator.connection || {};
+      if(c.saveData) return;
+      if(/(^|-)2g$/.test(String(c.effectiveType||''))) return;
+    }catch(e){}
+    var soltar = window.requestIdleCallback || function(f){ setTimeout(f, 1200); };
+    soltar(function(){
+      var vistos = {};
+      (UNIDADES||[]).forEach(function(u){
+        var p = localPlanta(u); if(!p || vistos[p]) return;
+        vistos[p] = 1;
+        var im = new Image(); im.src = p;
+      });
+    });
   }
 
   var UNIDADES=[];
@@ -552,6 +582,7 @@
     renderCards(); renderTabela();
     unidadesProntas=true; if(svgPronto) pintarMapa();
     tirarVeu();
+    aquecerPlantas();
   }
   /* Quando o que está na tela é o retrato do GitHub, diz isso — em vez de
      deixar a pessoa achar que aquilo é o estado de agora. */

@@ -371,6 +371,71 @@
 
   /* Enquanto digita já sobe para maiúsculo: a pessoa vê exatamente o que
      será gravado, em vez de descobrir depois que o nome mudou sozinho. */
+
+  /* ===== DATA QUE DA PARA DIGITAR (celular) ============================
+     No Android o <input type="date"> so aceita o calendario — nao da para
+     digitar, e para data de nascimento isso e uma tortura (voltar 30 anos
+     mes a mes). A solucao aqui: ao lado de cada campo de data nasce um
+     campo de texto com mascara dd/mm/aaaa, que aceita digitacao direta. Os
+     dois ficam sincronizados, e o valor enviado continua sendo o do
+     <input type="date"> — nenhum outro codigo precisou mudar.
+     No computador o campo de texto fica escondido: la o nativo ja aceita
+     digitacao. ================================================== */
+  function ehCelular(){
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent||'');
+  }
+  function digitarDatas(){
+    if(!ehCelular()) return;
+    document.querySelectorAll('input[type="date"]').forEach(function(el){
+      if(el.dataset.temTexto) return;
+      el.dataset.temTexto = '1';
+
+      var txt = document.createElement('input');
+      txt.type = 'text';
+      txt.inputMode = 'numeric';
+      txt.placeholder = 'dd/mm/aaaa';
+      txt.maxLength = 10;
+      txt.className = el.className;
+      txt.style.marginBottom = '6px';
+      el.parentNode.insertBefore(txt, el);
+
+      // do ISO (aaaa-mm-dd) para o que a pessoa le
+      function doCampo(){
+        var v = el.value;
+        txt.value = v && v.length === 10
+          ? v.slice(8,10) + '/' + v.slice(5,7) + '/' + v.slice(0,4) : '';
+      }
+      doCampo();
+      el.addEventListener('change', doCampo);
+
+      txt.addEventListener('input', function(){
+        var d = txt.value.replace(/\D/g,'').slice(0,8);
+        var m = d;
+        if(d.length > 4) m = d.slice(0,2) + '/' + d.slice(2,4) + '/' + d.slice(4);
+        else if(d.length > 2) m = d.slice(0,2) + '/' + d.slice(2);
+        txt.value = m;
+
+        if(d.length === 8){
+          var dia = d.slice(0,2), mes = d.slice(2,4), ano = d.slice(4);
+          var iso = ano + '-' + mes + '-' + dia;
+          var t = new Date(iso + 'T12:00:00');
+          // so aceita data que existe de verdade: 31/02 nao passa
+          if(!isNaN(t) && String(t.getDate()).padStart(2,'0') === dia){
+            el.value = iso;
+            txt.style.borderColor = '';
+            try{ el.dispatchEvent(new Event('change', {bubbles:true})); }catch(e){}
+          } else {
+            el.value = '';
+            txt.style.borderColor = '#B0431F';
+          }
+        } else {
+          el.value = '';
+        }
+      });
+    });
+  }
+  digitarDatas();
+
   verSubcampos();
 
   /* ITEM 7 — o max="420" do HTML só bloqueia no submit nativo; digitando

@@ -177,9 +177,12 @@
       </div>
       <div class="linha">
         <div class="campo">
-          <label>Valor para entrada (R$)</label>
-          <input type="text" name="valorEntrada" inputmode="numeric" placeholder="0,00">
-          <span class="ajuda">Recursos próprios do cliente. Abate a entrada na mesma conta do subsídio e do FGTS.</span>
+          <label>Valor para entrada (R$)<span class="obrig">*</span></label>
+          <input type="text" name="valorEntrada" inputmode="numeric" placeholder="10.000,00" value="10.000,00">
+          <span class="ajuda">Mínimo <b>R$ 10.000,00</b>. Esses R$ 10.000 pagam os <b>sinais</b>
+          (R$ 1.000 no ato + 3 × R$ 3.000) e <b>não abatem</b> a entrada. Só o que passar de
+          R$ 10.000 é abatido do saldo.</span>
+          <div id="avisoEntradaMin" style="display:none;margin-top:6px;padding:8px 11px;border-radius:6px;background:#FBEDEA;border:1px solid #E2A493;color:#8A2E17;font-size:12px;">O valor para entrada precisa ser de pelo menos R$ 10.000,00.</div>
         </div>
         <div class="campo">
           <label>Data de referência (teste)</label>
@@ -321,7 +324,9 @@
     document.getElementById('comissaoTxt').textContent=(pct*100).toLocaleString('pt-BR',{minimumFractionDigits:2})+'%  ·  R$ '+fmt(u.valorVenda*pct);}
 
   var PROD_COM=['SBPE SFH - TR - AQUISIÇÃO DE IMÓVEL RESIDENCIAL NOVO'];
-  var PROD_SEM=['NPMCMV - IMÓVEL NOVO INDIVIDUAL','NPMCMV - IMÓVEL NOVO INDIVIDUAL','PRÓCOTISTA - AQUISIÇÃO DE IMÓVEL RESIDENCIAL NOVO'];
+  /* ITENS 3 e 14 (set/26) — a linha NPMCMV aparecia duas vezes e o
+     Prócotista saiu da oferta. Fica só uma linha para cliente sem imóvel. */
+  var PROD_SEM=['NPMCMV - IMÓVEL NOVO INDIVIDUAL'];
   function produtosAplicaveis(){return document.querySelector('[name="possuiImovelCidade"]').checked?PROD_COM:PROD_SEM;}
   var produtosSelecionados=[];
   function renderProdutos(){
@@ -333,7 +338,7 @@
     document.getElementById('produtosAjuda').textContent=
       (document.querySelector('[name="possuiImovelCidade"]').checked
         ? 'Cliente com imóvel na cidade: apenas a linha SBPE é elegível. '
-        : 'Cliente sem imóvel na cidade: linhas NPMCMV e Prócotista. ')
+        : 'Cliente sem imóvel na cidade: linha NPMCMV. ')
       + 'Clique para marcar/desmarcar quais serão simuladas.';
   }
   function alternarProduto(el){
@@ -344,6 +349,14 @@
     if(aviso) aviso.style.display = produtosSelecionados.length ? 'none' : 'block';
   }
   function exigirProduto(){
+    /* ITEM 15 — valor para entrada de no mínimo R$ 10.000 (são os sinais). */
+    var ve=parseMoeda(document.querySelector('[name="valorEntrada"]').value);
+    var avE=document.getElementById('avisoEntradaMin');
+    if(ve<10000){
+      if(avE){ avE.style.display='block'; avE.scrollIntoView({behavior:'smooth',block:'center'}); }
+      return false;
+    }
+    if(avE) avE.style.display='none';
     if(produtosSelecionados.length) return true;
     var aviso=document.getElementById('produtosAviso');
     if(aviso){ aviso.style.display='block'; aviso.scrollIntoView({behavior:'smooth',block:'center'}); }
@@ -513,6 +526,9 @@
     e.preventDefault();
     var u=unidadeAtual();if(!u){mostrarStatus('erro','Selecione a unidade.');return;}
     if(!produtosSelecionados.length){mostrarStatus('erro','Selecione ao menos uma linha de financiamento (passo 2).');return;}
+    if(parseMoeda(e.target.valorEntrada.value)<10000){
+      mostrarStatus('erro','O <b>valor para entrada</b> precisa ser de pelo menos R$ 10.000,00 (passo 2).');return;
+    }
     if(!cpfValido(e.target.cpfCliente.value)){
       var av=document.getElementById('cpfAviso'); if(av) av.style.display='block';
       mostrarStatus('erro','CPF inválido. Confira os números antes de enviar.');
@@ -535,7 +551,12 @@
       sistemaAmortizacao:f.sistemaAmortizacao.value,
       prazoEntrada:Number(prazo), comissaoPct:COMISSAO[prazo], comissaoValor:u.valorVenda*COMISSAO[prazo],
       subsidio:parseMoeda(f.subsidio.value), fgtsDisponivel:parseMoeda(f.fgtsDisponivel.value),
-      valorEntrada:parseMoeda(f.valorEntrada.value),
+      /* ITEM 15 — os R$ 10.000 pagam os sinais e NÃO abatem a entrada. Vai
+         para o worker só o EXCEDENTE (é o que abate o saldo); o valor
+         digitado segue à parte, para o e-mail mostrar a conta inteira. */
+      valorEntrada:Math.max(0, parseMoeda(f.valorEntrada.value)-10000),
+      valorEntradaInformado:parseMoeda(f.valorEntrada.value),
+      valorEntradaSinais:Math.min(10000, parseMoeda(f.valorEntrada.value)),
       dataSimulacao:(f.dataSimulacao.value||''),
       produtos:produtosSelecionados,
       corretor:padrao(f.corretor.value), imobiliaria:padrao(f.imobiliaria.value),

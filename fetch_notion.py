@@ -126,6 +126,13 @@ PASTA_PLANTAS = "assets/plantas"
 FONTES = f"{PASTA_PLANTAS}/fontes.json"
 LARGURA_MAX = 2400          # mesmo tamanho das plantas otimizadas à mão
 QUALIDADE_JPG = 82
+# ITEM 1 (set/26) — versões menores para a tela. O pop-up do mapa mostra a
+# planta com 230 px de largura e o modal com ~900 px; baixar a de 2400 px
+# (500 KB) para isso era o que deixava a imagem "descendo aos pedaços".
+#   -480  -> pop-up do mapa e primeira pintura do modal (~20 KB)
+#   -1400 -> modal do card (~150 KB)
+# A de 2400 px continua existindo: é a que abre ao clicar na planta.
+VARIANTES = ((480, 70, False), (1400, 74, True))
 
 
 def _id_arquivo(url):
@@ -154,6 +161,32 @@ def _otimizar(conteudo, destino):
                        Image.LANCZOS)
     im.save(destino, "JPEG", quality=QUALIDADE_JPG, optimize=True,
             progressive=True)
+    gerar_variantes(destino, forcar=True)
+
+
+def _nome_variante(destino, largura):
+    return destino[:-4] + f"-{largura}.jpg"
+
+
+def gerar_variantes(destino, forcar=False):
+    """Cria tipo-N-480.jpg e tipo-N-1400.jpg a partir de tipo-N.jpg.
+    Sem `forcar`, só cria o que estiver faltando — assim o Actions não
+    regrava (nem recommita) arquivo que já existe."""
+    from PIL import Image
+    if not os.path.exists(destino):
+        return
+    im = None
+    for largura, qualidade, progressivo in VARIANTES:
+        alvo = _nome_variante(destino, largura)
+        if os.path.exists(alvo) and not forcar:
+            continue
+        if im is None:
+            im = Image.open(destino).convert("RGB")
+        w = min(largura, im.width)
+        v = im.resize((w, round(im.height * w / im.width)), Image.LANCZOS)
+        v.save(alvo, "JPEG", quality=qualidade, optimize=True,
+               progressive=progressivo)
+        print(f"  variante {alvo}: {os.path.getsize(alvo)//1024} KB")
 
 
 def baixar_plantas(unidades):
@@ -183,6 +216,8 @@ def baixar_plantas(unidades):
             u["planta"] = baixados[nome]
             continue
         existe = os.path.exists(destino)
+        if existe:
+            gerar_variantes(destino)      # só cria as que faltam
         if not url.startswith("http"):
             if existe:
                 u["planta"] = destino

@@ -232,7 +232,10 @@
         <div class="campo"><label>Renda aprovada do cônjuge (R$)</label>
           <input type="text" name="rendaAprovadaConjuge" inputmode="numeric" placeholder="0,00"></div>
         <div class="campo campo-origem"><label>Origem da renda do cônjuge</label>
-          <input type="text" name="origemRendaConjuge" data-pad="1"></div>
+          <select name="origemRendaConjuge"><option value="">Selecione…</option><option>CLT</option><option>AUTÔNOMO</option><option>EMPRESÁRIO</option><option>SERVIDOR PÚBLICO</option><option>APOSENTADO / PENSIONISTA</option><option>PROFISSIONAL LIBERAL</option><option>RURAL</option><option>OUTRO</option></select></div>
+        <!-- r41 (item 10) -->
+        <div class="campo"><label>Profissão do cônjuge</label>
+          <input type="text" name="profissaoConjuge" data-pad="1"></div>
       </div>
       <span class="ajuda">O saldo de FGTS do cônjuge entra na composição da entrada junto com o do titular.</span>
     </div>
@@ -249,14 +252,14 @@
 
     <div class="secao">Trabalho e renda</div>
     <div class="linha">
-      <div class="campo"><label>Cargo</label><input type="text" name="cargo" data-pad="1"></div>
-      <div class="campo"><label>Empresa</label><input type="text" name="empresa" data-pad="1"></div>
+      <!-- r41 (item 7) — cargo e empresa removidos -->
       <!-- ITEM 9 — tempo de serviço só sem crédito aprovado -->
       <div class="campo" id="boxTempoServico"><label>Tempo de serviço</label><input type="text" name="tempoServico" data-pad="1"></div>
       <!-- ITEM 13 — renda aprovada, sem distinção formal/informal -->
       <div class="campo"><label>Renda aprovada (R$)</label>
         <input type="text" name="rendaAprovada" inputmode="numeric" placeholder="0,00"></div>
-      <div class="campo campo-origem"><label>Origem da renda</label><input type="text" name="origemRenda" data-pad="1"></div>
+      <div class="campo campo-origem"><label>Origem da renda</label>
+        <select name="origemRenda"><option value="">Selecione…</option><option>CLT</option><option>AUTÔNOMO</option><option>EMPRESÁRIO</option><option>SERVIDOR PÚBLICO</option><option>APOSENTADO / PENSIONISTA</option><option>PROFISSIONAL LIBERAL</option><option>RURAL</option><option>OUTRO</option></select></div>
       <div class="campo"><label>Renda total (proponente + cônjuge)</label><input type="text" id="rendaTotal" readonly></div>
     </div>
 
@@ -264,7 +267,8 @@
     <div class="linha">
       <div class="campo"><label>Saldo FGTS (R$)</label>
         <input type="text" name="saldoFgts" inputmode="numeric" placeholder="0,00"></div>
-      <div class="campo"><label>Subsídio (R$)</label>
+      <!-- r41 (item 9) — sem crédito aprovado o subsídio some: quem diz é a CAIXA -->
+      <div class="campo" id="boxSubsidio"><label>Subsídio (R$)</label>
         <input type="text" name="subsidio" inputmode="numeric" placeholder="0,00"></div>
       <div class="campo"><label>Valor para entrada (R$)<span class="obrig">*</span></label>
         <input type="text" name="valorEntrada" inputmode="numeric" placeholder="10.000,00" value="10.000,00">
@@ -317,7 +321,7 @@
           <input type="number" name="agravamento" min="0" max="100" step="1" value="0"></div>
       </div>
       <div class="checks" style="margin-top:4px">
-        <label class="check"><input type="checkbox" name="possuiImovelCidade" onchange="renderProdutos()"> Possui imóvel na cidade</label>
+        <label class="check"><input type="checkbox" name="possuiImovelCidade" onchange="renderProdutos()"> Possui algum imóvel</label>
         <label class="check"><input type="checkbox" name="fgts3anos"> Tem 3 anos de FGTS</label>
         <label class="check"><input type="checkbox" name="maisDeUmComprador"> Mais de um comprador</label>
         <label class="check"><input type="checkbox" name="jaBeneficiado" onchange="verSiopSub()"> Já foi beneficiado com subsídio FGTS/União</label>
@@ -849,15 +853,18 @@
     var alvo=document.getElementById('produtos'); if(!alvo) return;
     var comImovel=F().possuiImovelCidade.checked;
     var l=comImovel?PROD_COM:PROD_SEM;
-    produtosSelecionados=[];
-    alvo.innerHTML=l.map(function(p,i){
-      return '<div class="produto" data-i="'+i+'" onclick="alternarProduto(this)">'+
+    /* r41 (item 5) — sem Prócotista sobrou UMA linha em cada caso: SBPE para
+       quem tem imóvel, NPMCMV para quem não tem. Como não há escolha, já vai
+       marcada e fixa; a tela só mostra qual será simulada. */
+    produtosSelecionados=l.slice();
+    alvo.innerHTML=l.map(function(p){
+      return '<div class="produto on" style="cursor:default">'+
              '<span class="marca">✓</span><span>'+p+'</span></div>';
     }).join('');
-    document.getElementById('produtosAjuda').textContent =
-      (comImovel ? 'Cliente com imóvel na cidade: apenas a linha SBPE é elegível. '
-                 : 'Cliente sem imóvel na cidade: linha NPMCMV. ') +
-      'Clique para marcar/desmarcar quais serão simuladas.';
+    document.getElementById('produtosAjuda').innerHTML =
+      (comImovel ? 'Cliente <b>com</b> imóvel: a linha simulada é o <b>SBPE</b>.'
+                 : 'Cliente <b>sem</b> imóvel: a linha simulada é o <b>NPMCMV</b>.') +
+      ' A linha é definida automaticamente.';
   }
   function alternarProduto(el){
     el.classList.toggle('on');
@@ -895,6 +902,12 @@
        entram na conversa quando o cliente ainda NÃO tem crédito aprovado. */
     document.getElementById('boxTempoServico').style.display = com ? 'none' : '';
     document.getElementById('boxPossuiImovel').style.display = com ? 'none' : '';
+    /* r41 (item 9) — sem crédito aprovado, o subsídio quem calcula é a CAIXA */
+    var bs=document.getElementById('boxSubsidio');
+    if(bs){
+      bs.style.display = com ? '' : 'none';
+      if(!com) F().subsidio.value='';
+    }
     if(com){ F().tempoServico.value=''; F().possuiImovel.value='NÃO'; }
     if(!com){ F().creditoAprovado.value=''; }
     montarFluxo();
@@ -1232,13 +1245,14 @@
       dataNascimento:f.dataNascimento.value, endereco:padrao(f.endereco.value),
       telefone:dig(f.telefone.value), celular:dig(f.celular.value),
       emailProponente:String(f.emailProponente.value||'').trim().toLowerCase(),
-      cargo:padrao(f.cargo.value), empresa:padrao(f.empresa.value),
+
       tempoServico:padrao(f.tempoServico.value),
       /* ITEM 13 — renda aprovada única (proponente e cônjuge) */
       rendaAprovada:moeda(f.rendaAprovada.value), origemRenda:padrao(f.origemRenda.value),
       saldoFgtsConjuge:moeda(f.saldoFgtsConjuge.value),
       rendaAprovadaConjuge:moeda(f.rendaAprovadaConjuge.value),
       origemRendaConjuge:padrao(f.origemRendaConjuge.value),
+      profissaoConjuge:padrao(f.profissaoConjuge.value),
       creditoAprovadoCaixa:f.creditoAprovadoCaixa.value,
       parcelaFinanciamento:moeda(f.parcelaFinanciamento.value),
       saldoFgts:moeda(f.saldoFgts.value), subsidio:moeda(f.subsidio.value),
@@ -1454,6 +1468,7 @@
       var txt = document.createElement('input');
       txt.type = 'text';
       txt.inputMode = 'numeric';
+      txt.dataset.data = '1';   // r41 — a máscara de dinheiro não pega mais a data
       txt.placeholder = 'dd/mm/aaaa';
       txt.maxLength = 10;
       txt.className = el.className;
@@ -1505,6 +1520,14 @@
   verCredito();
   verBlocoSiop();
   somarRenda();
+  /* r41 (item 11) — marcou imóvel próprio na proposta? então também tem
+     imóvel para a CAIXA: o campo do bloco do SIOP acompanha sozinho (e a
+     linha simulada vira SBPE). */
+  F().possuiImovel.addEventListener('change', function(){
+    var tem = F().possuiImovel.value === 'SIM';
+    var cx = F().possuiImovelCidade;
+    if(cx && cx.checked !== tem){ cx.checked = tem; renderProdutos(); }
+  });
   F().unidade.addEventListener('change', function(){
     F().unidade.dataset.escolhida = F().unidade.value;   // sobrevive à atualização ao vivo
     aoTrocarUnidade();

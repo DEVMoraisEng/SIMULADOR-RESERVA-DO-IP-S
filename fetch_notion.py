@@ -123,17 +123,57 @@ def sim_nao(pr, nome):
 
 
 PASTA_PLANTAS = "assets/plantas"
+FONTES = f"{PASTA_PLANTAS}/fontes.json"
+LARGURA_MAX = 2400          # mesmo tamanho das plantas otimizadas à mão
+QUALIDADE_JPG = 82
+
+
+def _id_arquivo(url):
+    """A URL do Notion muda a cada consulta (assinatura na query string),
+    mas o caminho antes do '?' identifica o arquivo. É isso que comparamos
+    para saber se a planta foi trocada no Notion."""
+    return url.split("?", 1)[0]
+
+
+def _otimizar(conteudo, destino):
+    """O arquivo do Notion é o original de 7680x4320 (~35 MB, com canal
+    alfa). Reduz para LARGURA_MAX, achata o alfa em fundo branco e grava
+    JPEG progressivo."""
+    from io import BytesIO
+    from PIL import Image
+    im = Image.open(BytesIO(conteudo))
+    if im.mode in ("RGBA", "LA", "P"):
+        im = im.convert("RGBA")
+        fundo = Image.new("RGB", im.size, (255, 255, 255))
+        fundo.paste(im, mask=im.split()[-1])
+        im = fundo
+    else:
+        im = im.convert("RGB")
+    if im.width > LARGURA_MAX:
+        im = im.resize((LARGURA_MAX, round(im.height * LARGURA_MAX / im.width)),
+                       Image.LANCZOS)
+    im.save(destino, "JPEG", quality=QUALIDADE_JPG, optimize=True,
+            progressive=True)
 
 
 def baixar_plantas(unidades):
-    """A URL de arquivo do Notion é assinada e EXPIRA em 1 hora — publicar
-    ela no unidades.json deixaria a planta quebrada quase sempre (o Actions
-    roda de 6 em 6h). Então a imagem é baixada uma vez por tipo e passa a ser
-    servida pelo próprio repositório, onde não expira.
+    """A URL de arquivo do Notion é assinada e EXPIRA em 1 hora, então a
+    imagem é servida pelo próprio repositório.
 
-    Se o download falhar, mantém a URL do Notion: no pior caso a imagem some,
-    em vez de o pipeline inteiro parar."""
+    ERA AQUI QUE AS PESADAS VOLTAVAM: a cada execução (10 em 10 min) o script
+    baixava de novo o original do Notion e sobrescrevia o arquivo reduzido, e
+    o Actions commitava. Agora:
+      - só baixa se o arquivo não existe ou se a planta foi TROCADA no Notion
+        (controle em assets/plantas/fontes.json);
+      - quando baixa, já grava a versão otimizada.
+    Se o download falhar, mantém o arquivo local (ou a URL do Notion)."""
     os.makedirs(PASTA_PLANTAS, exist_ok=True)
+    try:
+        with open(FONTES, encoding="utf-8") as f:
+            fontes = json.load(f)
+    except (OSError, ValueError):
+        fontes = {}
+    fontes_orig = dict(fontes)
     baixados = {}
     for u in unidades:
         url = u.get("planta") or ""
@@ -142,22 +182,37 @@ def baixar_plantas(unidades):
         if nome in baixados:
             u["planta"] = baixados[nome]
             continue
+        existe = os.path.exists(destino)
         if not url.startswith("http"):
-            if os.path.exists(destino):
+            if existe:
                 u["planta"] = destino
                 baixados[nome] = destino
             continue
-        try:
-            r = requests.get(url, timeout=60)
-            r.raise_for_status()
-            with open(destino, "wb") as f:
-                f.write(r.content)
+        ident = _id_arquivo(url)
+        if existe and nome not in fontes:
+            # Primeira execução com o controle novo: o arquivo que está no
+            # repositório (o reduzido) é considerado o atual. Não baixa.
+            fontes[nome] = ident
+        if existe and fontes.get(nome) == ident:
             u["planta"] = destino
             baixados[nome] = destino
-            print(f"  planta {nome}: {len(r.content)//1024} KB -> {destino}")
+            continue
+        try:
+            r = requests.get(url, timeout=120)
+            r.raise_for_status()
+            _otimizar(r.content, destino)
+            fontes[nome] = ident
+            u["planta"] = destino
+            baixados[nome] = destino
+            print(f"  planta {nome}: {len(r.content)//1024} KB -> "
+                  f"{os.path.getsize(destino)//1024} KB em {destino}")
         except Exception as e:
-            print(f"  planta {nome}: falhou ({e}) — mantendo a URL do Notion")
-            baixados[nome] = url
+            print(f"  planta {nome}: falhou ({e})")
+            baixados[nome] = destino if existe else url
+            u["planta"] = baixados[nome]
+    if fontes != fontes_orig:
+        with open(FONTES, "w", encoding="utf-8") as f:
+            json.dump(fontes, f, ensure_ascii=False, indent=2, sort_keys=True)
 
 
 def main():

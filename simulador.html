@@ -179,9 +179,8 @@
         <div class="campo">
           <label>Valor para entrada (R$)<span class="obrig">*</span></label>
           <input type="text" name="valorEntrada" inputmode="numeric" placeholder="10.000,00" value="10.000,00">
-          <span class="ajuda">Mínimo <b>R$ 10.000,00</b>. Esses R$ 10.000 pagam os <b>sinais</b>
-          (R$ 1.000 no ato + 3 × R$ 3.000) e <b>não abatem</b> a entrada. Só o que passar de
-          R$ 10.000 é abatido do saldo.</span>
+          <span class="ajuda">Mínimo <b>R$ 10.000,00</b> — é o valor do <b>sinal</b>
+          (R$ 1.000 no ato + 3 × R$ 3.000).</span>
           <div id="avisoEntradaMin" style="display:none;margin-top:6px;padding:8px 11px;border-radius:6px;background:#FBEDEA;border:1px solid #E2A493;color:#8A2E17;font-size:12px;">O valor para entrada precisa ser de pelo menos R$ 10.000,00.</div>
         </div>
         <div class="campo">
@@ -225,6 +224,24 @@
         <label class="check" style="font-weight:400;color:var(--texto-suave);">
           <input type="checkbox" id="aceite" required>
           Autorizo o uso dos dados informados para gerar esta simulação e receber o resultado por e-mail.
+        </label>
+      </div>
+      <!-- r38 — aviso legal e ciência expressa (caráter estimativo) -->
+      <div style="margin:14px 0 4px;padding:12px 14px;border:1px solid #D8CDB5;border-left:4px solid var(--marrom);
+           border-radius:6px;background:#FFFDF7;font-size:11.5px;line-height:1.55;color:var(--texto-suave);">
+        <b style="color:var(--marrom)">AVISO IMPORTANTE — CARÁTER ESTIMATIVO.</b>
+        Esta simulação é <b>meramente estimativa</b>: usa apenas os dados informados aqui e o simulador da
+        CAIXA na data de hoje. <b>Não é aprovação, pré-aprovação nem promessa de crédito</b>, e não garante valor
+        financiado, prestação, taxa, prazo, subsídio ou uso de FGTS. A concessão do financiamento depende
+        exclusivamente da análise de crédito e das normas da Caixa Econômica Federal e do Programa Minha Casa,
+        Minha Vida (Lei nº 14.620/2023). <b>Valem somente as condições dos contratos assinados.</b> Confirme todas
+        as informações diretamente com a CAIXA (CDC, Lei nº 8.078/1990, arts. 6º, III, e 31). Dados tratados
+        conforme a LGPD (Lei nº 13.709/2018).
+      </div>
+      <div class="campo full" style="margin-top:8px;">
+        <label class="check" style="font-weight:400;color:var(--texto-suave);">
+          <input type="checkbox" id="ciencia" required>
+          Li o aviso acima e estou ciente de que esta simulação é uma <b>estimativa</b>, sem garantia de aprovação pela CAIXA.
         </label>
       </div>
       <div class="rodape">
@@ -324,9 +341,9 @@
     document.getElementById('comissaoTxt').textContent=(pct*100).toLocaleString('pt-BR',{minimumFractionDigits:2})+'%  ·  R$ '+fmt(u.valorVenda*pct);}
 
   var PROD_COM=['SBPE SFH - TR - AQUISIÇÃO DE IMÓVEL RESIDENCIAL NOVO'];
-  /* ITENS 3 e 14 (set/26) — a linha NPMCMV aparecia duas vezes e o
-     Prócotista saiu da oferta. Fica só uma linha para cliente sem imóvel. */
-  var PROD_SEM=['NPMCMV - IMÓVEL NOVO INDIVIDUAL'];
+  /* ITEM 3 (set/26) — a linha NPMCMV aparecia DUAS vezes. Fica uma NPMCMV
+     e o Prócotista continua como segunda opção. */
+  var PROD_SEM=['NPMCMV - IMÓVEL NOVO INDIVIDUAL','PRÓCOTISTA - AQUISIÇÃO DE IMÓVEL RESIDENCIAL NOVO'];
   function produtosAplicaveis(){return document.querySelector('[name="possuiImovelCidade"]').checked?PROD_COM:PROD_SEM;}
   var produtosSelecionados=[];
   function renderProdutos(){
@@ -338,7 +355,7 @@
     document.getElementById('produtosAjuda').textContent=
       (document.querySelector('[name="possuiImovelCidade"]').checked
         ? 'Cliente com imóvel na cidade: apenas a linha SBPE é elegível. '
-        : 'Cliente sem imóvel na cidade: linha NPMCMV. ')
+        : 'Cliente sem imóvel na cidade: linhas NPMCMV e Prócotista. ')
       + 'Clique para marcar/desmarcar quais serão simuladas.';
   }
   function alternarProduto(el){
@@ -586,7 +603,9 @@
   });
 
   function acompanhar(id,botao){
-    mostrarStatus('processando','<strong>Solicitação recebida.</strong><br>Simulando as linhas selecionadas. O resultado chega por e-mail.');
+    /* item 1 (r31) — aviso de spam no fim */
+    var AVISO_SPAM='<div style="margin-top:12px;padding:9px 12px;border-radius:6px;background:#FBEEC8;border:1px solid #EFB700;color:#7A4A16;font-size:13px;"><b>📬 Não encontrou o e-mail?</b> Confira a caixa de <b>spam / lixo eletrônico</b> e marque como "não é spam" — assim os próximos chegam na caixa de entrada.</div>';
+    mostrarStatus('processando','<strong>Solicitação recebida.</strong><br>Simulando as linhas selecionadas. O resultado chega por e-mail.'+AVISO_SPAM);
     var timer=setInterval(async function(){
       try{
         var s=await apiGet({acao:'status',id:id});
@@ -594,7 +613,7 @@
           var html='<strong>Simulação concluída.</strong>';
           (s.resultados||[]).forEach(function(rr){html+='<div style="margin-top:12px;"><strong>'+(rr.linha||'Linha')+'</strong><ul style="margin:6px 0 0 18px;">';(rr.valores||[]).forEach(function(v){html+='<li>'+v+'</li>';});html+='</ul></div>';});
           if(s.email_enviado)html+='<div style="margin-top:12px;">O resultado foi enviado por e-mail.</div>';
-          mostrarStatus('ok',html);
+          mostrarStatus('ok',html+AVISO_SPAM);
         }else if(s.status==='erro'){clearInterval(timer);if(botao)botao.disabled=false;mostrarStatus('erro',s.mensagem||'Não foi possível concluir.');}
         else if(s.status==='pendente'&&s.posicao_fila>0){mostrarStatus('processando','Na fila — '+s.posicao_fila+' à frente. O resultado chega por e-mail.');}
       }catch(err){}

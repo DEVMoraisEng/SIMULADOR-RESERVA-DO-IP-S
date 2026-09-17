@@ -120,6 +120,9 @@
   .tag-sinal{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;background:var(--amarelo);color:var(--marrom);
     font-size:10px;font-weight:800;vertical-align:middle;}
   details.fluxo-det{margin-top:10px;} details.fluxo-det summary{cursor:pointer;font-weight:700;color:var(--marrom);font-size:13px;}
+  .aviso-legal{margin:16px 0 4px;padding:12px 14px;border:1px solid #D8CDB5;border-left:4px solid var(--marrom);
+    border-radius:6px;background:#FFFDF7;font-size:11.5px;line-height:1.55;color:var(--texto-suave);}
+  .aviso-legal b{color:var(--marrom);}
   .anexo{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--borda);}
   .anexo label{flex:1;font-size:13px;color:var(--texto);font-weight:600;margin:0;}
   .anexo input[type=file]{font-size:12px;max-width:290px;}
@@ -181,8 +184,7 @@
           <option value="SIM">SIM — já tem carta de crédito aprovada</option>
           <option value="NAO">NÃO — ainda não passou pela análise</option>
         </select>
-        <span class="ajuda">Sem crédito aprovado, a proposta segue sem valor de financiamento
-        e a origem das rendas passa a ser obrigatória.</span>
+        <span class="ajuda">Sem crédito aprovado, a CAIXA é simulada só como <b>estimativa</b> do crédito do cliente e a origem da renda passa a ser obrigatória.</span>
       </div>
     </div>
 
@@ -412,11 +414,32 @@
       <div class="campo full"><label>Observações</label><input type="text" name="observacoes" data-pad="1"></div>
     </div>
 
+    <!-- ITEM 5 (r38) — aviso legal e ciência expressa -->
+    <div class="aviso-legal">
+      <b>AVISO IMPORTANTE — CARÁTER ESTIMATIVO</b><br>
+      As informações desta proposta e de qualquer simulação são <b>meramente estimativas</b>, calculadas
+      exclusivamente a partir dos dados informados pelo corretor/cliente e do simulador da CAIXA na data
+      do envio. <b>Não constituem aprovação, pré-aprovação ou promessa de crédito</b>, nem garantia de
+      valor financiado, prestação, taxa, prazo, subsídio ou uso de FGTS. A concessão do financiamento e
+      suas condições dependem exclusivamente da análise de crédito, da avaliação do imóvel e das normas da
+      Caixa Econômica Federal e do Programa Minha Casa, Minha Vida (Lei nº 14.620/2023), podendo ser
+      alteradas sem aviso. Os valores do fluxo estão sujeitos a correção (INCC até a entrega das chaves;
+      IPCA + 1% a.m. após). <b>Valem somente as condições dos contratos assinados.</b> Todas as
+      informações devem ser confirmadas diretamente com a CAIXA (CDC, Lei nº 8.078/1990, arts. 6º, III, e 31).
+      Dados pessoais tratados conforme a LGPD (Lei nº 13.709/2018), apenas para esta análise.
+    </div>
+
     <div class="checks">
       <label class="check">
         <input type="checkbox" id="aceite" checked>
         <span>Autorizo o uso dos dados informados para análise desta proposta e
         para receber o retorno por e-mail.</span>
+      </label>
+      <label class="check">
+        <input type="checkbox" id="ciencia">
+        <span>Declaro que li o aviso acima e estou ciente de que os valores são <b>estimativas</b>,
+        que <b>não há garantia de aprovação</b> pela CAIXA e que as condições definitivas são as dos
+        contratos assinados.</span>
       </label>
     </div>
 
@@ -448,6 +471,8 @@
   var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzwUIApU5nKXi1vG3cEs_V2DWCdkLDwY_vo0zBxO59ZBLbEihIxuOqbHdNLm-8pVVwVJQ/exec';
 
   var UNIDADES = [], PASSO = 1;
+  var ID_ENVIO = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+               : ('E'+Date.now()+'-'+Math.random().toString(36).slice(2));
 
   function apiPost(p){
     return fetch(APPS_SCRIPT_URL,{method:'POST',
@@ -638,6 +663,8 @@
     var u=unidadeAtual(), f=F();
     var comCredito=f.creditoAprovadoCaixa.value==='SIM';
     var credito=moeda(f.creditoAprovado.value);
+    /* r38 — sem crédito aprovado: estimativa com o teto de 80% */
+    if(!comCredito && u) credito=(u.avaliacao||0)*0.8;
     if(!u || (comCredito && !credito)){
       alvo.innerHTML='<span class="ajuda">Informe o crédito aprovado para montar o fluxo da entrada.</span>';
       alvo.dataset.esquema=''; if(resumo) resumo.innerHTML=''; ULTIMO_CALCULO=null; return;
@@ -754,6 +781,20 @@
     var u=unidadeAtual();
     if(!q.teto){ av.style.display='none'; aj.textContent='Informe a parcela.'; return; }
 
+    /* r38 — ITEM 4: sem crédito aprovado também simula, como ESTIMATIVA. */
+    if(F().creditoAprovadoCaixa.value==='NAO'){
+      av.style.display='block';
+      av.className='status ok';
+      av.innerHTML='<b>Sem crédito aprovado — a CAIXA será simulada como estimativa.</b><br>'+
+        'Avaliação '+brl(q.avaliacao)+' → teto de financiamento <b>'+brl(q.teto)+'</b> (80%). '+
+        'O fluxo abaixo usa esse teto como referência.<br>'+
+        '<span style="font-size:12px">A simulação serve apenas para dar uma ideia do crédito do cliente. '+
+        '<b>O crédito real só existe depois da análise e aprovação pela CAIXA.</b></span>';
+      document.getElementById('boxParcela').style.display='none';
+      campo.value=''; campo.classList.remove('destaque-sim');
+      return;
+    }
+
     /* A referência dos 80% aparece SEMPRE, não só quando estoura o teto:
        é o número que o corretor precisa ter na cabeça para conversar com o
        cliente, mesmo quando o crédito está abaixo dele. */
@@ -761,7 +802,8 @@
     /* r35 — crédito IGUAL ao teto também simula (antes só acima).
        Só abaixo do teto a parcela é digitada. */
     if(q.credito>=q.teto-0.5){
-      av.className='status processando';
+      /* r38 — ITEM 1: verde quando a CAIXA simula (nada a preencher) */
+      av.className='status ok';
       var acima = q.credito>q.teto+0.5;
       av.innerHTML='<b>Crédito '+(acima?'acima do':'igual ao')+' teto da Caixa.</b><br>'+
         'Avaliação '+brl(q.avaliacao)+' → teto de financiamento <b>'+brl(q.teto)+'</b> (80%).<br>'+
@@ -777,7 +819,8 @@
       campo.value='';
       campo.classList.remove('destaque-sim');
     }else{
-      av.className='status ok';
+      /* r38 — ITEM 1: amarelo quando a parcela PRECISA ser preenchida */
+      av.className='status processando';
       var folga=q.teto-q.credito;
       av.innerHTML='<b>Crédito dentro do teto da Caixa.</b><br>'+
         'Avaliação '+brl(q.avaliacao)+' → teto de financiamento <b>'+brl(q.teto)+'</b> (80%).<br>'+
@@ -833,8 +876,9 @@
      ele some, para não pedir dez informações que ninguém vai usar. */
   function verBlocoSiop(){
     var f=F(), u=unidadeAtual();
-    var vai = f.creditoAprovadoCaixa.value==='SIM' && u &&
-              (u.avaliacao||0)>0 && moeda(f.creditoAprovado.value) >= (u.avaliacao||0)*0.8-0.5;
+    var vai = !!u && (u.avaliacao||0)>0 &&
+              (f.creditoAprovadoCaixa.value==='NAO' ||
+               moeda(f.creditoAprovado.value) >= (u.avaliacao||0)*0.8-0.5);
     var antes=document.getElementById('boxSiop').style.display;
     document.getElementById('boxSiop').style.display = vai ? '' : 'none';
     document.getElementById('secaoSiop').style.display = vai ? '' : 'none';
@@ -951,8 +995,8 @@
       if(f.creditoAprovadoCaixa.value==='SIM' && !moeda(f.creditoAprovado.value))
         return erro('Informe o <b>crédito aprovado</b> pelo banco.', f.creditoAprovado);
       var u2=unidadeAtual(), teto2=(u2&&u2.avaliacao||0)*0.8;
-      var vaiSimular = f.creditoAprovadoCaixa.value==='SIM' && teto2>0 &&
-                       moeda(f.creditoAprovado.value) >= teto2-0.5;
+      var vaiSimular = teto2>0 && (f.creditoAprovadoCaixa.value==='NAO' ||
+                       moeda(f.creditoAprovado.value) >= teto2-0.5);
       if(!vaiSimular && f.creditoAprovadoCaixa.value==='SIM' && !moeda(f.parcelaFinanciamento.value))
         return erro('O crédito está abaixo do teto de 80%, então a CAIXA não simula. '+
                     'Informe a <b>parcela do financiamento</b>.', f.parcelaFinanciamento);
@@ -1169,6 +1213,9 @@
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailCorretor))
       return erro('Informe um <b>e-mail válido</b> para receber a proposta.', f.email);
     if(!document.getElementById('aceite').checked) return erro('É preciso autorizar o uso dos dados.');
+    if(!document.getElementById('ciencia').checked)
+      return erro('Marque a declaração de ciência do <b>aviso importante</b> (caráter estimativo).',
+                  document.getElementById('ciencia'));
 
     montarFluxo();
     var u=unidadeAtual();
@@ -1228,9 +1275,13 @@
       relacionamentoCaixa:f.relacionamentoCaixa.checked,
       servidorPublico:(f.relacionamentoCaixa.checked && f.servidorPublico.checked),
       creditoSalarioCaixa:(f.relacionamentoCaixa.checked && f.creditoSalarioCaixa.checked),
-      simularParcela:(f.creditoAprovadoCaixa.value==='SIM' &&
-                      moeda(f.creditoAprovado.value) >= (u.avaliacao||0)*0.8 - 0.5 &&
-                      (u.avaliacao||0) > 0),
+      simularParcela:((u.avaliacao||0) > 0 &&
+                      (f.creditoAprovadoCaixa.value==='NAO' ||
+                       moeda(f.creditoAprovado.value) >= (u.avaliacao||0)*0.8 - 0.5)),
+      /* r38 — código único do envio: se a resposta se perder, o servidor não
+         duplica e a tela consegue confirmar se a proposta foi criada */
+      idEnvio:ID_ENVIO,
+      cienciaEstimativa:true,
       esquema:(document.getElementById('fluxo').dataset.esquema||''),
       /* ITEM 15 — a conta dos sinais vai pronta: é o crivo de aceite no
          portal e no e-mail, e ninguém precisa refazer a matemática. */
@@ -1261,15 +1312,56 @@
       return apiPost({acao:'criarProposta', dados:dados, anexos:anexos});
     })
       .then(function(r){
-        if(r && r.ok){
+        if(r && r.ok){ sucessoEnvio(r); }
+        else {
+          bt.disabled=false;
+          mostrar('erro', r && r.erro==='CPF_INVALIDO' ? 'CPF inválido.' :
+            ('Não foi possível enviar: '+((r&&(r.erro||r.mensagem))||'erro desconhecido')));
+        }
+      })
+      .catch(function(){ confirmarEnvio(bt, 0); });
+  });
+
+  /* r38 — ITEM 2. Quando a resposta não chega (o Apps Script demora com os
+     anexos e a simulação), a proposta quase sempre FOI criada. Em vez de
+     jogar o erro na tela, a página pergunta ao servidor pelo código deste
+     envio durante até ~2 minutos. Mesmo que o corretor clique de novo, o
+     servidor reconhece o código e não cria outra proposta. */
+  function confirmarEnvio(bt, tentativa){
+    mostrar('processando','<b>Confirmando o envio…</b> A resposta está demorando — '+
+      'não feche a página e <b>não envie de novo</b>. ('+(tentativa+1)+'/20)');
+    fetch(APPS_SCRIPT_URL+'?acao=propostaPorEnvio&id='+encodeURIComponent(ID_ENVIO))
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if(j && j.encontrada){ sucessoEnvio({ok:true, proposta:j.proposta, confirmadaDepois:true}); return; }
+        throw 0;
+      })
+      .catch(function(){
+        if(tentativa<19){ setTimeout(function(){ confirmarEnvio(bt, tentativa+1); }, 6000); return; }
+        bt.disabled=false;
+        mostrar('erro','Não conseguimos confirmar o envio. Pode clicar em <b>Enviar proposta</b> '+
+          'de novo com segurança: o sistema reconhece este envio e <b>não cria proposta duplicada</b>.');
+      });
+  }
+
+  function sucessoEnvio(r){
+    var bt=document.getElementById('btEnviar');
+    var f=F();
+    var semCredito=f.creditoAprovadoCaixa.value==='NAO';
           mostrar('ok','<b>Proposta '+r.proposta+' enviada.</b><br>'+
             'Ela entra como RECEBIDA e será analisada pela Morais. '+
             'O retorno chega no e-mail informado.'+
             '<br><br><b>📬 Não encontrou o e-mail?</b> Confira a caixa de <b>spam / lixo eletrônico</b> '+
             'e marque como "não é spam" — assim os próximos chegam na caixa de entrada.'+
+            (r.confirmadaDepois
+              ? '<br><br>A resposta demorou, mas a proposta foi confirmada no sistema. '+
+                'O e-mail com a proposta completa chega em alguns minutos.'
+              : '')+
             (r.simulando
-              ? '<br><br><b>A parcela está sendo simulada na CAIXA.</b> Como o crédito bate no '+
-                'teto de 80% da avaliação, a proposta entrou na fila de simulação. '+
+              ? '<br><br><b>A parcela está sendo simulada na CAIXA.</b> '+
+                (semCredito ? 'Como o cliente ainda não tem crédito aprovado, a simulação é só uma '+
+                  '<b>estimativa</b> do crédito dele. '
+                  : 'Como o crédito bate no teto de 80% da avaliação, a proposta entrou na fila de simulação. ')+
                 '<b>O e-mail com a proposta completa — parcela, fluxo e documentos — chega '+
                 'quando a simulação terminar</b> (alguns minutos). Se o sistema estiver fora '+
                 'do ar, a proposta fica na fila e o e-mail sai assim que ele voltar.'
@@ -1288,18 +1380,7 @@
                 (r.aviso||'')+'<br>Avise a Morais — o Apps Script precisa autorizar o envio de e-mail.'
               : ''));
           bt.style.display='none';
-        } else {
-          bt.disabled=false;
-          mostrar('erro', r && r.erro==='CPF_INVALIDO' ? 'CPF inválido.' :
-            ('Não foi possível enviar: '+((r&&(r.erro||r.mensagem))||'erro desconhecido')));
-        }
-      })
-      .catch(function(){
-        bt.disabled=false;
-        mostrar('erro','Não deu para confirmar o envio. <b>Antes de reenviar, '+
-          'confirme com a Morais</b> — a proposta pode ter sido criada mesmo assim.');
-      });
-  });
+  }
 
 
   /* ===== DATA QUE DA PARA DIGITAR (celular) ============================

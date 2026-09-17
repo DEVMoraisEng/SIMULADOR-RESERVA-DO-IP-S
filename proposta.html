@@ -292,6 +292,13 @@
     <div class="linha">
       <div class="campo"><label>Banco</label><input type="text" name="banco" value="CEF FGTS" data-pad="1"></div>
       <div class="campo"><label>Prazo (meses)</label><input type="number" name="prazo" value="420"></div>
+      <!-- r43 — sistema de amortização (PRICE é o padrão) -->
+      <div class="campo"><label>Sistema de amortização</label>
+        <select name="sistemaAmortizacao">
+          <option value="PRICE" selected>PRICE — parcela fixa</option>
+          <option value="SAC">SAC — parcela decrescente</option>
+        </select>
+        <span class="ajuda">Usado na simulação da CAIXA e registrado na proposta.</span></div>
       <!-- ITEM 10 — saíram: plano do simulador, score, validade da análise e
            possui financiamento / créd. pessoal / conta corrente -->
       <div class="campo"><label>Data de referência</label>
@@ -1288,6 +1295,7 @@
       saldoFgts:moeda(f.saldoFgts.value), subsidio:moeda(f.subsidio.value),
       valorEntrada:moeda(f.valorEntrada.value), creditoAprovado:moeda(f.creditoAprovado.value),
       banco:padrao(f.banco.value), prazo:f.prazo.value, dataRef:f.dataRef.value,
+      sistemaAmortizacao:f.sistemaAmortizacao.value,
       /* ITEM 12 — só é perguntado sem crédito aprovado */
       possuiImovel:(f.creditoAprovadoCaixa.value==='NAO' && f.possuiImovel.value==='SIM'),
       vendedor:padrao(f.vendedor.value), creci:padrao(f.creci.value),

@@ -761,8 +761,8 @@
   /* Mesmas listas do simulador — se mudarem lá, mudam aqui. São as linhas
      que o SIOP aceita conforme o cliente já tenha imóvel na cidade. */
   var PROD_COM=['SBPE SFH - TR - AQUISIÇÃO DE IMÓVEL RESIDENCIAL NOVO'];
-  /* r33 — NPMCMV (uma vez só) + Prócotista, igual ao simulador */
-  var PROD_SEM=['NPMCMV - IMÓVEL NOVO INDIVIDUAL','PRÓCOTISTA - AQUISIÇÃO DE IMÓVEL RESIDENCIAL NOVO'];
+  /* r34 — na proposta, só NPMCMV (Prócotista removido) */
+  var PROD_SEM=['NPMCMV - IMÓVEL NOVO INDIVIDUAL'];
   var produtosSelecionados=[];
   function renderProdutos(){
     var alvo=document.getElementById('produtos'); if(!alvo) return;
@@ -775,7 +775,7 @@
     }).join('');
     document.getElementById('produtosAjuda').textContent =
       (comImovel ? 'Cliente com imóvel na cidade: apenas a linha SBPE é elegível. '
-                 : 'Cliente sem imóvel na cidade: linhas NPMCMV e Prócotista. ') +
+                 : 'Cliente sem imóvel na cidade: linha NPMCMV. ') +
       'Clique para marcar/desmarcar quais serão simuladas.';
   }
   function alternarProduto(el){

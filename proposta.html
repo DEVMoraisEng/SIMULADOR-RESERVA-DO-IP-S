@@ -1308,11 +1308,15 @@
       });
     })).then(function(as){
       anexos=as;
+      ANEXOS_PENDENTES=as;
       mostrar('processando','<b>Enviando a proposta…</b>');
-      return apiPost({acao:'criarProposta', dados:dados, anexos:anexos});
+      /* r39 — a proposta é criada SEM os anexos (resposta rápida); os
+         documentos sobem em seguida, em lotes, com progresso na tela. */
+      dados.anexosDepois = as.length>0;
+      return apiPost({acao:'criarProposta', dados:dados, anexos:[]});
     })
       .then(function(r){
-        if(r && r.ok){ sucessoEnvio(r); }
+        if(r && r.ok){ posCriacao(r); }
         else {
           bt.disabled=false;
           mostrar('erro', r && r.erro==='CPF_INVALIDO' ? 'CPF inválido.' :
@@ -1327,13 +1331,55 @@
      jogar o erro na tela, a página pergunta ao servidor pelo código deste
      envio durante até ~2 minutos. Mesmo que o corretor clique de novo, o
      servidor reconhece o código e não cria outra proposta. */
+  var ANEXOS_PENDENTES=[];
+
+  /* Depois que a proposta existe: sobe os anexos e pede o e-mail. */
+  function posCriacao(r){
+    if(r.duplicada || !ANEXOS_PENDENTES.length){ sucessoEnvio(r); return; }
+    var grupos={}, ordem=[];
+    ANEXOS_PENDENTES.forEach(function(a){
+      if(!grupos[a.rotulo]){ grupos[a.rotulo]=[]; ordem.push(a.rotulo); }
+      grupos[a.rotulo].push(a);
+    });
+    var falhas=[], ok=0, i=0;
+    function proximo(){
+      if(i>=ordem.length){ return finalizar(); }
+      var rot=ordem[i], lote=grupos[rot];
+      mostrar('processando','<b>Proposta '+esc_(r.proposta)+' criada.</b><br>Enviando documentos '+
+        (i+1)+' de '+ordem.length+': '+esc_(rot)+'… <b>não feche a página.</b>');
+      var tentar=function(n){
+        return apiPost({acao:'anexarProposta', pageId:r.id, anexos:lote})
+          .then(function(x){
+            if(x && x.ok){ ok+=(x.anexosNotion&&x.anexosNotion.ok)||0;
+                           (x.anexosNotion&&x.anexosNotion.falhas||[]).forEach(function(f){ falhas.push(f); }); }
+            else throw new Error((x&&x.erro)||'falhou');
+          })
+          .catch(function(e){ if(n<1) return tentar(n+1); falhas.push(rot+': '+(e.message||'sem resposta')); });
+      };
+      tentar(0).then(function(){ i++; proximo(); });
+    }
+    function finalizar(){
+      mostrar('processando','<b>Documentos enviados.</b> Finalizando e disparando o e-mail…');
+      apiPost({acao:'finalizarProposta', pageId:r.id})
+        .then(function(x){ r.emailOk = !(x && x.ok===false && !x.simulando); if(x && x.simulando) r.simulando=true; })
+        .catch(function(){ /* o e-mail pode ter saído mesmo assim */ })
+        .then(function(){
+          r.anexosNotion={ok:ok, falhas:falhas};
+          ANEXOS_PENDENTES=[];
+          sucessoEnvio(r);
+        });
+    }
+    proximo();
+  }
+
   function confirmarEnvio(bt, tentativa){
     mostrar('processando','<b>Confirmando o envio…</b> A resposta está demorando — '+
       'não feche a página e <b>não envie de novo</b>. ('+(tentativa+1)+'/20)');
     fetch(APPS_SCRIPT_URL+'?acao=propostaPorEnvio&id='+encodeURIComponent(ID_ENVIO))
       .then(function(r){ return r.json(); })
       .then(function(j){
-        if(j && j.encontrada){ sucessoEnvio({ok:true, proposta:j.proposta, confirmadaDepois:true}); return; }
+        if(j && j.encontrada){ posCriacao({ok:true, id:j.id, proposta:j.proposta, confirmadaDepois:true,
+                                           simulando:j.simulando}); return; }
         throw 0;
       })
       .catch(function(){
@@ -1365,6 +1411,10 @@
                 '<b>O e-mail com a proposta completa — parcela, fluxo e documentos — chega '+
                 'quando a simulação terminar</b> (alguns minutos). Se o sistema estiver fora '+
                 'do ar, a proposta fica na fila e o e-mail sai assim que ele voltar.'
+              : '')+
+            (r.anexosNotion && r.anexosNotion.falhas && r.anexosNotion.falhas.length
+              ? '<br><br><b style="color:#B0431F">Alguns documentos não subiram:</b><br><span style="font-size:12px">'+
+                r.anexosNotion.falhas.map(esc_).join('<br>')+'</span><br>Envie esses arquivos para a Morais por e-mail.'
               : '')+
             (r.ignoradas && r.ignoradas.length
               ? '<br><br><b style="color:#B0431F">Atenção: '+r.ignoradas.length+' campo(s) não existem na base '+

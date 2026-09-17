@@ -615,6 +615,36 @@
     });
     if(tpos/24>0.005)  fluxo.push(['24 X', tpos/24, 'pós-chaves - PÓS A OBRA', 'pos']);
 
+    /* r42 — FECHAMENTO DE CENTAVOS.
+       Cada linha aparece arredondada em 2 casas, e 12 × R$ 1.380,18 não
+       devolve exatamente o valor da fatia: a soma do quadro ficava R$ 0,03
+       abaixo da entrada. Agora todas as linhas são arredondadas de fato e a
+       sobra/falta de centavos entra no ÚLTIMO balão (parcela única, onde
+       centavo nenhum se multiplica). */
+    (function fecharCentavos(){
+      function qtd(rot){ var m=String(rot).match(/^(\d+)\s*X$/i); return m?parseInt(m[1],10):1; }
+      var soma=0;
+      fluxo.forEach(function(x){
+        x[1]=Math.round(x[1]*100)/100;
+        soma+=x[1]*qtd(x[0]);
+      });
+      soma=Math.round(soma*100)/100;
+      var dif=Math.round((total-soma)*100)/100;
+      if(!dif) return;
+      // último balão; se não houver, a última linha de parcela única
+      var alvo=null;
+      for(var i=fluxo.length-1;i>=0;i--){
+        if(qtd(fluxo[i][0])===1 && fluxo[i][3]!=='sinal'){ alvo=fluxo[i]; break; }
+      }
+      if(!alvo){
+        for(var j=fluxo.length-1;j>=0;j--){ if(fluxo[j][3]!=='sinal'){ alvo=fluxo[j]; break; } }
+        if(!alvo) return;
+        alvo[1]=Math.round((alvo[1]+dif/qtd(alvo[0]))*100)/100;
+        return;
+      }
+      alvo[1]=Math.round((alvo[1]+dif)*100)/100;
+    })();
+
     var sinaisTotal=ato+3*s3;
     var cobertos=Math.min(paraSinais, sinaisTotal);
     var faltaSinais=Math.max(0, sinaisTotal-cobertos);

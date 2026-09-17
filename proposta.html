@@ -547,17 +547,17 @@
     var paraSinais=Math.min(informado, VALOR_ENTRADA_MIN);     // paga os sinais
     var excedente=Math.max(0, informado-VALOR_ENTRADA_MIN);     // abate a entrada
     var recursos=(fgts||0)+(subsidio||0)+excedente;
-    var total=bruta-recursos;
-    var sobra = total<0 ? -total : 0;
-    if(total<0) total=0;
+    var totalCalc=bruta-recursos;
+    var sobra = totalCalc<0 ? -totalCalc : 0;
+    /* r37 — O SINAL NUNCA É MENOR QUE R$ 10.000 (ato 1.000 + 3 × 3.000).
+       FGTS, subsídio e excedente abatem os DEMAIS itens da entrada. Se eles
+       deixariam a entrada abaixo de R$ 10.000 (ou zerada), o fluxo mantém o
+       sinal cheio e a diferença é DEVOLVIDA na assinatura com o banco. */
+    var devolucao = totalCalc<SINAIS_BASE ? SINAIS_BASE-Math.max(0,totalCalc) : 0;
+    var total=Math.max(totalCalc, SINAIS_BASE);
 
     var ato=0, s3=0, g=0, t12=0, t1324=0, tpos=0;
-    if(total<=0){
-      /* nada a pagar */
-    } else if(total<=SINAIS_BASE){
-      ato=Math.min(SINAL_ATO,total);
-      s3=(total-ato)/3;
-    } else if(total<=BASE_CHEIA+0.01){   // tolerância de centavos
+    if(total<=BASE_CHEIA+0.01){   // tolerância de centavos
       ato=SINAL_ATO; s3=SINAL_MES;
       g=(total-SINAIS_BASE)/(BASE_MEIO+BPOS);
       t12=B12*g; t1324=B1324*g; tpos=BPOS*g;
@@ -598,6 +598,7 @@
             entradaInformada:informado, paraSinais:paraSinais, excedente:excedente,
             recursos:recursos, sobra:sobra,
             sinaisTotal:sinaisTotal, sinaisCobertos:cobertos,
+            devolucao:devolucao, totalCalculado:totalCalc,
             faltaSinais:faltaSinais, sobraSinais:sobraSinais,
             saldoAposSinais:Math.max(0,total-sinaisTotal)};
   }
@@ -619,6 +620,16 @@
     var v=F().unidade.value;
     for(var i=0;i<UNIDADES.length;i++) if(String(UNIDADES[i].unidade)===String(v)) return UNIDADES[i];
     return null;
+  }
+  /* r37 — explicação da devolução quando FGTS/subsídio cobririam o sinal */
+  function avisoDevolucao(q){
+    if(!(q.devolucao>0.005)) return '';
+    return '<div class="status processando" style="margin-top:10px">'+
+      '<b>O sinal de R$ 10.000,00 é mantido.</b><br>'+
+      'FGTS, subsídio e o excedente do valor para entrada ('+brl(q.recursos)+') cobririam '+
+      (q.totalCalculado<=0 ? '<b>100% da entrada</b>' : 'a entrada até sobrar só '+brl(q.totalCalculado))+
+      ', mas o sinal nunca fica abaixo de R$ 10.000,00. '+
+      '<b>A diferença de '+brl(q.devolucao)+' será devolvida ao cliente no ato da assinatura do contrato com o banco.</b></div>';
   }
   var ULTIMO_CALCULO=null;
   function montarFluxo(){
@@ -672,7 +683,7 @@
         (q.subsidio?' − subsídio '+brl(q.subsidio):'')+
         (q.excedente?' − excedente do valor para entrada '+brl(q.excedente):'')+'.<br>'+
         'Depois do sinal, ficam <b>'+brl(q.saldoAposSinais)+'</b> em parcelas durante a obra, balões e pós-chaves.'+
-        '</div>'+quadroSinais;
+        '</div>'+quadroSinais+avisoDevolucao(q);
     }
 
     var cab='<table class="tabfluxo">'+
@@ -727,13 +738,7 @@
       return g+'<tr'+est+'><td>'+x[0]+'</td><td class="num">'+brl(x[1])+'</td><td><small>'+desc+'</small>'+tag+situ+'</td></tr>'+fecho;
     }).join('');
 
-    var recado='';
-    if(q.sobra>0){
-      recado='<div class="status ok" style="margin-top:10px">'+
-        '<b>A entrada seria quitada 100%.</b><br>'+
-        'FGTS, subsídio e o excedente do valor para entrada somam '+brl(q.recursos)+
-        ' e a entrada é '+brl(q.bruta)+'. Sobram <b>'+brl(q.sobra)+'</b>.</div>';
-    }
+    var recado=avisoDevolucao(q);
     alvo.innerHTML=cab+linhas+'</table>'+recado;
   }
 
@@ -1237,6 +1242,7 @@
                 valorEntradaExcedente:r(q.excedente), sinaisTotal:r(q.sinaisTotal),
                 sinaisCobertos:r(q.sinaisCobertos), faltaSinais:r(q.faltaSinais),
                 sobraSinais:r(q.sobraSinais), saldoAposSinais:r(q.saldoAposSinais),
+                devolucao:r(q.devolucao),
                 fgts:r(q.fgts), subsidio:r(q.subsidio), financiado:r(q.financiado)};
       })(ULTIMO_CALCULO)
     };

@@ -124,6 +124,17 @@
     border-radius:6px;background:#FFFDF7;font-size:11.5px;line-height:1.55;color:var(--texto-suave);}
   .aviso-legal b{color:var(--marrom);}
   .anexo{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--borda);}
+  .anexo label{flex:1;min-width:0;}
+  .anexo input[type=file]{flex:0 0 auto;max-width:56%;font-size:12px;}
+  /* r51 (item 3) — no celular o campo de arquivo espremia o rótulo até ele
+     ficar em pé, uma letra por linha. Aqui cada parte fica na sua linha. */
+  @media(max-width:640px){
+    .anexo{flex-direction:column;align-items:stretch;gap:6px;padding:11px 0;}
+    .anexo label{font-size:13.5px;}
+    .anexo input[type=file]{max-width:100%;width:100%;}
+    .anexo.pedido{padding-left:8px;}
+    .tag-doc{margin-left:0;margin-top:4px;display:inline-block;}
+  }
   .anexo label small{display:block;font-weight:400;font-size:11.5px;color:var(--texto-suave);margin-top:2px;}
   .anexo.pedido{background:#FFFBEF;border-left:3px solid var(--amarelo);padding-left:8px;}
   details.outros-docs{margin-top:10px;} details.outros-docs summary{cursor:pointer;font-weight:700;color:var(--marrom);font-size:13px;}

@@ -207,7 +207,7 @@
         <span class="ajuda" id="cpfAviso" style="display:none;color:#8A2E17">CPF inválido — confira os números.</span></div>
       <div class="campo"><label>Identidade</label><input type="text" name="identidade" data-pad="1"></div>
       <div class="campo"><label>Estado civil<span class="obrig">*</span></label>
-        <select name="estadoCivil" onchange="verConjuge()">
+        <select name="estadoCivil" onchange="verConjuge();montarAnexos();">
           <option>SOLTEIRO</option><option>CASADO</option><option>DIVORCIADO</option>
           <option>VIUVO</option><option>UNIAO ESTAVEL</option></select></div>
       <div class="campo"><label>Nacionalidade</label><input type="text" name="nacionalidade" value="BR" data-pad="1"></div>
@@ -219,9 +219,8 @@
         <input type="text" name="telefone" inputmode="numeric" maxlength="15" placeholder="(00) 0000-0000"></div>
       <div class="campo"><label>Celular<span class="obrig">*</span></label>
         <input type="text" name="celular" inputmode="numeric" maxlength="15" placeholder="(00) 00000-0000" required></div>
-      <!-- ITEM 12 — só pergunta quando o cliente NÃO tem crédito aprovado -->
-      <div class="campo" id="boxPossuiImovel"><label>Possui imóvel próprio</label>
-        <select name="possuiImovel"><option>NÃO</option><option>SIM</option></select></div>
+      <!-- r46 (item 1) — "Possui imóvel próprio" removido: quem responde isso
+           é o campo "Possui algum imóvel" do bloco da CAIXA, mais abaixo. -->
     </div>
 
     <div id="boxConjuge" style="display:none">
@@ -257,8 +256,7 @@
     <div class="secao">Trabalho e renda</div>
     <div class="linha">
       <!-- r41 (item 7) — cargo e empresa removidos -->
-      <!-- ITEM 9 — tempo de serviço só sem crédito aprovado -->
-      <div class="campo" id="boxTempoServico"><label>Tempo de serviço</label><input type="text" name="tempoServico" data-pad="1"></div>
+      <!-- r46 (item 2) — tempo de serviço removido -->
       <!-- ITEM 13 — renda aprovada, sem distinção formal/informal -->
       <div class="campo"><label>Renda aprovada (R$)</label>
         <input type="text" name="rendaAprovada" inputmode="numeric" placeholder="0,00"></div>
@@ -328,13 +326,12 @@
             <option>TOKIO MARINE SEGURADORA</option>
             <option>TOO SEGUROS</option>
           </select></div>
-        <div class="campo"><label>% de agravamento do seguro</label>
-          <input type="number" name="agravamento" min="0" max="100" step="1" value="0"></div>
+        <!-- r46 (item 4) — % de agravamento do seguro removido -->
       </div>
       <div class="checks" style="margin-top:4px">
         <label class="check"><input type="checkbox" name="possuiImovelCidade" onchange="renderProdutos()"> Possui algum imóvel</label>
-        <label class="check"><input type="checkbox" name="fgts3anos"> Tem 3 anos de FGTS</label>
-        <label class="check"><input type="checkbox" name="maisDeUmComprador"> Mais de um comprador</label>
+        <label class="check"><input type="checkbox" name="fgts3anos" onchange="montarAnexos()"> Tem 3 anos de FGTS</label>
+        <label class="check"><input type="checkbox" name="maisDeUmComprador" onchange="montarAnexos()"> Mais de um comprador ou dependente</label>
         <label class="check"><input type="checkbox" name="jaBeneficiado" onchange="verSiopSub()"> Já foi beneficiado com subsídio FGTS/União</label>
         <div class="campo" id="boxConcessaoProp" style="display:none;margin:2px 0 8px 26px;max-width:260px">
           <label>Data da concessão do benefício</label>
@@ -402,6 +399,8 @@
     </div>
     <div id="anexos"></div>
     <div id="anexoResumo" class="ajuda" style="margin-top:10px"></div>
+    <div id="avisoDocs" style="display:none;margin-top:10px;padding:10px 12px;border-radius:6px;
+         background:#FBEDEA;border:1px solid #E2A493;color:#8A2E17;font-size:13px"></div>
 
     <div class="rodape">
       <button type="button" class="btn-secundario" onclick="irPara(3)">Voltar</button>
@@ -834,7 +833,8 @@
         'Avaliação '+brl(q.avaliacao)+' → teto de financiamento <b>'+brl(q.teto)+'</b> (80%). '+
         'O fluxo abaixo usa esse teto como referência.<br>'+
         '<span style="font-size:12px">A simulação serve apenas para dar uma ideia do crédito do cliente. '+
-        '<b>O crédito real só existe depois da análise e aprovação pela CAIXA.</b></span>';
+        '<b>O crédito real só existe depois da análise e aprovação pela CAIXA.</b></span>'+
+        listaDocumentos();
       document.getElementById('boxParcela').style.display='none';
       campo.value=''; campo.classList.remove('destaque-sim');
       return;
@@ -939,17 +939,12 @@
     document.querySelectorAll('.campo-origem').forEach(function(c){
       c.style.display = com ? 'none' : '';
     });
-    /* ITEM 9 — tempo de serviço e ITEM 12 — possui imóvel próprio: só
-       entram na conversa quando o cliente ainda NÃO tem crédito aprovado. */
-    document.getElementById('boxTempoServico').style.display = com ? 'none' : '';
-    document.getElementById('boxPossuiImovel').style.display = com ? 'none' : '';
     /* r41 (item 9) — sem crédito aprovado, o subsídio quem calcula é a CAIXA */
     var bs=document.getElementById('boxSubsidio');
     if(bs){
       bs.style.display = com ? '' : 'none';
       if(!com) F().subsidio.value='';
     }
-    if(com){ F().tempoServico.value=''; F().possuiImovel.value='NÃO'; }
     if(!com){ F().creditoAprovado.value=''; }
     montarFluxo();
   }
@@ -992,8 +987,52 @@
       ['AUTÔNOMO','MEI','OUTRO']],
     ['plataforma','Extrato da plataforma - 4 últimos meses','Uber, iFood, 99 e afins.',
       ['MOTORISTA DE APLICATIVO']],
+    /* r46 (item 7) — FGTS: pedido para quem é CLT ou marcou 3 anos de FGTS */
+    ['extratoFgts','Extrato do FGTS','Extrato do app ou do site da CAIXA, com o saldo.',['CLT'],'fgts'],
+    /* r46 (item 8) — dependente / segundo comprador */
+    ['dependente','Documentos do dependente ou 2º comprador',
+      'Criança: certidão de nascimento ou identidade. Maior de idade: documento pessoal + comprovante de estado civil.',
+      null,'dependente'],
+    /* r46 (item 9) — divorciado */
+    ['divorcio','Comprovante de divórcio','Averbação do divórcio na certidão de casamento ou sentença.',
+      null,'divorcio'],
     ['outros','Outros documentos','Qualquer outro documento pedido pela análise.',null]
   ];
+
+  /* r46 (item 3) — a lista de documentos da análise, montada conforme a
+     ORIGEM DA RENDA e a situação do cliente: o corretor vê exatamente o que
+     pedir, sem decorar a lista do WhatsApp. */
+  function listaDocumentos(){
+    var itens=[];
+    DOCS.forEach(function(d){
+      if(d[0]==='outros') return;
+      var f=F();
+      var origens=[(f.origemRenda&&f.origemRenda.value)||'', (f.origemRendaConjuge&&f.origemRendaConjuge.value)||''];
+      var porOrigem = d[3] && origens.some(function(o){ return o && d[3].indexOf(o)>=0; });
+      var porSituacao = d[4] && situacaoPede(d[4]);
+      var sempre = DOCS_SEMPRE.indexOf(d[0])>=0;
+      var conj = d[0]==='docConjuge' && document.getElementById('boxConjuge').style.display!=='none';
+      if(porOrigem||porSituacao||sempre||conj) itens.push('<li><b>'+d[1]+'</b> — '+d[2]+'</li>');
+    });
+    var f=F();
+    var semOrigem = !(f.origemRenda && f.origemRenda.value);
+    return '<div style="margin-top:10px;padding:10px 12px;border-radius:6px;background:#fff;border:1px solid #D8CDB5">'+
+      '<b>🏡 Documentos para aprovar o crédito</b>'+
+      (semOrigem ? '<br><span style="color:#8A2E17">Escolha a <b>origem da renda</b> (passo 2) para a lista sair completa.</span>' : '')+
+      '<ul style="margin:6px 0 0 18px;padding:0;font-size:12.5px;line-height:1.55">'+itens.join('')+'</ul>'+
+      '<span style="font-size:12px;color:#6B5A45">Anexe no passo 4. Faremos a análise de crédito e retornaremos com o resultado.</span></div>';
+  }
+
+  /* r46 — situações que pedem documento além da origem da renda. */
+  function situacaoPede(chave){
+    var f=F();
+    if(chave==='fgts') return !!(f.fgts3anos && f.fgts3anos.checked);
+    if(chave==='dependente') return !!(f.maisDeUmComprador && f.maisDeUmComprador.checked);
+    if(chave==='divorcio') return String(f.estadoCivil.value||'').indexOf('DIVORC')>=0;
+    return false;
+  }
+  /* Documentos que TODA análise pede, independentemente da renda. */
+  var DOCS_SEMPRE=['docProponente','certidao','compEndereco'];
   var LIMITE_ANEXOS=20*1024*1024;
   function montarAnexos(){
     var f=F();
@@ -1001,8 +1040,14 @@
     var guardados={};
     DOCS.forEach(function(d){ var el=document.getElementById('ax-'+d[0]); if(el && el.files.length) guardados[d[0]]=el.files; });
     document.getElementById('anexos').innerHTML=DOCS.map(function(d){
-      var pedido = d[3] && origens.some(function(o){ return o && d[3].indexOf(o)>=0; });
-      var quem = pedido ? origens.filter(function(o){ return o && d[3].indexOf(o)>=0; }).join(' / ') : '';
+      var porOrigem = d[3] && origens.some(function(o){ return o && d[3].indexOf(o)>=0; });
+      var porSituacao = d[4] && situacaoPede(d[4]);
+      var sempre = DOCS_SEMPRE.indexOf(d[0])>=0;
+      var conjugeObrig = d[0]==='docConjuge' && document.getElementById('boxConjuge').style.display!=='none';
+      var pedido = porOrigem || porSituacao || sempre || conjugeObrig;
+      var quem = porOrigem ? origens.filter(function(o){ return o && d[3].indexOf(o)>=0; }).join(' / ')
+               : (d[4]==='fgts' ? 'FGTS' : (d[4]==='dependente' ? 'DEPENDENTE / 2º COMPRADOR'
+               : (d[4]==='divorcio' ? 'DIVORCIADO' : 'ANÁLISE DE CRÉDITO')));
       return '<div class="anexo'+(pedido?' pedido':'')+'">'+
              '<label for="ax-'+d[0]+'">'+d[1]+
              (pedido?'<span class="tag-doc">pedido para '+quem+'</span>':'')+
@@ -1103,10 +1148,13 @@
           return erro('Marque pelo menos uma <b>linha de financiamento</b> para simular.',
                       document.querySelector('#produtos .produto'));
       }
-      if(f.creditoAprovadoCaixa.value==='NAO'){
-        if(!f.origemRenda.value.trim())
-          return erro('Sem crédito aprovado, informe a <b>origem da renda</b>.', f.origemRenda);
-      }
+      /* r46 (item 6) — a origem da renda define quais documentos a análise
+         pede, então é obrigatória com ou sem crédito aprovado. */
+      if(!f.origemRenda.value.trim())
+        return erro('Escolha a <b>origem da renda</b> — é ela que define os documentos a anexar.', f.origemRenda);
+      if(document.getElementById('boxConjuge').style.display!=='none' &&
+         moeda(f.rendaAprovadaConjuge.value) && !f.origemRendaConjuge.value.trim())
+        return erro('Escolha a <b>origem da renda do cônjuge</b>.', f.origemRendaConjuge);
       /* ITEM 15 — valor para entrada: mínimo de R$ 10.000 (são os sinais). */
       if(moeda(f.valorEntrada.value) < VALOR_ENTRADA_MIN)
         return erro('O <b>valor para entrada</b> precisa ser de pelo menos <b>R$ 10.000,00</b> — '+
@@ -1116,6 +1164,28 @@
       var lista=arquivosAnexados();
       var total=lista.reduce(function(a,x){return a+x.arquivo.size;},0);
       if(total>LIMITE_ANEXOS) return erro('Os anexos somam mais de 20 MB. Tire algum arquivo antes de continuar.');
+      /* r46 — os documentos pedidos para ESTE cliente precisam vir anexados.
+         Sem todos em mãos, o corretor marca a caixa e a proposta segue; o
+         que faltar é juntado depois na página do Notion. */
+      var faltam=[];
+      DOCS.forEach(function(d){
+        var cx=document.getElementById('ax-'+d[0]);
+        if(!cx || !cx.closest('.anexo').classList.contains('pedido')) return;
+        if(!cx.files.length) faltam.push(d[1]);
+      });
+      var cxAviso=document.getElementById('avisoDocs');
+      var marcado=document.getElementById('semTodosDocs');
+      if(faltam.length && !(marcado && marcado.checked)){
+        cxAviso.style.display='block';
+        cxAviso.innerHTML='<b>Faltam documentos pedidos para este cliente:</b><br>'+
+          faltam.map(esc_).join('<br>')+
+          '<label class="check" style="margin-top:8px;display:flex;gap:8px;align-items:flex-start">'+
+          '<input type="checkbox" id="semTodosDocs"><span>Não tenho todos agora — enviar assim mesmo '+
+          'e juntar o que falta depois.</span></label>';
+        cxAviso.scrollIntoView({behavior:'smooth', block:'center'});
+        return erro('Anexe os documentos pedidos ou marque que vai enviar o que falta depois.');
+      }
+      if(cxAviso && !faltam.length) cxAviso.style.display='none';
     }
     return true;
   }
@@ -1318,7 +1388,6 @@
       telefone:dig(f.telefone.value), celular:dig(f.celular.value),
       emailProponente:String(f.emailProponente.value||'').trim().toLowerCase(),
 
-      tempoServico:padrao(f.tempoServico.value),
       /* ITEM 13 — renda aprovada única (proponente e cônjuge) */
       rendaAprovada:moeda(f.rendaAprovada.value), origemRenda:padrao(f.origemRenda.value),
       saldoFgtsConjuge:moeda(f.saldoFgtsConjuge.value),
@@ -1332,7 +1401,7 @@
       banco:padrao(f.banco.value), prazo:f.prazo.value, dataRef:f.dataRef.value,
       sistemaAmortizacao:f.sistemaAmortizacao.value,
       /* ITEM 12 — só é perguntado sem crédito aprovado */
-      possuiImovel:(f.creditoAprovadoCaixa.value==='NAO' && f.possuiImovel.value==='SIM'),
+      possuiImovel:!!f.possuiImovelCidade.checked,   /* r46 — vem do bloco da CAIXA */
       vendedor:padrao(f.vendedor.value), creci:padrao(f.creci.value),
       imobiliaria:padrao(f.imobiliaria.value), email:String(f.email.value).trim().toLowerCase(),
       observacoes:padrao(f.observacoes.value),
@@ -1353,7 +1422,7 @@
       prazoMeses:Math.min(420, Number(f.prazoMeses.value)||420),
       seguradora:f.seguradora.value,
       produtos:produtosSelecionados.slice(),
-      agravamento:Number(f.agravamento.value)||0,
+      agravamento:0,
       possuiImovelCidade:f.possuiImovelCidade.checked,
       fgts3anos:f.fgts3anos.checked,
       maisDeUmComprador:f.maisDeUmComprador.checked,
@@ -1593,14 +1662,6 @@
   verCredito();
   verBlocoSiop();
   somarRenda();
-  /* r41 (item 11) — marcou imóvel próprio na proposta? então também tem
-     imóvel para a CAIXA: o campo do bloco do SIOP acompanha sozinho (e a
-     linha simulada vira SBPE). */
-  F().possuiImovel.addEventListener('change', function(){
-    var tem = F().possuiImovel.value === 'SIM';
-    var cx = F().possuiImovelCidade;
-    if(cx && cx.checked !== tem){ cx.checked = tem; renderProdutos(); }
-  });
   F().unidade.addEventListener('change', function(){
     F().unidade.dataset.escolhida = F().unidade.value;   // sobrevive à atualização ao vivo
     aoTrocarUnidade();

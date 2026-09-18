@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Completar proposta · Reserva do Ipês</title>
+<style>
+  :root{
+    --marrom:#7A4A16; --amarelo:#EFB700; --fundo:#FBF7EF; --borda:#E7DCC7;
+    --texto:#2A2118; --texto-suave:#6B5A45; --verde:#1D5433; --vermelho:#8A2E17;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fundo);color:var(--texto);
+       font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;font-size:15px;line-height:1.5}
+  header{background:linear-gradient(90deg,#5A3410,#7A4A16);color:#fff;padding:14px 18px}
+  header h1{margin:0;font-size:17px}
+  header span{font-size:12px;color:#F3DFB8}
+  main{max-width:860px;margin:0 auto;padding:18px 14px 60px}
+  .card{background:#fff;border:1px solid var(--borda);border-radius:12px;padding:18px;margin-bottom:14px}
+  h2{font-size:15px;color:var(--marrom);margin:0 0 4px}
+  .sub{font-size:13px;color:var(--texto-suave);margin:0 0 14px}
+  .grade{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:680px){.grade{grid-template-columns:1fr}}
+  label{display:block;font-size:12px;font-weight:700;color:var(--texto-suave);margin-bottom:3px}
+  input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--borda);border-radius:7px;
+    font:inherit;font-size:14px;background:#fff;color:var(--texto)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--amarelo);
+    box-shadow:0 0 0 3px rgba(239,183,0,.18)}
+  .falta input,.falta select{border-color:#E2A493;background:#FFFBFA}
+  .marca{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;background:#FBEDEA;
+    color:var(--vermelho);font-size:10px;font-weight:800;vertical-align:middle}
+  .ok-marca{background:#EAF6EF;color:var(--verde)}
+  .doc{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--borda)}
+  .doc.pedido{background:#FFFBEF;border-left:3px solid var(--amarelo);padding-left:8px}
+  .doc label{flex:1;font-size:13.5px;color:var(--texto);font-weight:600;margin:0}
+  .doc small{display:block;font-weight:400;font-size:11.5px;color:var(--texto-suave)}
+  .doc input[type=file]{width:auto;border:none;padding:0;font-size:12px;background:transparent}
+  button{border:none;border-radius:8px;padding:11px 20px;font-weight:800;font-size:14px;cursor:pointer}
+  .primario{background:var(--amarelo);color:var(--marrom)}
+  .primario:disabled{opacity:.6;cursor:default}
+  .aviso{padding:12px 14px;border-radius:8px;font-size:13.5px;margin-bottom:14px}
+  .aviso.erro{background:#FDECEA;border:1px solid #E2A493;color:var(--vermelho)}
+  .aviso.ok{background:#EAF6EF;border:1px solid #8CC9A5;color:var(--verde)}
+  .aviso.info{background:#FBEEC8;border:1px solid var(--amarelo);color:var(--marrom)}
+  .legal{font-size:11px;color:var(--texto-suave);line-height:1.5;border:1px solid var(--borda);
+    border-left:4px solid var(--marrom);border-radius:6px;padding:11px 13px;background:#FFFDF7}
+  .resumo{background:#FBEEC8;border:1px solid var(--amarelo);border-radius:8px;padding:11px 13px;
+    font-size:13.5px;color:var(--marrom);margin-bottom:14px}
+  details.outros{margin-top:10px} details.outros summary{cursor:pointer;font-weight:700;color:var(--marrom);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Completar proposta</h1>
+  <span>Condomínio Reserva dos Ipês · Morais Engenharia e Construção</span>
+</header>
+
+<main>
+  <div id="estado" class="aviso info">Carregando a proposta…</div>
+  <div id="conteudo" style="display:none">
+
+    <div class="resumo" id="resumo"></div>
+
+    <div class="card">
+      <h2>Dados que faltam</h2>
+      <p class="sub">Os campos em vermelho estão vazios no cadastro. O que já está
+        preenchido aparece do jeito que a Morais recebeu — corrija se estiver errado.</p>
+      <div class="grade" id="campos"></div>
+    </div>
+
+    <div class="card">
+      <h2>Documentos</h2>
+      <p class="sub">Limite de 20 MB no total. Os destacados são os que faltam para
+        esta proposta; os demais ficam recolhidos abaixo.</p>
+      <div id="docs"></div>
+      <div id="resumoAnexos" class="sub" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <div class="legal">
+        <b>Aviso.</b> Os dados enviados aqui entram direto no cadastro desta proposta e são
+        usados apenas para a análise de crédito junto à CAIXA. Os valores da proposta são
+        estimativas e não representam aprovação de crédito. Dados pessoais tratados conforme
+        a LGPD (Lei nº 13.709/2018).
+      </div>
+      <div id="avisoEnvio" class="aviso" style="display:none;margin-top:12px"></div>
+      <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="primario" id="btEnviar" onclick="enviar()">Enviar para a Morais</button>
+        <span class="sub" style="margin:0">Você pode enviar mais de uma vez: cada envio atualiza o cadastro.</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+/* =====================================================================
+ * COMPLETAR PROPOSTA (r49)
+ * ---------------------------------------------------------------------
+ * Aberta pelo link que o portal gera: ?p=<id da proposta>&t=<token>.
+ * Sem token válido o Apps Script não devolve nada, então a página não
+ * expõe proposta nenhuma por id solto. O que o corretor manda aqui vai
+ * para as MESMAS colunas do Notion — sem status, preço nem unidade.
+ * =================================================================== */
+var APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbzwUIApU5nKXi1vG3cEs_V2DWCdkLDwY_vo0zBxO59ZBLbEihIxuOqbHdNLm-8pVVwVJQ/exec';
+var LIMITE=20*1024*1024;
+var P=new URLSearchParams(location.search), ID=P.get('p')||'', TOKEN=P.get('t')||'';
+var DADOS=null;
+
+var ORIGENS=['CLT','SERVIDOR PÚBLICO','EMPRESÁRIO','AUTÔNOMO','MEI','MOTORISTA DE APLICATIVO',
+             'APOSENTADO / PENSIONISTA','PROFISSIONAL LIBERAL','RURAL','OUTRO'];
+var ESTADOS=['SOLTEIRO','CASADO','UNIÃO ESTÁVEL','DIVORCIADO','VIÚVO'];
+
+/* Mesma regra da proposta: o documento pedido depende da origem da renda
+   e da situação do cliente. */
+var REGRA_DOC={
+  'CONTRACHEQUES':['CLT','SERVIDOR PÚBLICO'],
+  'CARTEIRA DE TRABALHO':['CLT'],
+  'EXTRATO FGTS':['CLT'],
+  'PRO LABORE':['EMPRESÁRIO'],
+  'MOVIMENTACAO BANCARIA':['AUTÔNOMO','MEI','OUTRO'],
+  'EXTRATO PLATAFORMA':['MOTORISTA DE APLICATIVO'],
+  'IR + EXTRATOS':['EMPRESÁRIO','AUTÔNOMO','MEI','PROFISSIONAL LIBERAL','RURAL']
+};
+var DOC_SEMPRE=['DOC. PROP.','CERTIDOES','COMPROVANTE DE ENDERECO'];
+var DICA_DOC={
+  'DOC. PROP.':'RG e CPF do proponente, com foto, dos dois lados.',
+  'DOC. CONJUGE':'RG e CPF do cônjuge.',
+  'DOC. PARTICIPANTES':'Fiadores e outros compradores que entram na análise.',
+  'CERTIDOES':'Certidão de nascimento, de casamento ou averbação de divórcio.',
+  'COMPROVANTE DE ENDERECO':'Conta de água, luz ou telefone dos últimos 3 meses.',
+  'IR + EXTRATOS':'Declaração completa + recibo de entrega.',
+  'CONTRACHEQUES':'Os dois últimos.',
+  'CARTEIRA DE TRABALHO':'Física ou digital (PDF do app).',
+  'PRO LABORE':'Empresário, exceto MEI.',
+  'MOVIMENTACAO BANCARIA':'4 últimos meses. Pelo extrato, a renda máxima considerada é R$ 2.550,00.',
+  'EXTRATO PLATAFORMA':'4 últimos meses (Uber, iFood, 99).',
+  'EXTRATO FGTS':'Extrato do app ou do site da CAIXA, com o saldo.',
+  'DOC. DEPENDENTE':'Criança: certidão de nascimento. Maior de idade: documento pessoal + estado civil.',
+  'COMPROVANTE DE DIVORCIO':'Averbação do divórcio ou sentença.',
+  'ANEXOS':'Qualquer outro documento pedido pela análise.'
+};
+var ROTULO_DOC={
+  'DOC. PROP.':'RG e CPF do proponente','DOC. CONJUGE':'RG e CPF do cônjuge',
+  'DOC. PARTICIPANTES':'RG e CPF dos demais participantes','CERTIDOES':'Comprovante de estado civil',
+  'COMPROVANTE DE ENDERECO':'Comprovante de endereço','IR + EXTRATOS':'Imposto de renda',
+  'CONTRACHEQUES':'Dois últimos contracheques','CARTEIRA DE TRABALHO':'Carteira de trabalho',
+  'PRO LABORE':'Pró-labore','MOVIMENTACAO BANCARIA':'Movimentação bancária - 4 últimos meses',
+  'EXTRATO PLATAFORMA':'Extrato da plataforma - 4 últimos meses','EXTRATO FGTS':'Extrato do FGTS',
+  'DOC. DEPENDENTE':'Documentos do dependente ou 2º comprador',
+  'COMPROVANTE DE DIVORCIO':'Comprovante de divórcio','ANEXOS':'Outros documentos'
+};
+
+function esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function dig(v){ return String(v||'').replace(/\D/g,''); }
+function brl(v){ return 'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function estado(tipo, msg){
+  var e=document.getElementById('estado');
+  e.className='aviso '+tipo; e.innerHTML=msg; e.style.display='block';
+}
+
+function carregar(){
+  if(!ID || !TOKEN){ estado('erro','<b>Link incompleto.</b> Peça um novo link para a Morais.'); return; }
+  fetch(APPS_SCRIPT_URL+'?acao=propostaCompletar&p='+encodeURIComponent(ID)+'&t='+encodeURIComponent(TOKEN))
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if(!j || !j.ok){
+        estado('erro', j && j.erro==='LINK_INVALIDO'
+          ? '<b>Este link expirou ou não vale mais.</b> Peça um novo para a Morais.'
+          : '<b>Não consegui abrir a proposta.</b> '+esc((j&&j.erro)||'')); 
+        return;
+      }
+      DADOS=j; pintar();
+    })
+    .catch(function(){ estado('erro','<b>Sem conexão com o servidor.</b> Tente de novo em instantes.'); });
+}
+
+function pintar(){
+  document.getElementById('estado').style.display='none';
+  document.getElementById('conteudo').style.display='';
+  document.getElementById('resumo').innerHTML=
+    '<b>Proposta '+esc(DADOS.proposta)+'</b> · Unidade '+esc(DADOS.unidade)+
+    ' (Tipo '+esc(DADOS.tipo)+') · '+brl(DADOS.preco)+'<br>'+
+    'Corretor: '+esc(DADOS.corretor||'—')+(DADOS.imobiliaria?' · '+esc(DADOS.imobiliaria):'')+
+    ' · Situação: '+esc(DADOS.status||'—');
+
+  document.getElementById('campos').innerHTML=DADOS.campos.map(function(c){
+    var vazio=!String(c.valor||'').trim();
+    var campo;
+    if(c.id==='origemRenda'||c.id==='origemRendaConjuge'){
+      campo='<select id="c-'+c.id+'" onchange="montarDocs()">'+
+        '<option value="">Selecione…</option>'+
+        ORIGENS.map(function(o){ return '<option'+(c.valor===o?' selected':'')+'>'+o+'</option>'; }).join('')+
+        '</select>';
+    } else if(c.id==='estadoCivil'){
+      campo='<select id="c-'+c.id+'" onchange="montarDocs()"><option value="">Selecione…</option>'+
+        ESTADOS.map(function(o){ return '<option'+(c.valor===o?' selected':'')+'>'+o+'</option>'; }).join('')+
+        '</select>';
+    } else if(c.id==='observacoes'){
+      campo='<textarea id="c-'+c.id+'" rows="2">'+esc(c.valor)+'</textarea>';
+    } else {
+      var t=(c.tipo==='data')?'date':(c.tipo==='email'?'email':'text');
+      var v=c.valor;
+      if(c.tipo==='numero' && v) v=Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+      campo='<input id="c-'+c.id+'" type="'+t+'" value="'+esc(v)+'"'+
+            (c.tipo==='numero'||c.tipo==='cpf'||c.tipo==='tel' ? ' inputmode="numeric"' : '')+'>';
+    }
+    return '<div class="campo'+(vazio?' falta':'')+'"><label>'+esc(c.rotulo)+
+           (vazio?'<span class="marca">falta</span>':'<span class="marca ok-marca">ok</span>')+
+           '</label>'+campo+'</div>';
+  }).join('');
+
+  montarDocs();
+}
+
+function origensEscolhidas(){
+  var a=document.getElementById('c-origemRenda'), b=document.getElementById('c-origemRendaConjuge');
+  return [(a&&a.value)||'', (b&&b.value)||''];
+}
+function montarDocs(){
+  var origens=origensEscolhidas();
+  var civil=(document.getElementById('c-estadoCivil')||{}).value||'';
+  var guardados={};
+  document.querySelectorAll('#docs input[type=file]').forEach(function(el){ if(el.files.length) guardados[el.id]=el.files; });
+
+  var visiveis=[], escondidos=[];
+  DADOS.documentos.forEach(function(d){
+    var regra=REGRA_DOC[d.coluna];
+    var pedido = DOC_SEMPRE.indexOf(d.coluna)>=0 ||
+                 (regra && origens.some(function(o){ return o && regra.indexOf(o)>=0; })) ||
+                 (d.coluna==='COMPROVANTE DE DIVORCIO' && civil.indexOf('DIVORC')>=0);
+    if(d.temArquivo) pedido=false;                       // já veio no envio original
+    var html='<div class="doc'+(pedido?' pedido':'')+'">'+
+      '<label for="d-'+d.coluna.replace(/\W/g,'')+'">'+esc(ROTULO_DOC[d.coluna]||d.rotulo)+
+      (d.temArquivo?'<span class="marca ok-marca">já enviado</span>':(pedido?'<span class="marca">falta</span>':''))+
+      '<small>'+esc(DICA_DOC[d.coluna]||'')+'</small></label>'+
+      '<input type="file" id="d-'+d.coluna.replace(/\W/g,'')+'" data-rotulo="'+esc(d.rotulo)+'" multiple onchange="resumoAnexos()"></div>';
+    if(pedido) visiveis.push(html); else escondidos.push(html);
+  });
+  document.getElementById('docs').innerHTML = visiveis.join('') +
+    (escondidos.length ? '<details class="outros"><summary>Ver os demais documentos ('+escondidos.length+')</summary>'+escondidos.join('')+'</details>' : '');
+
+  Object.keys(guardados).forEach(function(id){
+    var el=document.getElementById(id); if(!el) return;
+    var dt=new DataTransfer();
+    for(var i=0;i<guardados[id].length;i++) dt.items.add(guardados[id][i]);
+    el.files=dt.files;
+  });
+  resumoAnexos();
+}
+
+function arquivos(){
+  var out=[];
+  document.querySelectorAll('#docs input[type=file]').forEach(function(el){
+    for(var i=0;i<el.files.length;i++) out.push({rotulo:el.dataset.rotulo, arquivo:el.files[i]});
+  });
+  return out;
+}
+function resumoAnexos(){
+  var l=arquivos(), total=l.reduce(function(a,x){ return a+x.arquivo.size; },0);
+  document.getElementById('resumoAnexos').innerHTML = l.length
+    ? l.length+' arquivo(s) · '+(total/1048576).toFixed(1)+' MB'+
+      (total>LIMITE?' <b style="color:#8A2E17">— acima do limite de 20 MB</b>':'')
+    : 'Nenhum arquivo escolhido ainda.';
+}
+
+function lerBase64(f){
+  return new Promise(function(ok,err){
+    var r=new FileReader();
+    r.onload=function(){ ok(String(r.result).split(',')[1]); };
+    r.onerror=function(){ err(new Error('falhou')); };
+    r.readAsDataURL(f);
+  });
+}
+
+function enviar(){
+  var av=document.getElementById('avisoEnvio'), bt=document.getElementById('btEnviar');
+  var lista=arquivos();
+  var total=lista.reduce(function(a,x){ return a+x.arquivo.size; },0);
+  if(total>LIMITE){
+    av.style.display='block'; av.className='aviso erro';
+    av.innerHTML='Os arquivos somam mais de 20 MB. Envie em duas vezes — o link continua valendo.';
+    return;
+  }
+  var campos={};
+  DADOS.campos.forEach(function(c){
+    var el=document.getElementById('c-'+c.id); if(!el) return;
+    if(String(el.value||'').trim()) campos[c.id]=el.value;
+  });
+
+  bt.disabled=true;
+  av.style.display='block'; av.className='aviso info';
+  av.innerHTML='<b>Enviando…</b> não feche a página.';
+
+  Promise.all(lista.map(function(x){
+    return lerBase64(x.arquivo).then(function(b64){
+      return {rotulo:x.rotulo, nome:x.arquivo.name, tipo:x.arquivo.type||'application/octet-stream', base64:b64};
+    });
+  })).then(function(anexos){
+    return fetch(APPS_SCRIPT_URL, {
+      method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({acao:'completarProposta', pageId:ID, token:TOKEN, campos:campos, anexos:anexos})
+    }).then(function(r){ return r.json(); });
+  }).then(function(j){
+    bt.disabled=false;
+    if(j && j.ok){
+      av.className='aviso ok';
+      av.innerHTML='<b>Enviado.</b> '+(j.gravados&&j.gravados.length ? j.gravados.length+' campo(s) atualizados. ' : '')+
+        ((j.anexos&&j.anexos.ok) ? j.anexos.ok+' documento(s) anexados.' : '')+
+        ((j.anexos&&j.anexos.falhas&&j.anexos.falhas.length)
+          ? '<br><b style="color:#8A2E17">Não subiram:</b> '+j.anexos.falhas.map(esc).join(' · ') : '')+
+        '<br>A Morais já foi avisada.';
+      carregar();   // recarrega para mostrar o que ficou gravado
+    } else {
+      av.className='aviso erro';
+      av.innerHTML='Não consegui gravar: '+esc((j&&j.erro)||'erro desconhecido');
+    }
+  }).catch(function(){
+    bt.disabled=false;
+    av.className='aviso erro';
+    av.innerHTML='A resposta não chegou. Confira com a Morais antes de enviar de novo.';
+  });
+}
+
+carregar();
+</script>
+</body>
+</html>

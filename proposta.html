@@ -126,6 +126,9 @@
   .anexo{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--borda);}
   .anexo label small{display:block;font-weight:400;font-size:11.5px;color:var(--texto-suave);margin-top:2px;}
   .anexo.pedido{background:#FFFBEF;border-left:3px solid var(--amarelo);padding-left:8px;}
+  details.outros-docs{margin-top:10px;} details.outros-docs summary{cursor:pointer;font-weight:700;color:var(--marrom);font-size:13px;}
+  #listaDependentes input,#listaDependentes select{width:100%;padding:7px 9px;border:1px solid var(--borda);border-radius:6px;font:inherit;font-size:13px;}
+  @media(max-width:640px){ #listaDependentes .dep{grid-template-columns:1fr!important;} }
   .tag-doc{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:10px;background:var(--amarelo);
     color:var(--marrom);font-size:10px;font-weight:800;vertical-align:middle;}
   .anexo label{flex:1;font-size:13px;color:var(--texto);font-weight:600;margin:0;}
@@ -207,7 +210,7 @@
         <span class="ajuda" id="cpfAviso" style="display:none;color:#8A2E17">CPF inválido — confira os números.</span></div>
       <div class="campo"><label>Identidade</label><input type="text" name="identidade" data-pad="1"></div>
       <div class="campo"><label>Estado civil<span class="obrig">*</span></label>
-        <select name="estadoCivil" onchange="verConjuge();montarAnexos();">
+        <select name="estadoCivil" onchange="verConjuge();montarAnexos();montarFluxo();">
           <option>SOLTEIRO</option><option>CASADO</option><option>DIVORCIADO</option>
           <option>VIUVO</option><option>UNIAO ESTAVEL</option></select></div>
       <div class="campo"><label>Nacionalidade</label><input type="text" name="nacionalidade" value="BR" data-pad="1"></div>
@@ -235,7 +238,7 @@
         <div class="campo"><label>Renda aprovada do cônjuge (R$)</label>
           <input type="text" name="rendaAprovadaConjuge" inputmode="numeric" placeholder="0,00"></div>
         <div class="campo campo-origem"><label>Origem da renda do cônjuge</label>
-          <select name="origemRendaConjuge" onchange="montarAnexos()"><option value="">Selecione…</option><option>CLT</option><option>SERVIDOR PÚBLICO</option><option>EMPRESÁRIO</option><option>AUTÔNOMO</option><option>MEI</option><option>MOTORISTA DE APLICATIVO</option><option>APOSENTADO / PENSIONISTA</option><option>PROFISSIONAL LIBERAL</option><option>RURAL</option><option>OUTRO</option></select></div>
+          <select name="origemRendaConjuge" onchange="montarAnexos();montarFluxo();"><option value="">Selecione…</option><option>CLT</option><option>SERVIDOR PÚBLICO</option><option>EMPRESÁRIO</option><option>AUTÔNOMO</option><option>MEI</option><option>MOTORISTA DE APLICATIVO</option><option>APOSENTADO / PENSIONISTA</option><option>PROFISSIONAL LIBERAL</option><option>RURAL</option><option>OUTRO</option></select></div>
         <!-- r41 (item 10) -->
         <div class="campo"><label>Profissão do cônjuge</label>
           <input type="text" name="profissaoConjuge" data-pad="1"></div>
@@ -261,7 +264,7 @@
       <div class="campo"><label>Renda aprovada (R$)</label>
         <input type="text" name="rendaAprovada" inputmode="numeric" placeholder="0,00"></div>
       <div class="campo campo-origem"><label>Origem da renda</label>
-        <select name="origemRenda" onchange="montarAnexos()"><option value="">Selecione…</option><option>CLT</option><option>SERVIDOR PÚBLICO</option><option>EMPRESÁRIO</option><option>AUTÔNOMO</option><option>MEI</option><option>MOTORISTA DE APLICATIVO</option><option>APOSENTADO / PENSIONISTA</option><option>PROFISSIONAL LIBERAL</option><option>RURAL</option><option>OUTRO</option></select></div>
+        <select name="origemRenda" onchange="montarAnexos();montarFluxo();"><option value="">Selecione…</option><option>CLT</option><option>SERVIDOR PÚBLICO</option><option>EMPRESÁRIO</option><option>AUTÔNOMO</option><option>MEI</option><option>MOTORISTA DE APLICATIVO</option><option>APOSENTADO / PENSIONISTA</option><option>PROFISSIONAL LIBERAL</option><option>RURAL</option><option>OUTRO</option></select></div>
       <div class="campo"><label>Renda total (proponente + cônjuge)</label><input type="text" id="rendaTotal" readonly></div>
     </div>
 
@@ -330,8 +333,17 @@
       </div>
       <div class="checks" style="margin-top:4px">
         <label class="check"><input type="checkbox" name="possuiImovelCidade" onchange="renderProdutos()"> Possui algum imóvel</label>
-        <label class="check"><input type="checkbox" name="fgts3anos" onchange="montarAnexos()"> Tem 3 anos de FGTS</label>
-        <label class="check"><input type="checkbox" name="maisDeUmComprador" onchange="montarAnexos()"> Mais de um comprador ou dependente</label>
+        <label class="check"><input type="checkbox" name="fgts3anos" onchange="montarAnexos();montarFluxo();"> Tem 3 anos de FGTS</label>
+        <label class="check"><input type="checkbox" name="maisDeUmComprador" onchange="verDependentes()"> Mais de um comprador ou dependente</label>
+        <!-- r47 (item 3) — quantos e quem são: cada pessoa ganha nome, CPF,
+             tipo e um campo próprio de anexo no passo 4. -->
+        <div id="boxDependentes" style="display:none;margin:8px 0 4px 22px;padding:10px 12px;border-radius:8px;
+             background:#FFFBEF;border:1px solid var(--borda)">
+          <label style="font-size:12px;font-weight:700;color:var(--marrom)">Quantas pessoas além do proponente?</label>
+          <input type="number" id="qtdDependentes" min="1" max="6" step="1" value="1"
+                 style="width:90px;margin:4px 0 8px" onchange="montarDependentes()">
+          <div id="listaDependentes"></div>
+        </div>
         <label class="check"><input type="checkbox" name="jaBeneficiado" onchange="verSiopSub()"> Já foi beneficiado com subsídio FGTS/União</label>
         <div class="campo" id="boxConcessaoProp" style="display:none;margin:2px 0 8px 26px;max-width:260px">
           <label>Data da concessão do benefício</label>
@@ -936,9 +948,8 @@
   function verCredito(){
     var com = F().creditoAprovadoCaixa.value==='SIM';
     document.getElementById('boxCredito').style.display = com ? '' : 'none';
-    document.querySelectorAll('.campo-origem').forEach(function(c){
-      c.style.display = com ? 'none' : '';
-    });
+    /* r47 (item 1) — a origem da renda fica SEMPRE visível: é ela que define
+       os documentos da análise, com ou sem crédito aprovado. */
     /* r41 (item 9) — sem crédito aprovado, o subsídio quem calcula é a CAIXA */
     var bs=document.getElementById('boxSubsidio');
     if(bs){
@@ -999,12 +1010,54 @@
     ['outros','Outros documentos','Qualquer outro documento pedido pela análise.',null]
   ];
 
+  /* r47 (item 3) — dependentes e compradores adicionais. */
+  function verDependentes(){
+    var on=F().maisDeUmComprador.checked;
+    document.getElementById('boxDependentes').style.display = on ? '' : 'none';
+    if(on && !document.querySelectorAll('#listaDependentes .dep').length) montarDependentes();
+    if(!on) document.getElementById('listaDependentes').innerHTML='';
+    montarAnexos(); montarFluxo();
+  }
+  function montarDependentes(){
+    var n=Math.max(1, Math.min(6, parseInt(document.getElementById('qtdDependentes').value,10)||1));
+    var atuais=pessoasExtras();
+    var html='';
+    for(var i=0;i<n;i++){
+      var p=atuais[i]||{nome:'',cpf:'',tipo:'DEPENDENTE'};
+      html+='<div class="dep" style="display:grid;grid-template-columns:1fr 150px 160px;gap:8px;margin-bottom:8px">'+
+        '<input type="text" class="dep-nome" placeholder="Nome completo" value="'+esc_(p.nome)+'" oninput="montarAnexos()">'+
+        '<input type="text" class="dep-cpf" inputmode="numeric" maxlength="14" placeholder="CPF" value="'+esc_(p.cpf)+'">'+
+        '<select class="dep-tipo" onchange="montarAnexos()">'+
+          '<option'+(p.tipo==='DEPENDENTE'?' selected':'')+'>DEPENDENTE</option>'+
+          '<option'+(p.tipo==='COMPRADOR'?' selected':'')+'>COMPRADOR</option>'+
+        '</select></div>';
+    }
+    document.getElementById('listaDependentes').innerHTML=html;
+    document.querySelectorAll('.dep-cpf').forEach(function(c){
+      c.addEventListener('input', function(){
+        var v=dig(c.value).slice(0,11);
+        c.value = v.replace(/^(\d{3})(\d)/,'$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/,'$1.$2.$3')
+                   .replace(/\.(\d{3})(\d)/,'.$1-$2');
+      });
+    });
+    montarAnexos();
+  }
+  function pessoasExtras(){
+    var out=[];
+    document.querySelectorAll('#listaDependentes .dep').forEach(function(d){
+      out.push({nome:(d.querySelector('.dep-nome').value||'').toUpperCase().trim(),
+                cpf:dig(d.querySelector('.dep-cpf').value),
+                tipo:d.querySelector('.dep-tipo').value});
+    });
+    return out;
+  }
+
   /* r46 (item 3) — a lista de documentos da análise, montada conforme a
      ORIGEM DA RENDA e a situação do cliente: o corretor vê exatamente o que
      pedir, sem decorar a lista do WhatsApp. */
   function listaDocumentos(){
     var itens=[];
-    DOCS.forEach(function(d){
+    docsDaVez().forEach(function(d){
       if(d[0]==='outros') return;
       var f=F();
       var origens=[(f.origemRenda&&f.origemRenda.value)||'', (f.origemRendaConjuge&&f.origemRendaConjuge.value)||''];
@@ -1034,12 +1087,37 @@
   /* Documentos que TODA análise pede, independentemente da renda. */
   var DOCS_SEMPRE=['docProponente','certidao','compEndereco'];
   var LIMITE_ANEXOS=20*1024*1024;
+  /* A lista de documentos da vez: os fixos + um campo por dependente/2º
+     comprador informado. */
+  function docsDaVez(){
+    var lista=DOCS.filter(function(d){ return d[0]!=='dependente'; });
+    var extras=pessoasExtras();
+    if(F().maisDeUmComprador.checked){
+      if(!extras.length) extras=[{nome:'',tipo:'DEPENDENTE'}];
+      extras.forEach(function(p,i){
+        var quem=p.nome ? (p.nome) : ((p.tipo==='COMPRADOR'?'2º comprador ':'dependente ')+(i+1));
+        lista.push(['dep'+i, 'Documentos de '+quem,
+          p.tipo==='COMPRADOR'
+            ? 'Documento pessoal, comprovante de estado civil e comprovação de renda.'
+            : 'Criança: certidão de nascimento ou identidade. Maior de idade: documento pessoal + comprovante de estado civil.',
+          null, 'dependente']);
+      });
+    }
+    var i0=lista.findIndex(function(d){ return d[0]==='outros'; });
+    if(i0>=0) lista.push(lista.splice(i0,1)[0]);   // "Outros documentos" por último
+    return lista;
+  }
+
   function montarAnexos(){
     var f=F();
+    var DOCS_ATIVOS=docsDaVez();
     var origens=[(f.origemRenda&&f.origemRenda.value)||'', (f.origemRendaConjuge&&f.origemRendaConjuge.value)||''];
     var guardados={};
-    DOCS.forEach(function(d){ var el=document.getElementById('ax-'+d[0]); if(el && el.files.length) guardados[d[0]]=el.files; });
-    document.getElementById('anexos').innerHTML=DOCS.map(function(d){
+    document.querySelectorAll('#anexos input[type=file]').forEach(function(el){
+      if(el.files.length) guardados[el.id]=el.files;
+    });
+    var extrasHtml=[];
+    document.getElementById('anexos').innerHTML=DOCS_ATIVOS.map(function(d){
       var porOrigem = d[3] && origens.some(function(o){ return o && d[3].indexOf(o)>=0; });
       var porSituacao = d[4] && situacaoPede(d[4]);
       var sempre = DOCS_SEMPRE.indexOf(d[0])>=0;
@@ -1048,15 +1126,23 @@
       var quem = porOrigem ? origens.filter(function(o){ return o && d[3].indexOf(o)>=0; }).join(' / ')
                : (d[4]==='fgts' ? 'FGTS' : (d[4]==='dependente' ? 'DEPENDENTE / 2º COMPRADOR'
                : (d[4]==='divorcio' ? 'DIVORCIADO' : 'ANÁLISE DE CRÉDITO')));
-      return '<div class="anexo'+(pedido?' pedido':'')+'">'+
+      var html='<div class="anexo'+(pedido?' pedido':'')+'">'+
              '<label for="ax-'+d[0]+'">'+d[1]+
              (pedido?'<span class="tag-doc">pedido para '+quem+'</span>':'')+
              '<small>'+d[2]+'</small></label>'+
              '<input type="file" id="ax-'+d[0]+'" data-rotulo="'+d[1]+'" multiple onchange="resumoAnexos()"></div>';
-    }).join('');
+      /* r47 (item 4) — o que não é pedido para ESTE cliente fica escondido
+         atrás do "ver os demais documentos". */
+      if(!pedido){ extrasHtml.push(html); return ''; }
+      return html;
+    }).join('') +
+    (extrasHtml.length
+      ? '<details class="outros-docs"><summary>Ver os demais documentos ('+extrasHtml.length+')</summary>'+
+        extrasHtml.join('')+'</details>'
+      : '');
     /* mantém os arquivos já escolhidos quando a lista é redesenhada */
     Object.keys(guardados).forEach(function(id){
-      var el=document.getElementById('ax-'+id);
+      var el=document.getElementById(id);
       if(!el) return;
       var dt=new DataTransfer();
       for(var i=0;i<guardados[id].length;i++) dt.items.add(guardados[id][i]);
@@ -1066,9 +1152,8 @@
   }
   function arquivosAnexados(){
     var out=[];
-    DOCS.forEach(function(d){
-      var el=document.getElementById('ax-'+d[0]); if(!el) return;
-      for(var i=0;i<el.files.length;i++) out.push({rotulo:d[1], arquivo:el.files[i]});
+    document.querySelectorAll('#anexos input[type=file]').forEach(function(el){
+      for(var i=0;i<el.files.length;i++) out.push({rotulo:el.dataset.rotulo, arquivo:el.files[i]});
     });
     return out;
   }
@@ -1168,10 +1253,8 @@
          Sem todos em mãos, o corretor marca a caixa e a proposta segue; o
          que faltar é juntado depois na página do Notion. */
       var faltam=[];
-      DOCS.forEach(function(d){
-        var cx=document.getElementById('ax-'+d[0]);
-        if(!cx || !cx.closest('.anexo').classList.contains('pedido')) return;
-        if(!cx.files.length) faltam.push(d[1]);
+      document.querySelectorAll('#anexos .anexo.pedido input[type=file]').forEach(function(cx){
+        if(!cx.files.length) faltam.push(cx.dataset.rotulo);
       });
       var cxAviso=document.getElementById('avisoDocs');
       var marcado=document.getElementById('semTodosDocs');
@@ -1426,6 +1509,7 @@
       possuiImovelCidade:f.possuiImovelCidade.checked,
       fgts3anos:f.fgts3anos.checked,
       maisDeUmComprador:f.maisDeUmComprador.checked,
+      dependentes:(f.maisDeUmComprador.checked ? pessoasExtras() : []),
       jaBeneficiado:f.jaBeneficiado.checked,
       dataConcessaoBeneficio:(f.jaBeneficiado.checked ? f.dataConcessaoBeneficio.value : ''),
       relacionamentoCaixa:f.relacionamentoCaixa.checked,

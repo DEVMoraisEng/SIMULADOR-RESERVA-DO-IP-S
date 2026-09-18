@@ -332,7 +332,14 @@
   function preencherUnidades(){
     var t=document.getElementById('tipo').value;
     var us=UNIDADES.filter(function(u){return String(u.tipo)===String(t);});
-    document.getElementById('unidade').innerHTML=us.map(function(u){return '<option value="'+u.unidade+'">Unidade '+u.unidade+(u.decorado?' (Decorado)':'')+'</option>';}).join('');
+    /* r44 — o valor da unidade aparece na própria lista: evita escolher a
+       unidade errada e depois descobrir o preço só no fim. */
+    document.getElementById('unidade').innerHTML=us.map(function(u){
+      var v=Number(u.valorVenda)||0;
+      return '<option value="'+u.unidade+'">Unidade '+u.unidade+(u.decorado?' (Decorado)':'')+
+             ' — T'+(u.tipo||'—')+(v?' · R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'')+
+             '</option>';
+    }).join('');
     aoTrocarUnidade();
   }
   function aoTrocarUnidade(){var u=unidadeAtual();if(!u)return;

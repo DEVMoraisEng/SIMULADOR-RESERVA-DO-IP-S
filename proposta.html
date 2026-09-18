@@ -124,6 +124,10 @@
     border-radius:6px;background:#FFFDF7;font-size:11.5px;line-height:1.55;color:var(--texto-suave);}
   .aviso-legal b{color:var(--marrom);}
   .anexo{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--borda);}
+  .anexo label small{display:block;font-weight:400;font-size:11.5px;color:var(--texto-suave);margin-top:2px;}
+  .anexo.pedido{background:#FFFBEF;border-left:3px solid var(--amarelo);padding-left:8px;}
+  .tag-doc{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:10px;background:var(--amarelo);
+    color:var(--marrom);font-size:10px;font-weight:800;vertical-align:middle;}
   .anexo label{flex:1;font-size:13px;color:var(--texto);font-weight:600;margin:0;}
   .anexo input[type=file]{font-size:12px;max-width:290px;}
 </style>
@@ -232,7 +236,7 @@
         <div class="campo"><label>Renda aprovada do cônjuge (R$)</label>
           <input type="text" name="rendaAprovadaConjuge" inputmode="numeric" placeholder="0,00"></div>
         <div class="campo campo-origem"><label>Origem da renda do cônjuge</label>
-          <select name="origemRendaConjuge"><option value="">Selecione…</option><option>CLT</option><option>AUTÔNOMO</option><option>EMPRESÁRIO</option><option>SERVIDOR PÚBLICO</option><option>APOSENTADO / PENSIONISTA</option><option>PROFISSIONAL LIBERAL</option><option>RURAL</option><option>OUTRO</option></select></div>
+          <select name="origemRendaConjuge" onchange="montarAnexos()"><option value="">Selecione…</option><option>CLT</option><option>SERVIDOR PÚBLICO</option><option>EMPRESÁRIO</option><option>AUTÔNOMO</option><option>MEI</option><option>MOTORISTA DE APLICATIVO</option><option>APOSENTADO / PENSIONISTA</option><option>PROFISSIONAL LIBERAL</option><option>RURAL</option><option>OUTRO</option></select></div>
         <!-- r41 (item 10) -->
         <div class="campo"><label>Profissão do cônjuge</label>
           <input type="text" name="profissaoConjuge" data-pad="1"></div>
@@ -259,7 +263,7 @@
       <div class="campo"><label>Renda aprovada (R$)</label>
         <input type="text" name="rendaAprovada" inputmode="numeric" placeholder="0,00"></div>
       <div class="campo campo-origem"><label>Origem da renda</label>
-        <select name="origemRenda"><option value="">Selecione…</option><option>CLT</option><option>AUTÔNOMO</option><option>EMPRESÁRIO</option><option>SERVIDOR PÚBLICO</option><option>APOSENTADO / PENSIONISTA</option><option>PROFISSIONAL LIBERAL</option><option>RURAL</option><option>OUTRO</option></select></div>
+        <select name="origemRenda" onchange="montarAnexos()"><option value="">Selecione…</option><option>CLT</option><option>SERVIDOR PÚBLICO</option><option>EMPRESÁRIO</option><option>AUTÔNOMO</option><option>MEI</option><option>MOTORISTA DE APLICATIVO</option><option>APOSENTADO / PENSIONISTA</option><option>PROFISSIONAL LIBERAL</option><option>RURAL</option><option>OUTRO</option></select></div>
       <div class="campo"><label>Renda total (proponente + cônjuge)</label><input type="text" id="rendaTotal" readonly></div>
     </div>
 
@@ -967,22 +971,53 @@
      Os arquivos seguem junto com o e-mail da proposta. Não dá para mandá-los
      para o Notion pela API (ela só aceita arquivo por URL externa), então o
      e-mail é o canal — e é onde o pessoal de vendas já procura mesmo. */
+  /* r45 — lista de documentos da análise de crédito.
+     [id, rótulo, dica, origens de renda que pedem este documento]
+     Os documentos de renda ganham a marca "pedido para ..." conforme a
+     origem escolhida no passo 2 (proponente e cônjuge). */
   var DOCS=[
-    ['docProponente','Documento pessoal do proponente'],
-    ['docConjuge','Documento pessoal do cônjuge'],
-    ['compEndereco','Comprovante de endereço'],
-    ['carteiraTrabalho','Carteira de trabalho'],
-    ['contracheques','3 últimos contracheques'],
-    ['certidao','Certidão de nascimento ou casamento'],
-    ['irExtratos','IR + 4 últimos extratos (se renda informal)'],
-    ['outros','Outros documentos']
+    ['docProponente','RG e CPF do proponente','Documento com foto, dos dois lados.',null],
+    ['docConjuge','RG e CPF do cônjuge','Se casado ou em união estável.',null],
+    ['docParticipantes','RG e CPF dos demais participantes','Fiadores e outros compradores que entram na análise.',null],
+    ['certidao','Comprovante de estado civil','Certidão de nascimento, de casamento ou averbação de divórcio.',null],
+    ['compEndereco','Comprovante de endereço','Conta de água, luz ou telefone dos últimos 3 meses.',null],
+    ['imposto','Imposto de renda','Declaração completa + recibo de entrega, se houver declaração.',
+      ['EMPRESÁRIO','AUTÔNOMO','MEI','PROFISSIONAL LIBERAL','RURAL']],
+    ['contracheques','Dois últimos contracheques','Carteira assinada ou servidor público.',
+      ['CLT','SERVIDOR PÚBLICO']],
+    ['carteiraTrabalho','Carteira de trabalho','Física ou digital (PDF do app).',['CLT']],
+    ['proLabore','Pró-labore','Empresário, exceto MEI. Dê preferência ao imposto de renda.',['EMPRESÁRIO']],
+    ['extratos','Movimentação bancária - 4 últimos meses',
+      'Autônomo, MEI ou informal sem IR. Por extrato, a renda máxima considerada pelo sistema é R$ 2.550,00.',
+      ['AUTÔNOMO','MEI','OUTRO']],
+    ['plataforma','Extrato da plataforma - 4 últimos meses','Uber, iFood, 99 e afins.',
+      ['MOTORISTA DE APLICATIVO']],
+    ['outros','Outros documentos','Qualquer outro documento pedido pela análise.',null]
   ];
   var LIMITE_ANEXOS=20*1024*1024;
   function montarAnexos(){
+    var f=F();
+    var origens=[(f.origemRenda&&f.origemRenda.value)||'', (f.origemRendaConjuge&&f.origemRendaConjuge.value)||''];
+    var guardados={};
+    DOCS.forEach(function(d){ var el=document.getElementById('ax-'+d[0]); if(el && el.files.length) guardados[d[0]]=el.files; });
     document.getElementById('anexos').innerHTML=DOCS.map(function(d){
-      return '<div class="anexo"><label for="ax-'+d[0]+'">'+d[1]+'</label>'+
+      var pedido = d[3] && origens.some(function(o){ return o && d[3].indexOf(o)>=0; });
+      var quem = pedido ? origens.filter(function(o){ return o && d[3].indexOf(o)>=0; }).join(' / ') : '';
+      return '<div class="anexo'+(pedido?' pedido':'')+'">'+
+             '<label for="ax-'+d[0]+'">'+d[1]+
+             (pedido?'<span class="tag-doc">pedido para '+quem+'</span>':'')+
+             '<small>'+d[2]+'</small></label>'+
              '<input type="file" id="ax-'+d[0]+'" data-rotulo="'+d[1]+'" multiple onchange="resumoAnexos()"></div>';
     }).join('');
+    /* mantém os arquivos já escolhidos quando a lista é redesenhada */
+    Object.keys(guardados).forEach(function(id){
+      var el=document.getElementById('ax-'+id);
+      if(!el) return;
+      var dt=new DataTransfer();
+      for(var i=0;i<guardados[id].length;i++) dt.items.add(guardados[id][i]);
+      el.files=dt.files;
+    });
+    resumoAnexos();
   }
   function arquivosAnexados(){
     var out=[];

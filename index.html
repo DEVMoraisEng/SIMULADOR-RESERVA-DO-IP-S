@@ -18,6 +18,18 @@
   .tcard b{display:block;font-size:17px;color:var(--marrom);margin-bottom:2px;} .tcard small{color:var(--texto-suave);font-size:13px;}
   .tcard .preco{display:block;margin-top:6px;font-size:13px;font-weight:700;color:var(--marrom2);}
   .selo{display:inline-block;margin-top:10px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:.5px;color:#fff;}
+  /* r44 — no celular os cards ocupavam a tela inteira e era preciso rolar
+     muito só para ver as tipologias. Dois por linha e mais compactos. */
+  @media(max-width:640px){
+    .cards{grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:22px;}
+    .tcard{padding:12px 8px;border-top-width:4px;border-radius:10px;}
+    .tcard b{font-size:14px;}
+    .tcard small{font-size:11px;}
+    .tcard .preco{font-size:12px;margin-top:4px;}
+    .selo{margin-top:7px;padding:3px 9px;font-size:10px;}
+    .tcard.esqueleto{min-height:88px;}
+  }
+  @media(max-width:360px){ .cards{grid-template-columns:1fr;} }
   /* set/26 — VENDIDA passou a ser VERMELHA (antes era quase preta e ficava
      igual a "em breve" no mapa). "Em breve" virou cinza e RESERVADA, azul. */
   .selo.breve{background:#8A8A8A;} .selo.vend{background:#C1121F;}

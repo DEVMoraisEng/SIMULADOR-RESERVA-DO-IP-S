@@ -32,6 +32,16 @@
     color:var(--vermelho);font-size:10px;font-weight:800;vertical-align:middle}
   .ok-marca{background:#EAF6EF;color:var(--verde)}
   .doc{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--borda)}
+  .doc label{flex:1;min-width:0}
+  .doc input[type=file]{flex:0 0 auto;max-width:56%}
+  /* r58 — no celular o campo de arquivo espremia o rótulo até ele ficar em
+     pé, uma letra por linha. Cada parte passa a ocupar a própria linha. */
+  @media(max-width:680px){
+    .doc{flex-direction:column;align-items:stretch;gap:6px;padding:12px 0}
+    .doc input[type=file]{max-width:100%;width:100%}
+    .doc label{font-size:13.5px}
+    .marca{margin-left:6px}
+  }
   .doc.pedido{background:#FFFBEF;border-left:3px solid var(--amarelo);padding-left:8px}
   .doc label{flex:1;font-size:13.5px;color:var(--texto);font-weight:600;margin:0}
   .doc small{display:block;font-weight:400;font-size:11.5px;color:var(--texto-suave)}
@@ -175,6 +185,27 @@ function carregar(){
     .catch(function(){ estado('erro','<b>Sem conexão com o servidor.</b> Tente de novo em instantes.'); });
 }
 
+/* r58 — cônjuge só aparece para casado ou união estável. Solteiro não pode
+   ver "Nome do cônjuge · falta". */
+var CAMPOS_CONJUGE=['conjuge','cpfConjuge','profissaoConjuge','origemRendaConjuge','rendaAprovadaConjuge'];
+function temConjuge(){
+  var el=document.getElementById('c-estadoCivil');
+  var v=(el ? el.value : (DADOS && (DADOS.campos.filter(function(c){return c.id==='estadoCivil';})[0]||{}).valor)) || '';
+  v=String(v).toUpperCase();
+  return v.indexOf('CASAD')>=0 || v.indexOf('UNIAO')>=0 || v.indexOf('UNIÃO')>=0;
+}
+function verConjuge(){
+  var com=temConjuge();
+  CAMPOS_CONJUGE.forEach(function(id){
+    var el=document.getElementById('c-'+id);
+    if(!el) return;
+    var cx=el.closest('.campo');
+    if(cx) cx.style.display = com ? '' : 'none';
+    if(!com) el.value='';
+  });
+  montarDocs();
+}
+
 function pintar(){
   document.getElementById('estado').style.display='none';
   document.getElementById('conteudo').style.display='';
@@ -193,7 +224,7 @@ function pintar(){
         ORIGENS.map(function(o){ return '<option'+(c.valor===o?' selected':'')+'>'+o+'</option>'; }).join('')+
         '</select>';
     } else if(c.id==='estadoCivil'){
-      campo='<select id="c-'+c.id+'" onchange="montarDocs()"><option value="">Selecione…</option>'+
+      campo='<select id="c-'+c.id+'" onchange="verConjuge()"><option value="">Selecione…</option>'+
         ESTADOS.map(function(o){ return '<option'+(c.valor===o?' selected':'')+'>'+o+'</option>'; }).join('')+
         '</select>';
     } else if(c.id==='observacoes'){
@@ -205,12 +236,14 @@ function pintar(){
       campo='<input id="c-'+c.id+'" type="'+t+'" value="'+esc(v)+'"'+
             (c.tipo==='numero'||c.tipo==='cpf'||c.tipo==='tel' ? ' inputmode="numeric"' : '')+'>';
     }
-    return '<div class="campo'+(vazio?' falta':'')+'"><label>'+esc(c.rotulo)+
-           (vazio?'<span class="marca">falta</span>':'<span class="marca ok-marca">ok</span>')+
+    /* campo do cônjuge não é cobrado: ele pode nem existir nesta proposta */
+    var doConjuge = CAMPOS_CONJUGE.indexOf(c.id)>=0;
+    return '<div class="campo'+(vazio&&!doConjuge?' falta':'')+'"><label>'+esc(c.rotulo)+
+           (doConjuge ? '' : (vazio?'<span class="marca">falta</span>':'<span class="marca ok-marca">ok</span>'))+
            '</label>'+campo+'</div>';
   }).join('');
 
-  montarDocs();
+  verConjuge();
 }
 
 function origensEscolhidas(){
@@ -226,6 +259,7 @@ function montarDocs(){
   var visiveis=[], escondidos=[];
   DADOS.documentos.forEach(function(d){
     var regra=REGRA_DOC[d.coluna];
+    if(d.coluna==='DOC. CONJUGE' && !temConjuge()) return;   // solteiro não tem cônjuge
     var pedido = DOC_SEMPRE.indexOf(d.coluna)>=0 ||
                  (regra && origens.some(function(o){ return o && regra.indexOf(o)>=0; })) ||
                  (d.coluna==='COMPROVANTE DE DIVORCIO' && civil.indexOf('DIVORC')>=0);

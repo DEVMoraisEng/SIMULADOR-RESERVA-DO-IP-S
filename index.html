@@ -87,6 +87,11 @@
   #mapScroll svg *{-webkit-user-drag:none;}
   #mapScroll polygon{stroke:var(--marrom2);stroke-width:3;cursor:pointer;transition:fill .1s;}
   #mapScroll polygon.sel{stroke:#2A2118;stroke-width:5;}
+  .aviso-mapa{margin-top:14px;padding:12px 14px;border:1px solid var(--borda);border-left:4px solid var(--amarelo);
+    border-radius:8px;background:#FFFDF7;font-size:12.5px;line-height:1.55;color:var(--texto);}
+  .aviso-mapa p{margin:0 0 8px;} .aviso-mapa p:last-child{margin:0;}
+  .aviso-mapa .miudo{font-size:11px;color:var(--texto-suave);}
+  @media(max-width:640px){ .aviso-mapa{font-size:12px;padding:10px 11px;} }
   .legenda{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:12px;color:var(--texto-suave);}
   .legenda span{display:flex;align-items:center;gap:6px;}
   .legenda i{width:14px;height:14px;border-radius:3px;display:inline-block;border:1px solid rgba(0,0,0,.15);}
@@ -152,7 +157,8 @@
 <main>
   <!-- r51 (item 1) — condição comercial em destaque, acima das tipologias -->
   <div class="faixa-itbi"><b>ITBI e registro grátis!</b>
-    <span>A Morais paga o ITBI e o registro do imóvel — você não gasta nada com isso.</span></div>
+    <span>A Morais paga o ITBI e o registro do imóvel — você não gasta nada com isso.</span>
+    <small style="display:block;font-size:10.5px;margin-top:3px;opacity:.85">Para as unidades disponíveis, conforme proposta assinada.</small></div>
 
   <h2 class="sec">Tipologias</h2>
   <div class="cards" id="cards"><div class="tcard esqueleto"></div><div class="tcard esqueleto"></div><div class="tcard esqueleto"></div><div class="tcard esqueleto"></div><div class="tcard esqueleto"></div></div>
@@ -169,6 +175,25 @@
       <table><thead><tr><th>Valor de venda (disponíveis)</th><th class="tot">Unid.</th><th></th></tr></thead><tbody id="tbody"></tbody></table>
     </div>
   </div>
+  <!-- r60 (itens 2 e 3 + parecer jurídico de 22/09/2026) -->
+      <div class="aviso-mapa">
+        <p><b>Sinal a partir de R$ 10.000,00.</b> O sinal é de no mínimo R$ 10.000,00, mas pode ser
+        <b>maior</b> conforme o crédito liberado pela CAIXA e a análise da entrada. Para ver o fluxo de
+        pagamento de uma unidade, <b>faça a proposta</b> — e, mesmo nela, os valores são uma estimativa:
+        o fluxo só fica definido com 100% de certeza <b>após a assinatura do contrato com a CAIXA</b>.</p>
+        <p><b>Financiamento não garantido.</b> Possibilidade de financiamento pela CAIXA, sujeita à análise e
+        aprovação de crédito, à avaliação do imóvel e às condições vigentes da instituição financeira.
+        <b>A Morais Engenharia não garante a aprovação do financiamento</b>: aprovar o crédito junto à CAIXA é
+        responsabilidade do comprador. Se o crédito aprovado for menor que o estimado, a entrada e/ou o saldo
+        devido diretamente à incorporadora aumentam.</p>
+        <p class="miudo">Valores "a partir de" referem-se à unidade de menor preço de cada tipologia, enquanto
+        houver disponibilidade; as demais unidades possuem valores próprios. Possibilidade de enquadramento no
+        Minha Casa, Minha Vida conforme renda e perfil do adquirente, valor do imóvel, regras vigentes e aprovação
+        da instituição financeira. Parcelamento direto sujeito à análise cadastral e de crédito pela incorporadora.
+        ITBI e registro grátis para as unidades disponíveis, conforme proposta assinada. Imagens e perspectivas
+        meramente ilustrativas; mobiliário, decoração, paisagismo e equipamentos somente integram a unidade quando
+        previstos no Memorial Descritivo.<span id="registroIncorp"></span></p>
+      </div>
 </main>
 
 <div id="pop">
@@ -744,6 +769,12 @@
   // auto-atualiza a cada 60s (sem atrapalhar se um pop-up estiver aberto)
   setInterval(function(){ if(!ocupado()) carregar(false); }, 60000);
 
+
+/* r60 — Memorial de Incorporação (art. 32, §3º, Lei nº 4.591/1964). Preencha
+   quando o registro sair: ex. 'R-3 da matrícula nº 12.345, 1º CRI de Senador Canedo/GO'. */
+var REGISTRO_INCORPORACAO = '';
+(function(){ var r=document.getElementById('registroIncorp');
+  if(r && REGISTRO_INCORPORACAO) r.innerHTML=' Memorial de Incorporação registrado sob '+REGISTRO_INCORPORACAO+'.'; })();
 </script>
 </body>
 </html>

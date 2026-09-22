@@ -289,7 +289,7 @@
       <div class="campo"><label>Valor para entrada (R$)<span class="obrig">*</span></label>
         <input type="text" name="valorEntrada" inputmode="numeric" placeholder="10.000,00" value="10.000,00">
         <span class="ajuda">Mínimo <b>R$ 10.000,00</b> — é o valor do <b>sinal</b> (R$ 1.000 no ato +
-        3 × R$ 3.000).</span></div>
+        3 × R$ 3.000). O sinal pode ser <b>maior</b> conforme o crédito liberado e a análise da entrada.</span></div>
       <div class="campo" id="boxCredito"><label>Crédito aprovado (R$)<span class="obrig">*</span></label>
         <input type="text" name="creditoAprovado" inputmode="numeric" placeholder="0,00">
         <span class="ajuda" id="ajudaCredito">O valor que o banco aprovou na análise.</span></div>
@@ -454,16 +454,26 @@
     <!-- ITEM 5 (r38) — aviso legal e ciência expressa -->
     <div class="aviso-legal">
       <b>AVISO IMPORTANTE — CARÁTER ESTIMATIVO</b><br>
-      As informações desta proposta e de qualquer simulação são <b>meramente estimativas</b>, calculadas
-      exclusivamente a partir dos dados informados pelo corretor/cliente e do simulador da CAIXA na data
-      do envio. <b>Não constituem aprovação, pré-aprovação ou promessa de crédito</b>, nem garantia de
-      valor financiado, prestação, taxa, prazo, subsídio ou uso de FGTS. A concessão do financiamento e
-      suas condições dependem exclusivamente da análise de crédito, da avaliação do imóvel e das normas da
-      Caixa Econômica Federal e do Programa Minha Casa, Minha Vida (Lei nº 14.620/2023), podendo ser
-      alteradas sem aviso. Os valores do fluxo estão sujeitos a correção (INCC até a entrega das chaves;
-      IPCA + 1% a.m. após). <b>Valem somente as condições dos contratos assinados.</b> Todas as
-      informações devem ser confirmadas diretamente com a CAIXA (CDC, Lei nº 8.078/1990, arts. 6º, III, e 31).
+      <b>1. Estimativa.</b> Os valores desta proposta e de qualquer simulação são <b>meramente estimativos</b>,
+      calculados só com os dados informados pelo corretor/cliente e com o simulador da CAIXA na data do envio.
+      <b>Não constituem aprovação, pré-aprovação ou promessa de crédito</b>.<br>
+      <b>2. Financiamento.</b> Possibilidade de financiamento pela CAIXA, <b>sujeita à análise e aprovação de
+      crédito, à avaliação do imóvel e às condições vigentes da instituição financeira</b>. A Morais Engenharia
+      <b>não garante que o financiamento será aprovado</b>: obter a aprovação do crédito junto à CAIXA é
+      responsabilidade do comprador. Se o crédito aprovado for menor que o estimado, a entrada e/ou o saldo
+      devido diretamente à incorporadora aumentam.<br>
+      <b>3. Sinal.</b> O sinal é de <b>no mínimo R$ 10.000,00</b> e pode ser maior conforme o crédito liberado
+      e a análise da entrada.<br>
+      <b>4. Minha Casa, Minha Vida.</b> Possibilidade de enquadramento conforme renda e perfil do adquirente,
+      valor do imóvel, regras vigentes (Lei nº 14.620/2023) e aprovação da instituição financeira.<br>
+      <b>5. Parcelamento direto.</b> Sujeito à análise cadastral e de crédito pela incorporadora, conforme a
+      política de crédito vigente na data da proposta.<br>
+      <b>6. Fluxo de pagamento.</b> Sujeito a correção (INCC até a entrega das chaves; IPCA + 1% a.m. após) e
+      <b>só é definitivo após a assinatura do contrato com a CAIXA</b>. Valem somente as condições dos contratos
+      assinados. Condições limitadas às unidades disponíveis.<br>
+      Confirme as informações diretamente com a CAIXA (CDC, Lei nº 8.078/1990, arts. 6º, III, 30, 31 e 37).
       Dados pessoais tratados conforme a LGPD (Lei nº 13.709/2018), apenas para esta análise.
+      <span id="registroIncorp"></span>
     </div>
 
     <div class="checks">
@@ -723,6 +733,10 @@
       ', mas o sinal nunca fica abaixo de R$ 10.000,00. '+
       '<b>A diferença de '+brl(q.devolucao)+' será devolvida ao cliente no ato da assinatura do contrato com o banco.</b></div>';
   }
+  document.addEventListener('DOMContentLoaded', function(){
+    var r=document.getElementById('registroIncorp');
+    if(r && REGISTRO_INCORPORACAO) r.innerHTML='<br>Memorial de Incorporação registrado sob '+REGISTRO_INCORPORACAO+'.';
+  });
   var ULTIMO_CALCULO=null;
   function montarFluxo(){
     var alvo=document.getElementById('fluxo');
@@ -1206,11 +1220,24 @@
     if(n===4) resumoAnexos();
     window.scrollTo({top:0,behavior:'smooth'});
   }
+  /* r60 (item 1) — nome completo: pelo menos DUAS palavras de 2+ letras.
+     "FELIPE" sozinho não serve para contrato nem para a CAIXA. */
+  function nomeCompleto(v){
+    return String(v||'').trim().split(/\s+/).filter(function(p){
+      return p.replace(/[^A-Za-zÀ-ÿ]/g,'').length >= 2;
+    }).length >= 2;
+  }
+  var REGISTRO_INCORPORACAO = '';   /* ex.: 'R-3 da matrícula nº 12.345, 1º CRI de Senador Canedo/GO' */
   function validarPasso(n){
     var f=F();
     if(n===1){
       if(!f.unidade.value) return erro('Selecione a unidade.', f.unidade);
       if(!f.cliente.value.trim()) return erro('Informe o <b>nome do proponente</b>.', f.cliente);
+      if(!nomeCompleto(f.cliente.value))
+        return erro('Informe o <b>nome completo</b> do proponente (nome e sobrenome).', f.cliente);
+      if(document.getElementById('boxConjuge').style.display!=='none' && f.conjuge.value.trim() &&
+         !nomeCompleto(f.conjuge.value))
+        return erro('Informe o <b>nome completo</b> do cônjuge (nome e sobrenome).', f.conjuge);
       if(!cpfValido(f.cpf.value)){
         document.getElementById('cpfAviso').style.display='block';
         return erro('<b>CPF</b> inválido. Confira os números.', f.cpf);
@@ -1218,6 +1245,13 @@
       if(!dig(f.celular.value)) return erro('Informe o <b>celular</b> do proponente — é por onde a Morais confirma a proposta.', f.celular);
     }
     if(n===2){
+      if(f.maisDeUmComprador && f.maisDeUmComprador.checked){
+        var deps=document.querySelectorAll('#listaDependentes .dep-nome');
+        for(var di=0; di<deps.length; di++){
+          if(!nomeCompleto(deps[di].value))
+            return erro('Informe o <b>nome completo</b> de cada dependente / 2º comprador.', deps[di]);
+        }
+      }
       if(f.creditoAprovadoCaixa.value==='SIM' && !moeda(f.creditoAprovado.value))
         return erro('Informe o <b>crédito aprovado</b> pelo banco.', f.creditoAprovado);
       var u2=unidadeAtual(), teto2=(u2&&u2.avaliacao||0)*0.8;

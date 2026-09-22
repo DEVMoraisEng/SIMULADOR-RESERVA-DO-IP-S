@@ -307,8 +307,23 @@ function lerBase64(f){
   });
 }
 
+/* r60 (item 1) — nome completo: pelo menos duas palavras de 2+ letras */
+function nomeCompleto(v){
+  return String(v||'').trim().split(/\s+/).filter(function(p){
+    return p.replace(/[^A-Za-zÀ-ÿ]/g,'').length>=2; }).length>=2;
+}
 function enviar(){
   var av=document.getElementById('avisoEnvio'), bt=document.getElementById('btEnviar');
+  var nomes=[['c-cliente','proponente'],['c-conjuge','cônjuge']];
+  for(var ni=0; ni<nomes.length; ni++){
+    var el=document.getElementById(nomes[ni][0]);
+    if(!el || !el.offsetParent) continue;                       // campo escondido (solteiro)
+    if(el.value.trim() && !nomeCompleto(el.value)){
+      av.style.display='block'; av.className='aviso erro';
+      av.innerHTML='Informe o <b>nome completo</b> do '+nomes[ni][1]+' (nome e sobrenome).';
+      el.focus(); return;
+    }
+  }
   var lista=arquivos();
   var total=lista.reduce(function(a,x){ return a+x.arquivo.size; },0);
   if(total>LIMITE){

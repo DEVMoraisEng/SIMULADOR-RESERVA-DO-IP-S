@@ -600,7 +600,11 @@
     try{
       var r=await enviarComRetentativas(dados,3);
       if(!r.ok){mostrarStatus('erro',r.mensagem||'Não foi possível enviar.');botao.disabled=false;botao.textContent=textoBotao;return;}
-      localStorage.setItem('ultimaSimulacao',r.id); acompanhar(r.id,botao);
+      localStorage.setItem('ultimaSimulacao',r.id);
+      /* r62 — a confirmação abre na página própria (enviado.html), que
+         acompanha a simulação e tem o botão de voltar ao mapa. */
+      try{ sessionStorage.setItem('envioConcluido', JSON.stringify({tipo:'simulacao', id:r.id})); }catch(x){}
+      location.replace('enviado.html?tipo=simulacao&id='+encodeURIComponent(r.id));
     }catch(err){
       /* Mesmo depois de 3 tentativas, isso só prova que a RESPOSTA não
          chegou — não que a solicitação não foi criada do outro lado.

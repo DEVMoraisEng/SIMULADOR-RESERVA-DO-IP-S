@@ -1686,45 +1686,50 @@
   }
 
   function sucessoEnvio(r){
-    var bt=document.getElementById('btEnviar');
+    /* r62 — a confirmação abre na página própria (enviado.html), com todas
+       as mensagens e o botão de voltar ao mapa. */
     var f=F();
     var semCredito=f.creditoAprovadoCaixa.value==='NAO';
-          mostrar('ok','<b>Proposta '+r.proposta+' enviada.</b><br>'+
-            'Ela entra como RECEBIDA e será analisada pela Morais. '+
-            'O retorno chega no e-mail informado.'+
-            '<br><br><b>📬 Não encontrou o e-mail?</b> Confira a caixa de <b>spam / lixo eletrônico</b> '+
-            'e marque como "não é spam" — assim os próximos chegam na caixa de entrada.'+
-            (r.confirmadaDepois
-              ? '<br><br>A resposta demorou, mas a proposta foi confirmada no sistema. '+
-                'O e-mail com a proposta completa chega em alguns minutos.'
-              : '')+
-            (r.simulando
-              ? '<br><br><b>A parcela está sendo simulada na CAIXA.</b> '+
-                (semCredito ? 'Como o cliente ainda não tem crédito aprovado, a simulação é só uma '+
-                  '<b>estimativa</b> do crédito dele. '
-                  : 'Como o crédito bate no teto de 80% da avaliação, a proposta entrou na fila de simulação. ')+
-                '<b>O e-mail com a proposta completa — parcela, fluxo e documentos — chega '+
-                'quando a simulação terminar</b> (alguns minutos). Se o sistema estiver fora '+
-                'do ar, a proposta fica na fila e o e-mail sai assim que ele voltar.'
-              : '')+
-            (r.anexosNotion && r.anexosNotion.falhas && r.anexosNotion.falhas.length
-              ? '<br><br><b style="color:#B0431F">Alguns documentos não subiram:</b><br><span style="font-size:12px">'+
-                r.anexosNotion.falhas.map(esc_).join('<br>')+'</span><br>Envie esses arquivos para a Morais por e-mail.'
-              : '')+
-            (r.ignoradas && r.ignoradas.length
-              ? '<br><br><b style="color:#B0431F">Atenção: '+r.ignoradas.length+' campo(s) não existem na base '+
-                'do Notion e não foram gravados:</b><br><span style="font-size:12px">'+
-                r.ignoradas.join(', ')+'</span>'
-              : '')+
-            (r.simulando===false && r.motivoSimulacao
-              ? '<br><br><b style="color:#B0431F">A simulação NÃO foi enfileirada.</b><br>'+
-                '<span style="font-size:12px">'+esc_(r.motivoSimulacao)+'</span>'
-              : '')+
-            (r.emailOk===false
-              ? '<br><br><b style="color:#B0431F">Atenção: a proposta foi gravada, mas o e-mail NÃO saiu.</b><br>'+
-                (r.aviso||'')+'<br>Avise a Morais — o Apps Script precisa autorizar o envio de e-mail.'
-              : ''));
-          bt.style.display='none';
+    var partes=[], alerta=false;
+    if(r.confirmadaDepois)
+      partes.push('<div class="bloco">A resposta demorou, mas a proposta foi confirmada no sistema. '+
+        'O e-mail com a proposta completa chega em alguns minutos.</div>');
+    if(r.simulando)
+      partes.push('<div class="bloco info"><b>A parcela está sendo simulada na CAIXA.</b> '+
+        (semCredito ? 'Como o cliente ainda não tem crédito aprovado, a simulação é só uma '+
+          '<b>estimativa</b> do crédito dele. '
+          : 'Como o crédito bate no teto de 80% da avaliação, a proposta entrou na fila de simulação. ')+
+        '<b>O e-mail com a proposta completa — parcela, fluxo e documentos — chega '+
+        'quando a simulação terminar</b> (alguns minutos). Se o sistema estiver fora '+
+        'do ar, a proposta fica na fila e o e-mail sai assim que ele voltar.</div>');
+    if(r.anexosNotion && r.anexosNotion.falhas && r.anexosNotion.falhas.length){
+      alerta=true;
+      partes.push('<div class="bloco alerta"><b>Alguns documentos não subiram:</b><br><span style="font-size:12px">'+
+        r.anexosNotion.falhas.map(esc_).join('<br>')+'</span><br>Envie esses arquivos para a Morais por e-mail.</div>');
+    }
+    if(r.ignoradas && r.ignoradas.length){
+      alerta=true;
+      partes.push('<div class="bloco alerta"><b>Atenção: '+r.ignoradas.length+' campo(s) não existem na base '+
+        'do Notion e não foram gravados:</b><br><span style="font-size:12px">'+
+        r.ignoradas.map(esc_).join(', ')+'</span></div>');
+    }
+    if(r.simulando===false && r.motivoSimulacao){
+      alerta=true;
+      partes.push('<div class="bloco alerta"><b>A simulação NÃO foi enfileirada.</b><br>'+
+        '<span style="font-size:12px">'+esc_(r.motivoSimulacao)+'</span></div>');
+    }
+    if(r.emailOk===false){
+      alerta=true;
+      partes.push('<div class="bloco alerta"><b>Atenção: a proposta foi gravada, mas o e-mail NÃO saiu.</b><br>'+
+        esc_(r.aviso||'')+'<br>Avise a Morais — o Apps Script precisa autorizar o envio de e-mail.</div>');
+    }
+    if(!partes.length)
+      partes.push('<div class="bloco ok">Proposta registrada. O e-mail com a proposta completa chega no endereço informado.</div>');
+    try{
+      sessionStorage.setItem('envioConcluido', JSON.stringify({tipo:'proposta', id:r.id||'',
+        numero:r.proposta||'', html:partes.join(''), alerta:alerta}));
+    }catch(x){}
+    location.replace('enviado.html?tipo=proposta&numero='+encodeURIComponent(r.proposta||''));
   }
 
 

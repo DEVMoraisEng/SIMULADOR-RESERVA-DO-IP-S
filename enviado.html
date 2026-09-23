@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Envio concluído – Reserva do Ipês</title>
+<!--
+  r62 — PÁGINA DE CONFIRMAÇÃO
+  Depois de enviar uma proposta (proposta.html) ou uma simulação
+  (simulador.html), a mensagem sai do rodapé do formulário e abre aqui,
+  sozinha, com o botão para voltar ao mapa.
+  O texto vem do sessionStorage ('envioConcluido'), gravado pela página que
+  enviou. Se a página for recarregada ou aberta sem ele, o que está na URL
+  basta: ?tipo=simulacao&id=<pageId>  ou  ?tipo=proposta&numero=<PRO...>.
+  A simulação continua sendo acompanhada daqui (status a cada 5 s).
+-->
+<style>
+  :root{
+    --marrom:#7A4A16; --marrom2:#A86018; --amarelo:#EFB700; --amarelo2:#D8A818;
+    --texto:#2A2118; --texto-suave:#6B5A45; --borda:#E7DCC7; --fundo:#FBF7EE;
+    --branco:#FFFFFF; --erro:#B0431F; --verde:#1D5433;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:var(--fundo);color:var(--texto);min-height:100vh;display:flex;flex-direction:column;}
+  header{background:linear-gradient(135deg,var(--marrom),var(--marrom2));color:#fff;padding:16px 28px;display:flex;align-items:center;gap:18px;}
+  header .logos{display:flex;align-items:center;gap:12px;}
+  header .logos img{height:48px;width:auto;background:#fff;border-radius:8px;padding:4px;}
+  header .titulo{display:flex;flex-direction:column;line-height:1.25;}
+  header h1{font-size:17px;font-weight:700;margin:0;letter-spacing:.2px;}
+  header span{font-size:12px;color:var(--amarelo);font-weight:600;}
+  main{width:100%;max-width:720px;margin:36px auto 60px;padding:0 20px;flex:1;}
+  .card{background:var(--branco);border:1px solid var(--borda);border-radius:12px;overflow:hidden;
+        box-shadow:0 10px 30px rgba(122,74,22,.08);}
+  .topo{padding:28px 28px 22px;border-bottom:1px solid var(--borda);display:flex;gap:18px;align-items:flex-start;}
+  .selo{flex:none;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+        font-size:28px;font-weight:800;}
+  .selo.ok{background:#EAF6EF;color:var(--verde);border:2px solid #8CC9A5;}
+  .selo.processando{background:#FBEEC8;color:var(--marrom);border:2px solid var(--amarelo);}
+  .selo.erro{background:#FBEDEA;color:#8A2E17;border:2px solid #E2A493;}
+  .selo.processando::after{content:"";width:22px;height:22px;border-radius:50%;
+        border:3px solid var(--amarelo);border-top-color:var(--marrom);animation:gira 1s linear infinite;}
+  @keyframes gira{to{transform:rotate(360deg);}}
+  .topo h2{margin:2px 0 6px;font-size:21px;color:var(--marrom);line-height:1.25;}
+  .topo .sub{font-size:13px;color:var(--texto-suave);}
+  .topo .codigo{display:inline-block;margin-top:8px;padding:3px 10px;border-radius:12px;background:#FBEEC8;
+        color:var(--marrom);font-size:12.5px;font-weight:800;letter-spacing:.3px;}
+  .corpo{padding:22px 28px;font-size:14px;line-height:1.65;color:var(--texto);}
+  .corpo b{color:var(--marrom);}
+  .corpo .bloco{margin:0 0 14px;padding:12px 14px;border-radius:8px;border:1px solid var(--borda);background:#FFFDF7;}
+  .corpo .bloco.alerta{background:#FBEDEA;border-color:#E2A493;color:#8A2E17;}
+  .corpo .bloco.alerta b{color:#8A2E17;}
+  .corpo .bloco.info{background:#FBEEC8;border-color:var(--amarelo);color:#7A4A16;}
+  .corpo .bloco.ok{background:#EAF6EF;border-color:#8CC9A5;color:var(--verde);}
+  .corpo .bloco.ok b{color:var(--verde);}
+  .corpo ul{margin:6px 0 0 18px;padding:0;}
+  .spam{margin:0 28px 22px;padding:11px 14px;border-radius:8px;background:#FBEEC8;border:1px solid var(--amarelo);
+        color:#7A4A16;font-size:13px;line-height:1.5;}
+  .acoes{padding:18px 28px 26px;display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid var(--borda);background:var(--fundo);}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:7px;font-size:14px;
+       font-weight:700;text-decoration:none;cursor:pointer;border:none;}
+  .btn-primario{background:var(--amarelo);color:var(--marrom);}
+  .btn-primario:hover{background:var(--amarelo2);}
+  .btn-secundario{background:var(--branco);color:var(--marrom);border:1px solid var(--borda);}
+  .btn-secundario:hover{border-color:var(--marrom2);}
+  .rodape{text-align:center;font-size:12px;color:var(--texto-suave);margin-top:18px;}
+  @media(max-width:640px){
+    header{padding:14px 16px;} header h1{font-size:15px;}
+    .topo,.corpo,.acoes{padding-left:18px;padding-right:18px;}
+    .spam{margin-left:18px;margin-right:18px;}
+    .btn{width:100%;justify-content:center;}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="logos">
+    <img src="assets/logo-morais.png" alt="Morais Engenharia">
+    <img src="assets/logo-ipes.jpg" alt="Reserva do Ipês">
+  </div>
+  <div class="titulo">
+    <h1 id="hTitulo">Envio concluído</h1>
+    <span>CONDOMÍNIO RESERVA DOS IPÊS</span>
+  </div>
+</header>
+
+<main>
+  <div class="card">
+    <div class="topo">
+      <div id="selo" class="selo ok">✓</div>
+      <div>
+        <h2 id="titulo">Envio concluído</h2>
+        <div class="sub" id="sub"></div>
+        <span class="codigo" id="codigo" style="display:none"></span>
+      </div>
+    </div>
+    <div class="corpo" id="corpo"></div>
+    <div class="spam"><b>📬 Não encontrou o e-mail?</b> Confira a caixa de <b>spam / lixo eletrônico</b> e
+      marque como "não é spam" — assim os próximos chegam na caixa de entrada.</div>
+    <div class="acoes">
+      <a class="btn btn-primario" href="index.html">← Voltar ao mapa de vendas</a>
+      <a class="btn btn-secundario" id="btNovo" href="simulador.html">Fazer outra simulação</a>
+    </div>
+  </div>
+  <p class="rodape">Morais Engenharia e Construção · Condomínio Reserva dos Ipês</p>
+</main>
+
+<script>
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzwUIApU5nKXi1vG3cEs_V2DWCdkLDwY_vo0zBxO59ZBLbEihIxuOqbHdNLm-8pVVwVJQ/exec';
+
+  function param(n){ return new URLSearchParams(location.search).get(n) || ''; }
+  function esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function $(id){ return document.getElementById(id); }
+
+  function estado(tipo, titulo, sub){
+    var s=$('selo'); s.className='selo '+tipo;
+    s.textContent = tipo==='ok' ? '✓' : (tipo==='erro' ? '!' : '');
+    if(titulo) $('titulo').textContent=titulo;
+    if(sub!=null) $('sub').innerHTML=sub;
+  }
+
+  /* o que a página que enviou deixou gravado */
+  var ENV = null;
+  try{ ENV = JSON.parse(sessionStorage.getItem('envioConcluido') || 'null'); }catch(e){}
+  var TIPO = param('tipo') || (ENV && ENV.tipo) || 'simulacao';
+  var ID   = param('id') || (ENV && ENV.id) || '';
+  var NUM  = param('numero') || (ENV && ENV.numero) || '';
+
+  if(TIPO === 'proposta'){
+    document.title = 'Proposta enviada – Reserva do Ipês';
+    $('hTitulo').textContent = 'Proposta de Compra';
+    $('btNovo').style.display = 'none';
+    if(NUM){ $('codigo').textContent = NUM; $('codigo').style.display = 'inline-block'; }
+    var temAlerta = !!(ENV && ENV.alerta);
+    estado(temAlerta ? 'erro' : 'ok',
+      'Proposta enviada',
+      'Ela entra como <b>RECEBIDA</b> e será analisada pela Morais. O retorno chega no e-mail informado.');
+    $('corpo').innerHTML = (ENV && ENV.html) ||
+      '<div class="bloco">A proposta foi registrada. O e-mail com a proposta completa chega em alguns minutos.</div>';
+  } else {
+    document.title = 'Simulação enviada – Reserva do Ipês';
+    $('hTitulo').textContent = 'Simula Operação Imobiliária';
+    estado('processando', 'Solicitação recebida',
+      'Simulando as linhas selecionadas na CAIXA. O resultado chega por e-mail em alguns minutos.');
+    $('corpo').innerHTML = '<div class="bloco info">Pode fechar esta página ou voltar ao mapa — a simulação ' +
+      'continua rodando e o e-mail sai mesmo assim. Deixando aberta, o resultado aparece aqui.</div>';
+    if(ID) acompanhar(ID);
+  }
+  /* uma leitura só: um F5 depois não reaproveita texto velho de outro envio */
+  try{ sessionStorage.removeItem('envioConcluido'); }catch(e){}
+
+  function acompanhar(id){
+    var tentativas = 0;
+    var timer = setInterval(function(){
+      tentativas++;
+      if(tentativas > 180){ clearInterval(timer); return; }   // ~15 min
+      fetch(APPS_SCRIPT_URL + '?' + new URLSearchParams({acao:'status', id:id}))
+        .then(function(r){ return r.json(); })
+        .then(function(s){
+          if(s.status === 'concluido'){
+            clearInterval(timer);
+            estado('ok', 'Simulação concluída',
+              s.email_enviado ? 'O resultado foi enviado por e-mail.' : 'O e-mail com o resultado sai em instantes.');
+            var html = '';
+            (s.resultados || []).forEach(function(rr){
+              html += '<div class="bloco"><b>' + esc(rr.linha || 'Linha') + '</b><ul>';
+              (rr.valores || []).forEach(function(v){ html += '<li>' + esc(v) + '</li>'; });
+              html += '</ul></div>';
+            });
+            $('corpo').innerHTML = html || '<div class="bloco ok">Simulação concluída.</div>';
+          } else if(s.status === 'erro'){
+            clearInterval(timer);
+            estado('erro', 'Não foi possível concluir a simulação', '');
+            $('corpo').innerHTML = '<div class="bloco alerta">' + esc(s.mensagem || 'Erro na simulação.') +
+              '<br>Fale com o setor de vendas.</div>';
+          } else if(s.status === 'pendente' && s.posicao_fila > 0){
+            estado('processando', 'Na fila de simulação',
+              s.posicao_fila + ' à frente. O resultado chega por e-mail.');
+          }
+        })
+        .catch(function(){});
+    }, 5000);
+  }
+</script>
+</body>
+</html>

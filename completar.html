@@ -58,6 +58,14 @@
   .resumo{background:#FBEEC8;border:1px solid var(--amarelo);border-radius:8px;padding:11px 13px;
     font-size:13.5px;color:var(--marrom);margin-bottom:14px}
   details.outros{margin-top:10px} details.outros summary{cursor:pointer;font-weight:700;color:var(--marrom);font-size:13px}
+  /* r63 — trava da análise: fica no topo e diz o que ainda falta */
+  .trava{padding:13px 15px;border-radius:10px;font-size:14px;margin-bottom:14px;line-height:1.5}
+  .trava.pend{background:#FDECEA;border:1px solid #E2A493;border-left:5px solid #C0392B;color:var(--vermelho)}
+  .trava.ok{background:#EAF6EF;border:1px solid #8CC9A5;border-left:5px solid #1D7A45;color:var(--verde)}
+  .trava ul{margin:6px 0 0 18px;padding:0}
+  .marca.opc{background:#F1ECE2;color:var(--texto-suave)}
+  .secao{grid-column:1/-1;font-size:12.5px;font-weight:800;color:var(--marrom);text-transform:uppercase;
+    letter-spacing:.4px;margin-top:6px;padding-top:10px;border-top:1px dashed var(--borda)}
 </style>
 </head>
 <body>
@@ -72,17 +80,33 @@
 
     <div class="resumo" id="resumo"></div>
 
+    <!-- r63 (item 6) — a análise só anda com tudo anexado -->
+    <div class="trava pend" id="trava"></div>
+
     <div class="card">
-      <h2>Dados que faltam</h2>
-      <p class="sub">Os campos em vermelho estão vazios no cadastro. O que já está
-        preenchido aparece do jeito que a Morais recebeu — corrija se estiver errado.</p>
+      <h2>Dados do proponente</h2>
+      <p class="sub">Os campos marcados com <b>falta</b> são obrigatórios e estão vazios no cadastro.
+        O que já está preenchido aparece do jeito que a Morais recebeu — corrija se estiver errado.</p>
       <div class="grade" id="campos"></div>
     </div>
 
+    <div class="card" id="cardCorretor" style="display:none">
+      <h2>Dados do corretor</h2>
+      <p class="sub">Estão faltando no cadastro desta proposta.</p>
+      <div class="grade" id="camposCorretor"></div>
+    </div>
+
+    <div class="card" id="cardFiador" style="display:none">
+      <h2>Fiadores <span class="marca opc">opcional</span></h2>
+      <p class="sub">Preencha só se a proposta tiver fiador. Os documentos dos fiadores vão em
+        “RG e CPF dos demais participantes”.</p>
+      <div class="grade" id="camposFiador"></div>
+    </div>
+
     <div class="card">
-      <h2>Documentos</h2>
-      <p class="sub">Limite de 20 MB no total. Os destacados são os que faltam para
-        esta proposta; os demais ficam recolhidos abaixo.</p>
+      <h2>Documentos obrigatórios</h2>
+      <p class="sub"><b>A análise de crédito só segue depois que TODOS os documentos abaixo estiverem
+        anexados.</b> A lista depende da origem da renda e do estado civil. Limite de 20 MB por envio.</p>
       <div id="docs"></div>
       <div id="resumoAnexos" class="sub" style="margin-top:10px"></div>
     </div>
@@ -97,7 +121,8 @@
       <div id="avisoEnvio" class="aviso" style="display:none;margin-top:12px"></div>
       <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <button class="primario" id="btEnviar" onclick="enviar()">Enviar para a Morais</button>
-        <span class="sub" style="margin:0">Você pode enviar mais de uma vez: cada envio atualiza o cadastro.</span>
+        <span class="sub" style="margin:0">Você pode enviar em partes: cada envio atualiza o cadastro.
+          A análise começa quando <b>tudo</b> estiver completo.</span>
       </div>
     </div>
   </div>
@@ -215,35 +240,93 @@ function pintar(){
     'Corretor: '+esc(DADOS.corretor||'—')+(DADOS.imobiliaria?' · '+esc(DADOS.imobiliaria):'')+
     ' · Situação: '+esc(DADOS.status||'—');
 
-  document.getElementById('campos').innerHTML=DADOS.campos.map(function(c){
-    var vazio=!String(c.valor||'').trim();
-    var campo;
-    if(c.id==='origemRenda'||c.id==='origemRendaConjuge'){
-      campo='<select id="c-'+c.id+'" onchange="montarDocs()">'+
-        '<option value="">Selecione…</option>'+
-        ORIGENS.map(function(o){ return '<option'+(c.valor===o?' selected':'')+'>'+o+'</option>'; }).join('')+
-        '</select>';
-    } else if(c.id==='estadoCivil'){
-      campo='<select id="c-'+c.id+'" onchange="verConjuge()"><option value="">Selecione…</option>'+
-        ESTADOS.map(function(o){ return '<option'+(c.valor===o?' selected':'')+'>'+o+'</option>'; }).join('')+
-        '</select>';
-    } else if(c.id==='observacoes'){
-      campo='<textarea id="c-'+c.id+'" rows="2">'+esc(c.valor)+'</textarea>';
-    } else {
-      var t=(c.tipo==='data')?'date':(c.tipo==='email'?'email':'text');
-      var v=c.valor;
-      if(c.tipo==='numero' && v) v=Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-      campo='<input id="c-'+c.id+'" type="'+t+'" value="'+esc(v)+'"'+
-            (c.tipo==='numero'||c.tipo==='cpf'||c.tipo==='tel' ? ' inputmode="numeric"' : '')+'>';
+  /* r63 — cada campo diz se é obrigatório (c.obrig) e o grupo. Servidor
+     antigo não manda isso: aí vale a lista padrão abaixo. */
+  var htmlProp='', htmlCorr='', htmlFiad='', fiadorAtual='';
+  DADOS.campos.forEach(function(c){
+    if(SEMPRE_FORA.indexOf(c.id)>=0) return;           // referências: saíram
+    var grupo = c.grupo || (CAMPOS_CONJUGE.indexOf(c.id)>=0 ? 'conjuge' : 'prop');
+    var h = htmlCampo(c);
+    if(grupo==='corretor') htmlCorr += h;
+    else if(grupo==='fiador'){
+      var n = /2$/.test(c.id) ? '2' : '1';
+      if(n!==fiadorAtual){ htmlFiad += '<div class="secao">Fiador '+n+'</div>'; fiadorAtual=n; }
+      htmlFiad += h;
     }
-    /* campo do cônjuge não é cobrado: ele pode nem existir nesta proposta */
-    var doConjuge = CAMPOS_CONJUGE.indexOf(c.id)>=0;
-    return '<div class="campo'+(vazio&&!doConjuge?' falta':'')+'"><label>'+esc(c.rotulo)+
-           (doConjuge ? '' : (vazio?'<span class="marca">falta</span>':'<span class="marca ok-marca">ok</span>'))+
-           '</label>'+campo+'</div>';
-  }).join('');
+    else htmlProp += h;
+  });
+  document.getElementById('campos').innerHTML=htmlProp;
+  document.getElementById('camposCorretor').innerHTML=htmlCorr;
+  document.getElementById('cardCorretor').style.display = htmlCorr ? '' : 'none';
+  document.getElementById('camposFiador').innerHTML=htmlFiad;
+  document.getElementById('cardFiador').style.display = htmlFiad ? '' : 'none';
+  document.querySelectorAll('#conteudo input:not([type=file]),#conteudo select,#conteudo textarea')
+    .forEach(function(el){ el.addEventListener('input', atualizarTrava); el.addEventListener('change', atualizarTrava); });
 
   verConjuge();
+}
+
+/* r63 — campos que não aparecem mais e os obrigatórios (para servidor antigo) */
+var SEMPRE_FORA=['referencia1','telRef1','referencia2','telRef2'];
+var OBRIG_PADRAO=['cliente','cpf','identidade','dataNascimento','estadoCivil','profissao','celular',
+                  'emailProponente','endereco','origemRenda','rendaAprovada','vendedor','creci','email'];
+function ehObrig(c){ return (c.obrig===undefined) ? OBRIG_PADRAO.indexOf(c.id)>=0 : !!c.obrig; }
+function htmlCampo(c){
+  var vazio=!String(c.valor||'').trim();
+  var campo;
+  if(c.id==='origemRenda'||c.id==='origemRendaConjuge'){
+    campo='<select id="c-'+c.id+'" onchange="montarDocs()">'+
+      '<option value="">Selecione…</option>'+
+      ORIGENS.map(function(o){ return '<option'+(c.valor===o?' selected':'')+'>'+o+'</option>'; }).join('')+
+      '</select>';
+  } else if(c.id==='estadoCivil'){
+    campo='<select id="c-'+c.id+'" onchange="verConjuge()"><option value="">Selecione…</option>'+
+      ESTADOS.map(function(o){ return '<option'+(c.valor===o?' selected':'')+'>'+o+'</option>'; }).join('')+
+      '</select>';
+  } else if(c.id==='observacoes'){
+    campo='<textarea id="c-'+c.id+'" rows="2">'+esc(c.valor)+'</textarea>';
+  } else {
+    var t=(c.tipo==='data')?'date':(c.tipo==='email'?'email':'text');
+    var v=c.valor;
+    if(c.tipo==='numero' && v) v=Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    campo='<input id="c-'+c.id+'" type="'+t+'" value="'+esc(v)+'"'+
+          (c.tipo==='numero'||c.tipo==='cpf'||c.tipo==='tel' ? ' inputmode="numeric"' : '')+'>';
+  }
+  var ob=ehObrig(c);
+  var full=(c.id==='observacoes'||c.id==='endereco'||/^enderecoFiador/.test(c.id)) ? ' style="grid-column:1/-1"' : '';
+  return '<div class="campo'+(vazio&&ob?' falta':'')+'"'+full+' data-obrig="'+(ob?1:0)+'"><label>'+esc(c.rotulo)+
+         (ob ? (vazio?'<span class="marca">falta</span>':'<span class="marca ok-marca">ok</span>') : '')+
+         '</label>'+campo+'</div>';
+}
+/* r63 (item 6) — o que ainda trava a análise: obrigatório vazio e documento
+   exigido sem arquivo (nem já enviado, nem escolhido agora). */
+function atualizarTrava(){
+  var el=document.getElementById('trava'); if(!el || !DADOS) return;
+  var campos=[];
+  document.querySelectorAll('.campo[data-obrig="1"]').forEach(function(cx){
+    if(cx.style.display==='none') return;
+    var inp=cx.querySelector('input,select,textarea');
+    var vazio=!inp || !String(inp.value||'').trim();
+    cx.classList.toggle('falta', vazio);
+    var m=cx.querySelector('.marca');
+    if(m){ m.className='marca'+(vazio?'':' ok-marca'); m.textContent=vazio?'falta':'ok'; }
+    if(vazio) campos.push(cx.querySelector('label').childNodes[0].textContent);
+  });
+  var docs=[];
+  document.querySelectorAll('#docs .doc[data-exigido="1"]').forEach(function(d){
+    var inp=d.querySelector('input[type=file]');
+    if(d.dataset.enviado!=='1' && !(inp && inp.files.length)) docs.push(d.dataset.nome);
+  });
+  if(!campos.length && !docs.length){
+    el.className='trava ok';
+    el.innerHTML='<b>Tudo pronto.</b> Os dados obrigatórios e todos os documentos exigidos estão preenchidos'+
+      ' — é só clicar em <b>Enviar para a Morais</b> (se ainda não enviou) para a análise seguir.';
+  } else {
+    el.className='trava pend';
+    el.innerHTML='<b>A análise de crédito só segue depois que TUDO abaixo for enviado.</b>'+
+      '<ul>'+(docs.length?'<li><b>Documentos ('+docs.length+'):</b> '+docs.map(esc).join(' · ')+'</li>':'')+
+      (campos.length?'<li><b>Dados ('+campos.length+'):</b> '+campos.map(esc).join(' · ')+'</li>':'')+'</ul>';
+  }
 }
 
 function origensEscolhidas(){
@@ -256,23 +339,27 @@ function montarDocs(){
   var guardados={};
   document.querySelectorAll('#docs input[type=file]').forEach(function(el){ if(el.files.length) guardados[el.id]=el.files; });
 
-  var visiveis=[], escondidos=[];
+  /* r63 (item 4) — só aparecem os documentos EXIGIDOS para este cliente
+     (mesma regra do portal). Os já enviados continuam na lista, marcados,
+     para ninguém achar que sumiram; dá para mandar mais arquivos neles. */
+  var linhas=[];
   DADOS.documentos.forEach(function(d){
     var regra=REGRA_DOC[d.coluna];
-    if(d.coluna==='DOC. CONJUGE' && !temConjuge()) return;   // solteiro não tem cônjuge
-    var pedido = DOC_SEMPRE.indexOf(d.coluna)>=0 ||
-                 (regra && origens.some(function(o){ return o && regra.indexOf(o)>=0; })) ||
-                 (d.coluna==='COMPROVANTE DE DIVORCIO' && civil.indexOf('DIVORC')>=0);
-    if(d.temArquivo) pedido=false;                       // já veio no envio original
-    var html='<div class="doc'+(pedido?' pedido':'')+'">'+
-      '<label for="d-'+d.coluna.replace(/\W/g,'')+'">'+esc(ROTULO_DOC[d.coluna]||d.rotulo)+
-      (d.temArquivo?'<span class="marca ok-marca">já enviado</span>':(pedido?'<span class="marca">falta</span>':''))+
+    var exigido = DOC_SEMPRE.indexOf(d.coluna)>=0 ||
+                  (regra && origens.some(function(o){ return o && regra.indexOf(o)>=0; })) ||
+                  (d.coluna==='COMPROVANTE DE DIVORCIO' && civil.indexOf('DIVORC')>=0);
+    if(!exigido) return;
+    var nome=ROTULO_DOC[d.coluna]||d.rotulo;
+    var id='d-'+d.coluna.replace(/\W/g,'');
+    linhas.push('<div class="doc'+(d.temArquivo?'':' pedido')+'" data-exigido="1" data-enviado="'+(d.temArquivo?1:0)+'"'+
+      ' data-nome="'+esc(nome)+'">'+
+      '<label for="'+id+'">'+esc(nome)+
+      (d.temArquivo?'<span class="marca ok-marca">já enviado</span>':'<span class="marca">falta</span>')+
       '<small>'+esc(DICA_DOC[d.coluna]||'')+'</small></label>'+
-      '<input type="file" id="d-'+d.coluna.replace(/\W/g,'')+'" data-rotulo="'+esc(d.rotulo)+'" multiple onchange="resumoAnexos()"></div>';
-    if(pedido) visiveis.push(html); else escondidos.push(html);
+      '<input type="file" id="'+id+'" data-rotulo="'+esc(d.rotulo)+'" multiple onchange="resumoAnexos()"></div>');
   });
-  document.getElementById('docs').innerHTML = visiveis.join('') +
-    (escondidos.length ? '<details class="outros"><summary>Ver os demais documentos ('+escondidos.length+')</summary>'+escondidos.join('')+'</details>' : '');
+  document.getElementById('docs').innerHTML = linhas.join('') ||
+    '<div class="sub">Escolha a <b>origem da renda</b> acima para ver os documentos exigidos.</div>';
 
   Object.keys(guardados).forEach(function(id){
     var el=document.getElementById(id); if(!el) return;
@@ -296,6 +383,7 @@ function resumoAnexos(){
     ? l.length+' arquivo(s) · '+(total/1048576).toFixed(1)+' MB'+
       (total>LIMITE?' <b style="color:#8A2E17">— acima do limite de 20 MB</b>':'')
     : 'Nenhum arquivo escolhido ainda.';
+  atualizarTrava();
 }
 
 function lerBase64(f){
@@ -358,7 +446,8 @@ function enviar(){
         ((j.anexos&&j.anexos.ok) ? j.anexos.ok+' documento(s) anexados.' : '')+
         ((j.anexos&&j.anexos.falhas&&j.anexos.falhas.length)
           ? '<br><b style="color:#8A2E17">Não subiram:</b> '+j.anexos.falhas.map(esc).join(' · ') : '')+
-        '<br>A Morais já foi avisada.';
+        '<br>A Morais já foi avisada. Confira o quadro no topo: se ainda faltar algo, a análise '+
+        'só segue depois que for enviado.';
       carregar();   // recarrega para mostrar o que ficou gravado
     } else {
       av.className='aviso erro';

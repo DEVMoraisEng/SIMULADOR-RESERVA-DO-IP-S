@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#295778">
+<script>(function(){try{var t=localStorage.getItem("morais_tema");
+  if(t!=="claro"&&t!=="escuro") t="claro";
+  document.documentElement.dataset.tema=t;}catch(e){}})();</script>
+<link rel="manifest" href="manifest.json">
+<title>Obras · Morais</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =====================================================================
+   OBRAS (set/26) — mesmo sistema visual da Gestão de Documentos / Vendas:
+   cabeçalho em degradê, abas em pílula, planilha com cabeçalho azul, painel
+   lateral da obra. Dados: dist/obras.json (fetch_obras.py). Gravação: Apps
+   Script, ações obra* (blocos r40/r41 do Code.gs). Acesso: "OBRAS".
+   ===================================================================== */
+:root{color-scheme:light}
+html{background:var(--bg);min-height:100%}
+body{min-height:100vh}
+:root{
+  --azul:#295778;--azul-esc:#1e3f58;--teal:#8FDCD2;--verde:#2a9d5c;--verde-btn:#4cd964;--verde-esc:#1a6b40;
+  --bg:#EAF1F3;--bg2:#F5F9FA;--bg3:#dceaef;--border:#b8d0da;--border2:#d0e4ec;
+  --text:#1a3347;--text3:#5a8099;--text4:#8aacbb;--branco:#fff;--orange:#E67E22;--verm:#c0392b;
+  --sup:#fff;--sup2:#f7fbfc;--sombra:rgba(20,50,70,.18)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.45}
+.wrap{max-width:1320px;margin:0 auto;padding:0 20px}
+header{background:linear-gradient(120deg,var(--azul-esc),var(--azul));position:relative}
+header::after{content:"";display:block;height:4px;background:linear-gradient(90deg,var(--verde-btn),var(--teal))}
+.hbar{display:flex;align-items:center;gap:12px;padding:13px 0;flex-wrap:wrap}
+.logo{background:#fff;border-radius:9px;padding:4px 9px;display:inline-flex;align-items:center}.logo img{height:34px;display:block}
+.htitle{font-family:'Barlow Condensed';font-weight:800;font-size:22px;color:#fff;letter-spacing:.5px;text-transform:uppercase;line-height:1}
+.hsub{color:var(--teal);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.hspace{flex:1}
+.hupd{font-size:10.5px;color:rgba(255,255,255,.72);white-space:nowrap;text-align:right;max-width:210px}
+.user{display:flex;align-items:center;gap:9px;color:#fff}.nome{font-weight:600;font-size:13px}
+.badge{font-size:10px;font-weight:800;letter-spacing:.5px;padding:3px 8px;border-radius:20px;background:rgba(255,255,255,.18);color:#fff;text-transform:uppercase}.badge.adm{background:var(--verde-btn);color:#0c3f22}
+.sair,.btema{border:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:6px 11px;font:inherit;font-weight:700;font-size:12px;cursor:pointer}
+.btema{font-size:15px;line-height:1;padding:6px 10px}
+main{padding:24px 20px 70px}
+.crumb{display:flex;align-items:center;gap:10px;margin-bottom:16px;color:var(--text3);font-size:13px;flex-wrap:wrap}
+.btn-voltar{display:inline-flex;align-items:center;gap:6px;background:var(--azul-esc);border:1px solid rgba(143,220,210,.4);
+  border-radius:8px;padding:9px 16px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;
+  color:var(--teal);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;text-decoration:none}
+.btn-voltar:hover{background:#16303f}
+.sec{display:flex;align-items:center;gap:10px;background:var(--bg3);border-left:4px solid var(--verde);border-radius:8px;padding:9px 14px;margin:26px 0 16px;flex-wrap:wrap}
+.sec .cond{font-family:'Barlow Condensed',Inter,sans-serif;font-size:19px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--azul-esc)}
+.sec .qtd{margin-left:auto;background:var(--border2);color:var(--text3);border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700}
+.sec:first-child{margin-top:6px}
+.tabs-outer{background:var(--bg2);border:1.5px solid var(--border);border-radius:14px;padding:12px;margin:8px 0 20px;display:flex;justify-content:center;overflow-x:auto}
+.tabs{display:flex;gap:6px;padding:6px;border:2.5px solid var(--verde-btn);border-radius:12px;background:rgba(76,217,100,.06)}
+.tab{padding:11px 30px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border-radius:8px;border:2px solid transparent;background:none;white-space:nowrap}
+.tab:hover{color:var(--azul-esc);background:rgba(76,217,100,.15);border-color:rgba(76,217,100,.4)}
+.tab.on{background:var(--verde-btn);color:#1a3347;border-color:var(--verde-btn);box-shadow:0 3px 10px rgba(76,217,100,.35)}
+.tab .nb{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;border-radius:20px;background:var(--verm);color:#fff;font:800 11px Inter,sans-serif;padding:0 6px;margin-left:6px;vertical-align:2px}
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.legenda{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sw{display:inline-flex;align-items:center;gap:6px;cursor:pointer;background:var(--sup);border:1.5px solid var(--border);border-radius:20px;padding:6px 13px;color:var(--text3);font-weight:600;font-size:12px;user-select:none}
+.sw:hover{border-color:var(--text3)}
+.sw.on{border-color:var(--azul);color:var(--azul);background:#e7f0f3}
+.sw b{font-weight:800}
+select,input[type=text],input[type=number],input[type=date]{border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font:inherit;font-size:13px;background:var(--sup);max-width:100%;color:var(--text)}
+select:focus,input:focus{outline:none;border-color:var(--verde);box-shadow:0 0 0 3px rgba(76,217,100,.2)}
+.busca{border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font:inherit;font-size:13px;min-width:220px;flex:1;background:var(--sup);color:var(--text)}
+.bt{border:0;border-radius:8px;padding:9px 14px;font:inherit;font-weight:700;font-size:12.5px;color:#fff;background:var(--verde);cursor:pointer;white-space:nowrap}
+.bt:hover{filter:brightness(1.06)}.bt.az{background:var(--azul)}.bt.ghost{background:#e7f0f3;color:var(--azul)}
+.bt:disabled{opacity:.5;cursor:default}
+.bt-mini{padding:5px 10px;font-size:11.5px}
+.info-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.icard{background:var(--sup);border:1px solid var(--border2);border-radius:10px;padding:9px 16px;min-width:110px;text-align:center}
+.ival{font-family:'Barlow Condensed';font-weight:800;font-size:22px;color:var(--azul-esc);line-height:1}
+.ival.r{color:var(--verm)}
+.ilab{font-size:10px;text-transform:uppercase;letter-spacing:.3px;color:var(--text3);font-weight:700;margin-top:3px}
+.tabela-wrap{overflow:auto;max-height:72vh;border:1px solid var(--border2);border-radius:10px;background:var(--sup)}
+table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:12.5px}
+thead th{background:var(--azul);color:#fff;text-align:left;padding:9px 11px;font-size:10px;letter-spacing:.4px;text-transform:uppercase;position:sticky;top:0;white-space:nowrap;z-index:2;font-weight:700}
+thead th.stick{left:0;z-index:3}
+tbody td{padding:8px 11px;border-top:1px solid var(--border2);white-space:nowrap;color:var(--text)}
+tbody td.stick{position:sticky;left:0;background:var(--sup);font-weight:700;z-index:1;border-right:2px solid var(--border)}
+tbody tr:nth-child(even) td{background:var(--bg2)} tbody tr:nth-child(even) td.stick{background:#eef5f7}
+tbody tr:hover td{background:#e9f6ef;cursor:pointer} tbody tr:hover td.stick{background:#dff2e6}
+.obralink{color:var(--azul);font-weight:800;cursor:pointer}.obralink:hover{text-decoration:underline}
+.tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:#e7f0f3;color:var(--azul);white-space:nowrap}
+.tag.sim{background:rgba(42,157,92,.14);color:var(--verde-esc)}.tag.nao{background:#f1e0e0;color:#9b2c2c}.tag.ine{background:#e6eefb;color:#2d5ea8}
+.prazo{font-size:12px;white-space:nowrap}
+.vazio{padding:26px;text-align:center;color:var(--text3);font-size:13px;background:var(--sup);border:1px dashed var(--border2);border-radius:10px}
+.semacesso{max-width:460px;margin:80px auto;text-align:center;color:var(--text3)}
+.al{background:var(--sup);border:1px solid var(--border2);border-left:4px solid var(--orange);border-radius:10px;padding:11px 14px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.al .end{font-weight:800;font-size:13.5px;color:var(--azul);cursor:pointer;min-width:170px}.al .end:hover{text-decoration:underline}
+.al .txt{color:#B45309;font-size:12.5px;flex:1;min-width:200px}
+.al .acoes{display:flex;gap:6px}
+.falta{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:#FFF3E0;color:#B45309;border:1px solid #FCD9A8;margin:2px 4px 2px 0}
+.grupo{border:1px solid var(--border2);border-radius:10px;background:var(--sup);margin-bottom:10px;overflow:hidden}
+.grupo>summary{cursor:pointer;padding:12px 14px;font-weight:700;font-size:13.5px;color:var(--text);display:flex;align-items:center;gap:10px;list-style:none}
+.grupo>summary::-webkit-details-marker{display:none}
+.grupo>summary::before{content:"▸";font-size:11px;color:var(--text3);transition:transform .15s}
+.grupo[open]>summary::before{transform:rotate(90deg)}
+.grupo[open]>summary{border-bottom:1px solid var(--border2)}
+.grupo .qtd{margin-left:auto;background:var(--border2);color:var(--text3);border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700}
+.grupo .qtd.r{background:#f6dede;color:#9b2c2c}
+.grupo .corpo{padding:8px}
+/* linha de atividade */
+.atv{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) minmax(0,150px) minmax(0,100px) minmax(0,145px) minmax(0,1.1fr);gap:10px;align-items:center;
+     padding:10px 12px;border:1px solid var(--border2);border-left:5px solid var(--cor,var(--azul));border-radius:10px;background:var(--sup);margin-bottom:8px}
+.atv>div{min-width:0}
+.atv .prazo{white-space:normal;overflow-wrap:anywhere}
+.atv.atr{background:#fdecea;border-color:#f1b2ab}
+.atv.atr .nm{color:#9b2c2c}
+.atv:hover{border-color:var(--azul)}
+.atv .nm{font-weight:700;font-size:13px;cursor:pointer;color:var(--text)}
+.atv .nm:hover{color:var(--azul);text-decoration:underline}
+.atv .tp{display:inline-block;max-width:100%;font-size:10px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:#fff;background:var(--cor,var(--azul));padding:2px 8px;border-radius:20px;margin-bottom:4px;white-space:normal}
+.atv .k{display:none;font-size:10px;font-weight:700;color:var(--text4);text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px}
+.atv .v{font-size:12.5px;color:var(--text)}
+.atv select,.atv input{width:100%;padding:6px 8px;font-size:12.5px}
+.atv.fin{opacity:.72}
+.salvando{border-color:#F0C36D!important}.ok{border-color:var(--verde)!important}.erro{border-color:var(--verm)!important}
+.atv-cab{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) minmax(0,150px) minmax(0,100px) minmax(0,145px) minmax(0,1.1fr);gap:10px;padding:0 12px 6px 17px;
+         font-size:10px;font-weight:800;text-transform:uppercase;color:var(--text3);letter-spacing:.4px}
+.atv-cab div,th.ord{cursor:pointer;user-select:none}
+.atv-cab div:hover{color:var(--azul)}
+.seta{font-size:9px;margin-left:3px;opacity:.8}
+.acoes-atv{display:flex;gap:8px;flex-wrap:wrap;padding:0 22px}
+.lig-bts{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin-top:10px}
+.lig-bts .bt{background:var(--sup);color:var(--azul);border:1.5px solid var(--border);text-align:left}
+.lig-bts .bt:hover{border-color:var(--azul);background:#e7f0f3}
+/* painel */
+.overlay{position:fixed;inset:0;background:rgba(20,40,55,.55);display:none;z-index:40}
+.painel{position:fixed;top:0;right:0;height:100%;width:clamp(720px,68vw,100vw);background:var(--bg2);z-index:41;box-shadow:-14px 0 44px rgba(0,0,0,.3);display:none;flex-direction:column}
+.painel.p2{z-index:51;width:clamp(560px,48vw,100vw)}
+.overlay.o2{z-index:50}
+.painel.on,.overlay.on{display:flex}
+.ph{background:linear-gradient(120deg,var(--azul-esc),var(--azul));color:#fff;padding:18px 22px;position:relative}
+.ph .end{font-family:'Barlow Condensed';font-weight:800;font-size:24px;text-transform:uppercase;line-height:1.05;letter-spacing:.5px;padding-right:44px}
+.ph .loc{color:var(--teal);font-size:12px;font-weight:700;margin-top:4px}
+.pfechar{position:absolute;top:16px;right:18px;background:rgba(255,255,255,.16);border:0;color:#fff;width:32px;height:32px;border-radius:8px;font-size:18px;cursor:pointer}
+.pbody{padding:0 0 30px;overflow:auto;flex:1}
+.chips{display:flex;flex-wrap:wrap;gap:7px;padding:14px 22px 0}
+.chip{font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:20px;background:#e7f0f3;color:var(--azul)}
+.chip.alerta{background:#FFF3E0;color:#B45309;border:1px solid #FCD9A8}
+.chip.ok{background:rgba(42,157,92,.14);color:var(--verde-esc);border:1px solid rgba(42,157,92,.3)}
+.grp{font-family:'Barlow Condensed';font-size:15px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--azul);margin:20px 22px 12px;padding-bottom:7px;border-bottom:2px solid var(--verde);display:flex;align-items:center;gap:8px}
+.grp .sp{flex:1}
+.resumo{padding:0 22px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px 16px}
+.ri .k{font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--text4);font-weight:700;margin-bottom:5px}
+.ri input,.ri select{width:100%}
+.ro{padding:8px 10px;background:#eef3f5;border-radius:8px;color:var(--text3);font-size:13px;min-height:37px}
+.pl{padding:0 22px}
+.tg{border:1.5px solid var(--border);background:var(--sup);border-radius:20px;padding:5px 14px;font:inherit;font-weight:800;font-size:11.5px;cursor:pointer;color:var(--text3);text-transform:none;letter-spacing:0}
+.tg.on{background:var(--azul);border-color:var(--azul);color:#fff}
+/* cronograma */
+.gantt{background:var(--sup);border:1px solid var(--border2);border-radius:10px;overflow-x:auto}
+.gt{min-width:780px;position:relative}
+.gr{display:grid;grid-template-columns:230px 1fr;border-top:1px solid var(--border2);min-height:36px}
+.gl{padding:7px 10px;font-size:12px;font-weight:600;border-right:1px solid var(--border2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.gl:hover{color:var(--azul)}
+.gl small{display:block;color:var(--text4);font-weight:600;font-size:10.5px}
+.gtr{position:relative}
+.gbar{position:absolute;top:9px;height:18px;border-radius:5px;background:var(--azul);min-width:6px;color:#fff;font-size:10px;font-weight:700;line-height:18px;padding:0 6px;white-space:nowrap;overflow:hidden;cursor:pointer}
+.gbar.fin{background:var(--verde)}.gbar.atr{background:var(--verm)}
+.ghead{display:grid;grid-template-columns:230px 1fr;background:var(--azul);color:#fff;font-size:10px;font-weight:700;text-transform:uppercase}
+.ghead>div:first-child{padding:8px 10px}
+.gmeses{position:relative;height:30px}
+.gmes{position:absolute;top:0;bottom:0;border-left:1px solid rgba(255,255,255,.3);padding:8px 5px;white-space:nowrap}
+.ghoje{position:absolute;top:0;bottom:0;width:2px;background:var(--orange);z-index:2}
+/* conteúdo da atividade */
+.cont{padding:0 22px;font-size:13.5px}
+.cont h1,.cont h2,.cont h3{font-family:'Barlow Condensed';color:var(--azul-esc);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.3px}
+.cont h1{font-size:20px}.cont h2{font-size:18px}.cont h3{font-size:16px}
+.cont p{margin:4px 0}
+.cont .todo{display:flex;gap:8px;align-items:flex-start;padding:5px 8px;border-radius:7px;cursor:pointer}
+.cont .todo:hover{background:var(--bg3)}
+.cont .todo input{margin-top:3px;width:17px;height:17px;accent-color:var(--verde);flex:none}
+.cont .todo.feito span{text-decoration:line-through;color:var(--text4)}
+.cont details{border:1px solid var(--border2);border-radius:8px;background:var(--sup);margin:6px 0;padding:0 10px}
+.cont details>summary{cursor:pointer;padding:8px 0;font-weight:700}
+.cont ul,.cont ol{margin:4px 0 4px 20px;padding:0}
+.cont .callout{background:var(--bg3);border-radius:8px;padding:8px 10px;margin:6px 0}
+.cont hr{border:0;border-top:1px solid var(--border2);margin:10px 0}
+.progresso{height:8px;border-radius:8px;background:var(--border2);overflow:hidden;margin:4px 22px 10px}
+.progresso>div{height:100%;background:var(--verde)}
+.load{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--verde);border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* formulário */
+.mfundo{position:fixed;inset:0;background:rgba(15,30,40,.6);display:none;align-items:flex-start;justify-content:center;z-index:60;overflow-y:auto;padding:30px 12px}
+.mfundo.on{display:flex}
+.modal{background:var(--sup);border-radius:14px;width:min(760px,100%);overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.25)}
+.modal .ph .end{font-size:22px}
+.mcorpo{padding:18px 22px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+.fgrid .full{grid-column:1/-1}
+.campo label{display:block;font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px}
+.campo label i{color:var(--verm);font-style:normal}
+.campo input,.campo select{width:100%}
+.ajuda{font-size:11.5px;color:var(--text3);margin-top:5px;line-height:1.4}
+.ajuda.err{color:var(--verm)}.ajuda.ok{color:var(--verde-esc)}
+.chk{display:flex!important;align-items:center;gap:9px;font-weight:700;color:var(--azul-esc);font-size:13px;cursor:pointer;text-transform:none!important}
+.chk input{width:18px;height:18px;accent-color:var(--verde)}
+.macoes{display:flex;justify-content:flex-end;gap:8px;padding:14px 22px;border-top:1px solid var(--border2);background:var(--bg2)}
+.merro{color:var(--verm);font-size:12.5px;min-height:18px;padding:0 22px}
+/* ===== 23/09/26 — busca nos selects, comentários, investidores ===== */
+.cb{position:relative;width:100%}
+.cb input.cb-in{width:100%;cursor:pointer;padding-right:26px;background-image:linear-gradient(45deg,transparent 50%,var(--text3) 50%),linear-gradient(135deg,var(--text3) 50%,transparent 50%);
+  background-position:calc(100% - 14px) 50%,calc(100% - 9px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+.cb-lista{position:absolute;left:0;right:0;top:100%;z-index:80;max-height:260px;overflow:auto;background:var(--sup);border:1.5px solid var(--verde);border-radius:8px;box-shadow:0 10px 26px var(--sombra);display:none}
+.cb.on .cb-lista{display:block}
+.cb-op{padding:7px 10px;font-size:13px;cursor:pointer;white-space:normal}
+.cb-op:hover,.cb-op.ativo{background:#e9f6ef}
+.cb-op.novo{color:var(--verde-esc);font-weight:700;border-top:1px solid var(--border2)}
+.cb-vazio{padding:8px 10px;color:var(--text4);font-size:12px}
+html[data-tema="escuro"] .cb-op:hover,html[data-tema="escuro"] .cb-op.ativo{background:#1b2f3c}
+.cont a,.com .tx a{color:var(--azul);text-decoration:underline;word-break:break-all}
+.com-lista{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.com{background:var(--sup);border:1px solid var(--border2);border-radius:10px;padding:8px 11px}
+.com .qm{font-size:11px;color:var(--text3);font-weight:700;margin-bottom:3px}
+.com .tx{white-space:pre-wrap;font-size:13px}
+.com img{max-width:220px;max-height:180px;border-radius:8px;margin-top:6px;display:block;cursor:zoom-in;border:1px solid var(--border2)}
+.com a.arq{display:inline-block;margin-top:6px;font-size:12px;font-weight:700;color:var(--azul)}
+.com-form{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
+.com-form textarea{flex:1;min-width:200px;min-height:54px;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font:inherit;font-size:13px;background:var(--sup);color:var(--text);resize:vertical}
+.com-anexo{font-size:11.5px;color:var(--text3);width:100%}
+.ja-criado{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(42,157,92,.12);border:1px solid rgba(42,157,92,.35);color:var(--verde-esc);border-radius:10px;padding:10px 13px;font-weight:700;font-size:13px;margin-top:10px}
+.atv.fixa{outline:2px dashed rgba(42,157,92,.45)}
+#procurando{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:90;background:var(--sup);border:1px solid var(--border2);box-shadow:0 6px 18px var(--sombra);border-radius:20px;padding:7px 14px;font-size:12.5px;color:var(--text3)}
+.atv.saindo{transition:opacity .4s,transform .4s;opacity:0;transform:translateX(24px)}
+.inv-cel{min-width:130px}
+.inv-cel input,.inv-cel select{width:100%;padding:5px 7px;font-size:12.5px}
+.sens{letter-spacing:2px;color:var(--text4)}
+.tentando{border-color:#F0C36D!important;background-image:none}
+/* 23/09/26 — desempenho: linhas fora da tela não são desenhadas até rolar */
+.tabela-wrap tbody tr{content-visibility:auto;contain-intrinsic-size:auto 44px}
+.atv{content-visibility:auto;contain-intrinsic-size:auto 56px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--azul-esc);color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;z-index:90;opacity:0;transition:opacity .2s;pointer-events:none;max-width:92%}
+.toast.on{opacity:1}
+.tarja-teste{display:none;align-items:center;gap:9px;background:#FFF7ED;border:1px solid #FED7AA;color:#9A3412;border-radius:10px;padding:9px 13px;font-size:12.5px;font-weight:600;margin-bottom:14px}
+.tarja-teste.on{display:flex}
+/* ===== MODO ESCURO (mesma chave morais_tema) ===== */
+html[data-tema="escuro"]{color-scheme:dark;
+  --azul:#2f6e93;--azul-esc:#122430;--teal:#79c8bf;--verde:#2f9e63;--verde-btn:#3cbf5d;--verde-esc:#17603a;
+  --bg:#0e1920;--bg2:#15222c;--bg3:#1a2c38;--border:#2d4757;--border2:#243a4a;
+  --text:#e7eff5;--text3:#9db4c4;--text4:#7794a6;--branco:#15222c;--orange:#d9843c;--sup:#15222c;--sup2:#1a2934}
+html[data-tema="escuro"] tbody tr:nth-child(even) td,html[data-tema="escuro"] tbody tr:nth-child(even) td.stick{background:#121e27}
+html[data-tema="escuro"] tbody tr:hover td{background:#1b2f3c}
+html[data-tema="escuro"] thead th,html[data-tema="escuro"] .ghead{background:var(--azul-esc);color:var(--teal)}
+html[data-tema="escuro"] .tag,html[data-tema="escuro"] .chip{background:var(--bg3);color:var(--text3)}
+html[data-tema="escuro"] .tag.sim,html[data-tema="escuro"] .chip.ok{background:#16341f;color:#8ce0a5}
+html[data-tema="escuro"] .tag.nao{background:#3a1e1e;color:#f3a29a}
+html[data-tema="escuro"] .chip.alerta,html[data-tema="escuro"] .falta{background:#3a2d12;color:#f0c95f;border-color:#57431f}
+html[data-tema="escuro"] .sec .cond,html[data-tema="escuro"] .grp,html[data-tema="escuro"] .ival,
+html[data-tema="escuro"] .cont h1,html[data-tema="escuro"] .cont h2,html[data-tema="escuro"] .cont h3{color:var(--teal)}
+html[data-tema="escuro"] .obralink,html[data-tema="escuro"] .al .end,html[data-tema="escuro"] .bt.ghost,html[data-tema="escuro"] .sw.on{color:#8fd3ee}
+html[data-tema="escuro"] .bt.ghost,html[data-tema="escuro"] .sw.on,html[data-tema="escuro"] .ro{background:var(--bg3)}
+html[data-tema="escuro"] input,html[data-tema="escuro"] select{background:var(--sup2);color:var(--text);border-color:var(--border)}
+html[data-tema="escuro"] .atv.atr{background:#3a1e1e;border-color:#6b2c2c}
+html[data-tema="escuro"] .atv.atr .nm{color:#f3a29a}
+/* ===== CELULAR ===== */
+@media(max-width:1000px){
+  .atv{grid-template-columns:1fr 1fr} .atv-cab{display:none} .atv .nmcol{grid-column:1/-1} .atv .k{display:block}
+}
+@media(max-width:900px){ .hupd{display:none} .resumo{grid-template-columns:1fr 1fr} }
+@media(max-width:680px){
+  input,select{font-size:16px}
+  main{padding:16px 10px 60px}
+  .tab{padding:10px 14px;font-size:13px}
+  .tabs-outer{justify-content:flex-start}
+  .painel,.painel.p2{width:100vw}
+  .fgrid{grid-template-columns:1fr}
+  .busca{min-width:0;width:100%}
+  .ph .end{font-size:20px}
+  .pl,.resumo,.cont{padding-left:12px;padding-right:12px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap hbar">
+    <span class="logo"><img src="img/logo.png" alt="Morais"></span>
+    <div><div class="htitle">Obras</div><div class="hsub">Morais Engenharia</div></div>
+    <div class="hspace"></div>
+    <span class="hupd updated" id="updated"></span>
+    <div class="user">
+      <div style="text-align:right"><div class="nome" id="u-nome">—</div><span class="badge" id="u-tipo">—</span></div>
+      <button class="btema" id="btema" onclick="trocarTema()" title="Alternar claro/escuro">🌙</button>
+      <button class="sair" onclick="sair()">Sair</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="tarja-teste" id="tarja-teste"><span>🔍</span><span><b>MODO TESTE</b> — este login enxerga tudo, mas nenhuma alteração é gravada.</span></div>
+  <div id="sem-acesso" class="semacesso" style="display:none">
+    <h2>Sem acesso</h2><p>Seu login não tem o acesso <b>OBRAS</b>. Fale com um ADM.</p>
+    <a class="bt az" href="index.html">Voltar ao portal</a>
+  </div>
+  <div id="app">
+    <div class="crumb"><a class="btn-voltar" href="index.html">← Voltar para o Dashboard</a></div>
+    <div class="tabs-outer"><div class="tabs" id="tabs"></div></div>
+    <div id="view"><div class="vazio"><span class="load"></span> Carregando…</div></div>
+  </div>
+</main>
+
+<div class="overlay" id="ov1" onclick="fecharObra()"></div>
+<div class="painel" id="p1">
+  <div class="ph"><div class="end" id="p1-end"></div><div class="loc" id="p1-loc"></div>
+    <button class="pfechar" title="Fechar (Esc)" aria-label="Fechar" onclick="fecharObra()">✕</button></div>
+  <div class="pbody" id="p1-corpo"></div>
+</div>
+
+<div class="overlay o2" id="ov2" onclick="fecharAtv()"></div>
+<div class="painel p2" id="p2">
+  <div class="ph"><div class="end" id="p2-end"></div><div class="loc" id="p2-loc"></div>
+    <button class="pfechar" title="Fechar (Esc)" aria-label="Fechar" onclick="fecharAtv()">✕</button></div>
+  <div class="pbody" id="p2-corpo"></div>
+</div>
+
+<div class="mfundo" id="mf">
+  <div class="modal">
+    <div class="ph"><div class="end">Solicitar nova obra</div>
+      <div class="loc">Campos com * são obrigatórios</div>
+      <button class="pfechar" title="Fechar (Esc)" aria-label="Fechar" onclick="fecharForm()">✕</button></div>
+    <div class="mcorpo">
+      <div class="fgrid">
+        <div class="campo full"><label>Endereço <i>*</i></label>
+          <input type="text" id="f-end" placeholder="TB 19 QD 51 LT 14" oninput="checarEnd()" autocomplete="off">
+          <div class="ajuda" id="a-end"></div></div>
+        <div class="campo"><label>Setor <i>*</i></label><select id="f-setor" onchange="novoSeNecessario(this,'SETOR')"></select></div>
+        <div class="campo"><label>Cidade <i>*</i></label><select id="f-cidade" onchange="novoSeNecessario(this,'Cidade')"></select></div>
+        <div class="campo"><label>Proprietário <i>*</i></label><select id="f-prop" onchange="novoSeNecessario(this,'Proprietário')"></select></div>
+        <div class="campo"><label>Proprietário real <i>*</i></label><select id="f-propreal" onchange="novoSeNecessario(this,'Proprietário Real')"></select></div>
+        <div class="campo"><label>Conta bancária <i>*</i></label><select id="f-conta" data-combo="1"></select>
+          <div class="ajuda" id="a-conta"></div></div>
+        <div class="campo"><label>Responsável pela obra <i>*</i></label><select id="f-resp"></select></div>
+        <div class="campo"><label>Engenheiro RT <i>*</i></label><select id="f-rt"></select></div>
+        <div class="campo"><label>Cota da empresa (%) <i>*</i></label><input type="number" id="f-cota" step="any" min="0" max="100" placeholder="100"></div>
+        <div class="campo"><label>Data de aquisição do lote <i>*</i></label><input type="date" id="f-lote"></div>
+        <div class="campo"><label>Nº de casas</label><input type="number" id="f-casas" min="1" step="1" placeholder="em branco = genérico">
+          <div class="ajuda">Não sabe ainda? Deixe em branco: vai para o Mais Controle como <b>Genérico</b> e fica em Alertas até alguém preencher.</div></div>
+        <div class="campo"><label>Implantação</label><select id="f-impl"></select></div>
+        <div class="campo"><label>Área do lote (m²)</label><input type="number" id="f-alote" step="any"></div>
+        <div class="campo"><label>Área construída averbada (m²)</label><input type="number" id="f-aaverb" step="any"></div>
+        <div class="campo"><label>Área pós habite-se (m²)</label><input type="number" id="f-ahab" step="any"></div>
+        <div class="campo full"><label class="chk"><input type="checkbox" id="f-estudo"> Precisa de estudo de layout</label></div>
+        <div class="campo full"><div class="ajuda">Ao criar: Briefing (e Uso do Solo, se Goiânia; Estudo de Layout, se marcado), a linha em Documentos (em alguns minutos) e a obra no Mais Controle (na rodada diária).
+          Compatibilização e Formulário de Obra nascem quando "Liberar obra p/ processo interno" virar Sim.</div>
+          <div class="ajuda"><b>Criar obra</b> grava e fecha o formulário. <b>Criar e continuar</b> grava e deixa o formulário aberto com os mesmos dados,
+          só limpando o endereço e as áreas — para lançar várias obras do mesmo setor/proprietário em sequência.</div></div>
+      </div>
+    </div>
+    <div class="merro" id="f-erro"></div>
+    <div class="macoes"><button class="bt ghost" onclick="fecharForm()">Cancelar</button>
+      <button class="bt az" onclick="enviarObra(true)" title="Cria e mantém o formulário aberto, com os mesmos dados, só trocando o endereço">Criar e continuar</button>
+      <button class="bt" id="f-ok" title="Grava a obra e fecha o formulário" onclick="enviarObra()">Criar obra</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="app.js?v=40"></script>
+<script>
+/* ---------- tema ---------- */
+const TEMA_KEY="morais_tema";
+function temaAtual(){ return document.documentElement.dataset.tema==="escuro"?"escuro":"claro"; }
+function aplicarTema(t){ const e=t==="escuro"; document.documentElement.dataset.tema=e?"escuro":"claro";
+  const b=document.getElementById("btema"); if(b) b.textContent=e?"☀":"🌙";
+  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute("content",e?"#0f1c26":"#295778"); }
+function trocarTema(){ const n=temaAtual()==="escuro"?"claro":"escuro"; try{localStorage.setItem(TEMA_KEY,n);}catch(e){} aplicarTema(n); }
+aplicarTema(temaAtual());
+
+/* ---------- sessão ---------- */
+const OB_S=exigirSessao();
+const PODE=!!(OB_S&&podeAcessar(OB_S,"OBRAS"));
+if(OB_S){ document.getElementById("u-nome").textContent=OB_S.nome||OB_S.login;
+  const tb=document.getElementById("u-tipo"); tb.textContent=OB_S.tipo; if(OB_S.tipo==="ADM") tb.classList.add("adm");
+  if(String(OB_S.tipo).toUpperCase()==="TESTES") document.getElementById("tarja-teste").classList.add("on"); }
+if(!PODE){ document.getElementById("app").style.display="none"; document.getElementById("sem-acesso").style.display="block"; }
+
+/* ---------- constantes e utilitários ---------- */
+const SETORES_PADRAO=["TERRABELA CERRADO","PQ DOS BURITIS","ACROPOLE","COND. ESMERALDAS","IPANEMA","ITAIPU","JOÃO BRAZ",
+  "MARQUES DE ABREU","RAVENA","SOLAR VILLE","ST FÉ","ST EFIGÊNIA","PORTO SEGURO","PORTAL DO ORIENTE","JARDIM PETROPOLIS","VILA SÃO SEBASTIÃO","FLORENÇA"];
+const FIM=["FINALIZADO","CANCELADO","CONCLUIDO"];
+const OBRIGATORIOS=[["setor","Setor"],["cidade","Cidade"],["proprietario","Proprietário"],["proprietario_real","Proprietário real"],
+  ["resp","Responsável pela obra"],["rt","Engenheiro RT"],["cota","Cota da empresa"],["data_lote","Data de aquisição do lote"],["n_casas","Nº de casas"]];
+let D={obras:[],atividades:[],opcoes:{},opcoes_atividades:{},pessoas:[]};
+/* contas bancárias: a lista fica guardada NO NAVEGADOR (localStorage) e o
+   formulário abre na hora com ela; por trás, o portal confere no servidor e
+   atualiza. Só nome da conta — nada de número/agência. */
+const CONTAS_KEY="obras_contas_v1";
+let CONTAS=(function(){ try{ const x=JSON.parse(localStorage.getItem(CONTAS_KEY)||"null"); return x&&Array.isArray(x.l)?x.l:null; }catch(e){ return null; } })(),
+    CONTAS_AVISO="", _contasEmVoo=null, _contasFresco=0, _contasTent=0;
+let ABA="obras", FILTRO="andamento", PESSOA=null, VER_FIN=false, OBRA=null, ATV=null, MODO="lista", CONT=null;
+let SORT_OB={k:"data_prevista",d:1}, SORT_ATV={k:null,d:1};
+/* conteúdo das atividades: memória + localStorage (abre na hora, confere por trás) */
+const CONT_KEY="obras_cont_v1", CONT_MEM=(function(){ try{ return JSON.parse(localStorage.getItem(CONT_KEY)||"{}")||{}; }catch(e){ return {}; } })();
+function contGuardar(id,blocos){
+  CONT_MEM[id]={blocos:blocos,t:Date.now()};
+  const ks=Object.keys(CONT_MEM); if(ks.length>150) ks.sort((a,b)=>CONT_MEM[a].t-CONT_MEM[b].t).slice(0,ks.length-150).forEach(k=>delete CONT_MEM[k]);
+  try{ localStorage.setItem(CONT_KEY,JSON.stringify(CONT_MEM)); }catch(e){}
+}
+/* atividades que a pessoa mexeu nesta aba: continuam na lista até ela sair
+   da aba (item 4 — não somem no meio do preenchimento) */
+const FIXAS=new Set();
+const dataOk=d=>/^\d{4}-\d{2}-\d{2}$/.test(String(d||""))&&Number(String(d).slice(0,4))>=2000;
+/* 24/09/26: Finalizado + data de conclusão = some. FIXAS não segura mais
+   (ela existia para não sumir no meio do preenchimento, mas meio preenchido
+   já não cumpre a regra de sumir). */
+const sumir=a=>N(a.status)==="FINALIZADO"&&dataOk(a.data_conclusao);
+
+/* ===================== PONTE DE EDIÇÕES (o valor não "volta") ===================
+   24/09/26 — O status voltava para o antigo depois de salvar. O Notion
+   gravava, mas duas leituras logo em seguida traziam o valor ANTERIOR:
+     - a consulta de atividades do Notion (obraVivo) demora alguns segundos
+       para enxergar a gravação;
+     - o dist/obras.json só muda no build seguinte.
+   Aqui é o mesmo mecanismo de Ligações e Vendas (registrarEdicao do app.js):
+   o que foi salvo fica guardado e é reaplicado por cima de qualquer cópia
+   que chegar, até o Notion devolver o mesmo valor — ou, se ele devolver
+   outro valor bem depois (alguém mudou no Notion), o Notion manda. */
+const ATV_PROP={"Status":"status","Data De Conclusão da Atividade":"data_conclusao","Data Final Prevista":"data_final","Data De Início":"data_inicio"};
+const PONTE_FOLGA=3*60*1000;
+function ponteGuardar(base,id,prop,valor){ try{ registrarEdicao(base,id,prop,valor); }catch(e){} }
+function ponteAplicar(base,lista,campoDe,publicadoEm){
+  let o; try{ o=edicoes(); }catch(e){ return; }
+  const pub=publicadoEm?tsPublicacao(publicadoEm):0, agora=Date.now(); let mudou=false;
+  const porId=new Map(lista.map(x=>[x.id,x]));
+  for(const k in o){
+    const e=o[k]; if(!e||e.b!==base) continue;
+    const alvo=porId.get(e.id), campo=campoDe(e.p);
+    if(!alvo||!campo) continue;
+    if(agora-e.ts>7*24*3600*1000){ delete o[k]; mudou=true; continue; }
+    if(iguaisEdicao(alvo[campo],e.v)){ delete o[k]; mudou=true; continue; }   // o Notion já tem
+    const idadeLeitura=pub||agora;
+    if(idadeLeitura>e.ts+PONTE_FOLGA){ delete o[k]; mudou=true; continue; }    // leitura bem posterior e diferente: vale o Notion
+    alvo[campo]=e.v;                                                           // ainda não chegou: fica o que foi salvo
+  }
+  if(mudou) edicoesGravar(o);
+}
+function ponteAtividades(publicadoEm){ ponteAplicar("obras-atv",D.atividades,p=>ATV_PROP[p],publicadoEm); D.atividades.forEach(a=>{ a.controle_prazo=prazoLocal(a); }); }
+/* 25/09/26 — os ALERTAS dependem destes campos: depois de reaplicar o que foi
+   salvo, refaz o que deriva deles (nome da pessoa a partir do id, situação
+   da conta). Antes, uma leitura atrasada trazia o alerta de volta. */
+function ponteObras(publicadoEm){
+  ponteAplicar("obras",D.obras,p=>{ const c=CAMPOS.find(x=>x[2]===p); return c?c[1]:null; },publicadoEm);
+  D.obras.forEach(o=>{
+    ["resp_ids","rt_ids"].forEach(k=>{
+      const ids=o[k]; if(!Array.isArray(ids)||!ids.length) return;
+      const nome=ids.map(id=>{ const p=(D.pessoas||[]).find(x=>String(x.id).replace(/-/g,"")===String(id).replace(/-/g,"")); return p?p.nome:""; }).filter(Boolean).join(", ");
+      if(nome) o[k==="resp_ids"?"resp":"rt"]=nome;
+    });
+    if(o.conta!==undefined&&o.conta!==null&&o.conta!==""){
+      o.conta_alerta=(o.conta==="CRIAR CONTA"||o.conta==="DÚVIDA")?o.conta:null;
+    }
+  });
+}
+let INV=null, INV_SENS=null, INV_BUSCA="";
+/* cor por grupo de tipo (1.x, 2.x … 7) — mesma ideia das cores do Notion */
+const CORES_TIPO={1:"#2f6fb0",2:"#7b4fb3",3:"#2a9d5c",4:"#d27a1f",5:"#8a6d3b",6:"#c2477a",7:"#1c7c74"};
+function corTipo(t){ const m=String(t||"").trim().match(/^(\d+)/); return (m&&CORES_TIPO[m[1]])||"#5a8099"; }
+/* botões das atividades (os que existiam dentro das páginas do Notion).
+   Precisa bater com OBRA_ATV_ACOES do Code.gs. */
+const ACOES_POR_TIPO=[{tipo:"3.1",id:"SOLICITAR_PROJETOS",rotulo:"Solicitar projetos",
+  cria:{titulo:"Elaboração e Detalhamento De Projetos",tipo:"3.2 Elaboração e Detalhamento De Projetos"}}];
+
+const N=s=>String(s==null?"":s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/\s+/g," ").trim();
+const dt=d=>d?String(d).slice(0,10).split("-").reverse().join("/"):"—";
+const hoje=()=>new Date().toISOString().slice(0,10);
+function toast(t){ const e=document.getElementById("toast"); e.textContent=t; e.classList.add("on"); clearTimeout(e._t); e._t=setTimeout(()=>e.classList.remove("on"),4200); }
+function tagSN(v){ const n=N(v); return !v?"—":`<span class="tag ${n==="SIM"?"sim":n==="NAO"?"nao":n==="INEXISTE"?"ine":""}">${esc(v)}</span>`; }
+function opc(nome,fonte){ fonte=fonte||D.opcoes; const k=Object.keys(fonte||{}).find(x=>N(x)===N(nome)); return k?fonte[k]:[]; }
+const fim=st=>FIM.indexOf(N(st))>=0;
+/* ---------- opções novas (setor, cidade, proprietários) ----------
+   Quem cria uma opção nova continua vendo ela nas outras listas sem
+   recarregar: fica guardada no navegador até entrar no próximo build. */
+const LIVRES=["SETOR","Cidade","Proprietário","Proprietário Real"], EXTRA_KEY="obras_opc_extra";
+const ehLivre=col=>LIVRES.some(x=>N(x)===N(col));
+function extras(){ try{ return JSON.parse(localStorage.getItem(EXTRA_KEY)||"{}")||{}; }catch(e){ return {}; } }
+function guardarExtra(col,v){ const e=extras(), k=N(col)==="PROPRIETARIO REAL"?"PROPRIETARIO":N(col); (e[k]=e[k]||[]).push(v); try{localStorage.setItem(EXTRA_KEY,JSON.stringify(e));}catch(x){} }
+function unicos(l){ const vis={}, out=[]; l.forEach(x=>{ const k=N(x); if(x&&!vis[k]){ vis[k]=1; out.push(x); } }); return out; }
+/* a lista de cada campo: setor só os do padrão (+ criados); os DOIS
+   proprietários usam o mesmo cadastro (PROPRIETARIOS_PAI) */
+function listaOpc(col){
+  const e=extras(), n=N(col);
+  if(n==="SETOR"){
+    const pad=SETORES_PADRAO.filter(s=>opc("SETOR").some(x=>N(x)===N(s)));
+    return unicos(pad.concat(opc("SETOR").filter(x=>SETORES_PADRAO.some(s=>N(s)===N(x))), e.SETOR||[])).sort((a,b)=>a.localeCompare(b,"pt-BR"));
+  }
+  if(n==="PROPRIETARIO"||n==="PROPRIETARIO REAL")
+    return unicos((D.proprietarios&&D.proprietarios.length?D.proprietarios:opc("Proprietário")).concat(e.PROPRIETARIO||[])).sort((a,b)=>a.localeCompare(b,"pt-BR"));
+  if(n==="CIDADE") return unicos(opc("Cidade").concat(e.CIDADE||[]));
+  return opc(col);
+}
+function pedirNovo(col){
+  const v=prompt(`Novo ${N(col)==="SETOR"?"setor":N(col)==="CIDADE"?"cidade":"proprietário"}:`);
+  if(!v||!v.trim()) return null;
+  let t=v.replace(/,/g," ").replace(/\s+/g," ").trim(); if(N(col)==="SETOR"||N(col).indexOf("PROPRIETARIO")===0) t=t.toUpperCase();
+  if(!listaOpc(col).some(x=>N(x)===N(t))) guardarExtra(col,t);
+  return listaOpc(col).find(x=>N(x)===N(t))||t;
+}
+function novoSeNecessario(el,col){
+  if(el.value!=="__novo__") return;
+  const v=pedirNovo(col);
+  preencherSel(el.id,listaOpc(col),null,true);
+  if(v) el.value=v; else el.value="";
+}
+const ehLig=a=>/^7\b/.test(String(a.tipo||"").trim());
+const atvFeita=a=>N(a.status)==="FINALIZADO"||!!a.data_conclusao;
+const atrasada=a=>N(a.controle_prazo).indexOf("ATRASO")>=0 && !atvFeita(a);
+const obraDe=id=>D.obras.find(o=>o.id===id);
+/* índice atividades-por-obra: montado uma vez por versão dos dados, em vez
+   de filtrar a lista inteira a cada obra pintada */
+let _IDX=null, _IDXv=null;
+function atvsDaObra(id){
+  if(_IDXv!==D.atividades){ _IDX=new Map(); _IDXv=D.atividades; D.atividades.forEach(a=>{ const k=a.obra_id; (_IDX.get(k)||_IDX.set(k,[]).get(k)).push(a); }); }
+  return _IDX.get(id)||[];
+}
+const buscaObra=o=>o._bt||(o._bt=N([o.titulo,o.setor,o.resp,o.rt,o.proprietario,o.status].join(" ")));
+function ordemTipo(t){ const m=String(t||"").trim().match(/^(\d+)(?:\.(\d+))?/); return m?Number(m[1])*100+Number(m[2]||0):9999; }
+function ordenaAtv(a,b){ return ordemTipo(a.tipo)-ordemTipo(b.tipo) || String(a.data_inicio||a.data_criacao||"").localeCompare(String(b.data_inicio||b.data_criacao||"")); }
+const errMsg=r=>(r&&(erroTexto(r.erro)||r.erro))||"erro";
+
+/* ---------- endereço (mesma regra do Apps Script) ---------- */
+function padrao(s){
+  let t=String(s||"").replace(/[\u2013\u2014]/g,"-").toUpperCase().replace(/\s+/g," ").trim(); if(!t) return t;
+  t=t.replace(/\bQUADRA\b/g,"QD").replace(/\bLOTE\b/g,"LT").replace(/\b(QD|LT|CS)\.(?=\s*\d)/g,"$1");
+  t=t.replace(/\bLT\s*(\d+[A-Z]?)\s*-+\s*(\d+[A-Z]?)\b/g,"LT $1~$2").replace(/\bLT (\d+) (\d+)\b/g,"LT $1~$2");
+  t=t.replace(/\s*-+\s*/g," ").replace(/\b(QD|LT|CS)(?=\d)/g,"$1 ").replace(/^([A-Z]{1,4})(?=\d)/,"$1 ");
+  t=t.replace(/\bQD 0+ (\d+)/g,"QD $1").replace(/\bB (\d+)\b/g,"B$1");
+  t=t.replace(/\b(QD|LT) 0*(\d+)([A-Z]?)(?:~0*(\d+)([A-Z]?))?(?![\dA-Z])/g,(m,k,a,sa,b,sb)=>{
+    let r=k+" "+(a.length<2?"0"+a:a)+(sa||""); if(b) r+="-"+(b.length<2?"0"+b:b)+(sb||""); return r; });
+  return t.replace(/~/g,"-").replace(/\s+/g," ").trim();
+}
+function erroEnd(e){
+  if(/^(RUA|R\.|AV\.?|AVENIDA|ALAMEDA|AL\.|TRAVESSA|TV\.?|ESTRADA|RODOVIA)\s/.test(e)) return "Sem prefixo de rua/avenida — tire o \"RUA\", \"AV\"…";
+  if(padrao(e)!==e) return "Fora do padrão.";
+  if(!/\bQD \d{2,}[A-Z]?\b/.test(e)||!/\bLT \d{2,}/.test(e)) return "Precisa ter QD e LT, com 2 dígitos (ex.: QD 51 LT 14).";
+  return null;
+}
+const AJUDA_END='Padrão: <b>RUA QD XX LT XX</b> — sem "RUA"/"AV", sem traço, quadra e lote com 2 dígitos. Ex.: <b>TB 19 QD 51 LT 14</b>';
+function checarEnd(){
+  const a=document.getElementById("a-end");
+  const e=document.getElementById("f-end").value.toUpperCase().replace(/\s+/g," ").trim();
+  if(!e){ a.className="ajuda"; a.innerHTML=AJUDA_END; return false; }
+  if(D.obras.some(o=>N(o.titulo)===N(e))){ a.className="ajuda err"; a.textContent="Já existe uma obra com este endereço."; return false; }
+  const err=erroEnd(e);
+  if(!err){ a.className="ajuda ok"; a.textContent="✓ No padrão."; return true; }
+  const sug=padrao(e);
+  a.className="ajuda err";
+  a.innerHTML=esc(err)+(sug!==e&&!erroEnd(sug)?` <button class="bt bt-mini ghost" onclick="document.getElementById('f-end').value='${esc(sug)}';checarEnd()">usar ${esc(sug)}</button>`:"");
+  return false;
+}
+
+/* ---------- carga ---------- */
+async function carregar(){
+  try{
+    const r=await fetch("dist/obras.json?v="+Math.floor(Date.now()/60000),{cache:"no-cache"});
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    D=await r.json(); D.opcoes_atividades=D.opcoes_atividades||{};
+    ponteAtividades(D.updated_at); ponteObras(D.updated_at);
+    /* 25/09/26 — a lista de contas já vem no arquivo publicado: o formulário
+       abre com ela na hora. O servidor só confere depois (carregarContas). */
+    if(Array.isArray(D.contas)&&D.contas.length&&(!CONTAS||!CONTAS.length||!_contasFresco)){
+      CONTAS=D.contas; CONTAS_AVISO="";
+      try{ localStorage.setItem(CONTAS_KEY,JSON.stringify({t:Date.now(),l:CONTAS})); }catch(e){}
+      if(document.getElementById("mf").classList.contains("on")){ preencherSelConta(); aplicarCombos(document.getElementById("mf")); }
+    }
+    /* 23/09/26: a tela abre sempre em OBRAS. Ao clicar em Atividades, a aba
+       já entra nas atividades de quem está logado (ver pintarAtividades). */
+    document.getElementById("updated").textContent="Atualizado: "+new Date(D.updated_at).toLocaleString("pt-BR");
+    pintar();
+    carregarContas();          // já deixa a lista de contas pronta para o formulário
+  }catch(e){
+    document.getElementById("view").innerHTML=`<div class="vazio">Não consegui ler os dados das obras (${esc(e.message)}). O arquivo é gerado no build do GitHub — step "Buscar dados das Obras".</div>`;
+  }
+}
+
+/* ---------- alertas ---------- */
+function faltasDe(o){ return OBRIGATORIOS.filter(([k])=>o[k]===null||o[k]===undefined||o[k]===""||(Array.isArray(o[k])&&!o[k].length)).map(([,r])=>r); }
+const alertasMc=()=>D.obras.filter(o=>o.em_mc===false && !o.mais_controle && !fim(o.status));
+const alertasCampos=()=>D.obras.filter(o=>!fim(o.status) && faltasDe(o).length);
+/* 23/09/26 — conta bancária marcada CRIAR CONTA (a conta ainda não existe no
+   Mais Controle) ou DÚVIDA (a conversão da fórmula antiga não teve certeza) */
+const alertasConta=()=>D.obras.filter(o=>!fim(o.status) && (o.conta_alerta==="CRIAR CONTA"||o.conta_alerta==="DÚVIDA"));
+
+/* ---------- abas ---------- */
+function pintarTabs(){
+  const nAl=alertasMc().length+alertasCampos().length+alertasConta().length;
+  document.getElementById("tabs").innerHTML=[["obras","Obras"],["atividades","Atividades"],["alertas","Alertas"],["contas","Contas bancárias"],["investidores","Cadastros investidores"]].map(([k,r])=>
+    `<button class="tab ${ABA===k?"on":""}" title="${({obras:"Lista de obras e formulário de obra nova",atividades:"Atividades por pessoa — abre nas suas",alertas:"O que falta preencher ou decidir",contas:"Contas do Mais Controle e quais aparecem para escolha",investidores:"Cadastro de proprietários/investidores (só consulta)"})[k]||""}" onclick="ABA='${k}';FIXAS.clear();pintar()">${r}${k==="alertas"&&nAl?`<span class="nb">${nAl}</span>`:""}</button>`).join("");
+}
+function pintar(){ pintarTabs(); if(ABA==="obras") pintarObras(); else if(ABA==="atividades") pintarAtividades(); else if(ABA==="investidores") pintarInvestidores(); else if(ABA==="contas") pintarContas(); else pintarAlertas(); }
+
+/* ===================== ABA OBRAS ===================== */
+let BUSCA="", SETOR="";
+function pintarObras(){
+  const q=N(BUSCA);
+  let l=D.obras.slice();
+  const cont={andamento:l.filter(o=>!fim(o.status)).length, todas:l.length, liberar:l.filter(o=>N(o.liberar)==="NAO").length};
+  if(FILTRO==="andamento") l=l.filter(o=>!fim(o.status));
+  if(FILTRO==="liberar") l=l.filter(o=>N(o.liberar)==="NAO");
+  if(SETOR) l=l.filter(o=>o.setor===SETOR);
+  if(q) l=l.filter(o=>buscaObra(o).indexOf(q)>=0);
+  const ativas=D.obras.filter(o=>!fim(o.status));
+  const atraso=ativas.filter(o=>N(o.controle_prazo).indexOf("ATRASO")>=0).length;
+  const setores=[...new Set(D.obras.map(o=>o.setor).filter(Boolean))].sort();
+  document.getElementById("view").innerHTML=`
+    <div class="sec"><span class="cond">Obras</span></div>
+    <div class="info-bar">
+      <div class="icard"><div class="ival">${cont.andamento}</div><div class="ilab">Em andamento</div></div>
+      <div class="icard"><div class="ival r">${atraso}</div><div class="ilab">Em atraso</div></div>
+      <div class="icard"><div class="ival">${cont.liberar}</div><div class="ilab">Liberar = Não</div></div>
+      <div class="icard"><div class="ival">${cont.todas}</div><div class="ilab">Total</div></div>
+    </div>
+    <div class="toolbar">
+      <div class="legenda">${[["andamento","Em andamento"],["todas","Todas as obras"],["liberar","Liberar = Não"]].map(([k,r])=>
+        `<span class="sw ${FILTRO===k?"on":""}" onclick="FILTRO='${k}';pintarObras()">${r} <b>${cont[k]}</b></span>`).join("")}</div>
+      <select onchange="SETOR=this.value;pintarObras()"><option value="">Todos os setores</option>${setores.map(s=>`<option ${s===SETOR?"selected":""}>${esc(s)}</option>`).join("")}</select>
+      <input class="busca" id="busca" placeholder="Buscar obra, setor, responsável…" value="${esc(BUSCA)}" oninput="BUSCA=this.value;clearTimeout(window._bT);window._bT=setTimeout(pintarLista,120)">
+      <button class="bt" title="Abre o formulário de obra nova" onclick="abrirForm()">+ Solicitar nova obra</button>
+    </div>
+    <div id="lista-obras"></div>`;
+  pintarLista();
+}
+function cmp(a,b){ const va=a==null||a===""?null:a, vb=b==null||b===""?null:b;
+  if(va===null&&vb===null) return 0; if(va===null) return 1; if(vb===null) return -1;
+  if(typeof va==="number"&&typeof vb==="number") return va-vb;
+  return String(va).localeCompare(String(vb),"pt-BR",{numeric:true}); }
+function ordenar(l,st){ return st.k? l.slice().sort((a,b)=>{ const r=cmp(valOrd(a,st.k),valOrd(b,st.k)); return r===0?0:(r*st.d); }) : l; }
+function valOrd(x,k){ if(k==="resp"&&Array.isArray(x.resp)) return x.resp.join(", "); if(k==="tipo") return ordemTipo(x.tipo); return x[k]; }
+function thOrd(rot,k,st,fn,cls){ const on=st.k===k; return `<th class="ord ${cls||""}" title="Ordenar por ${rot}${on?(st.d>0?" (crescente → decrescente)":" (decrescente → crescente)"):""}" onclick="${fn}('${k}')">${rot}${on?`<span class="seta">${st.d>0?"▲":"▼"}</span>`:""}</th>`; }
+function ordObra(k){ SORT_OB=SORT_OB.k===k?{k:k,d:-SORT_OB.d}:{k:k,d:1}; pintarLista(); }
+function ordAtv(k){ SORT_ATV=SORT_ATV.k===k?{k:k,d:-SORT_ATV.d}:{k:k,d:1}; if(OBRA) pintarObraPainel(); if(ABA==="atividades") pintarAtividades(); }
+function pintarLista(l){
+  if(!l){ // só a busca mudou: recalcula sem redesenhar a barra (mantém o foco)
+    const q=N(BUSCA); l=D.obras.slice();
+    if(FILTRO==="andamento") l=l.filter(o=>!fim(o.status));
+    if(FILTRO==="liberar") l=l.filter(o=>N(o.liberar)==="NAO");
+    if(SETOR) l=l.filter(o=>o.setor===SETOR);
+    if(q) l=l.filter(o=>buscaObra(o).indexOf(q)>=0);
+  }
+  l=ordenar(l,SORT_OB);
+  document.getElementById("lista-obras").innerHTML=l.length?`<div class="tabela-wrap"><table><thead><tr>
+      ${thOrd("Projeto","titulo",SORT_OB,"ordObra","stick")}${thOrd("Setor","setor",SORT_OB,"ordObra")}${thOrd("Responsável","resp",SORT_OB,"ordObra")}
+      ${thOrd("Prev. término","data_prevista",SORT_OB,"ordObra")}${thOrd("Projeto final.","projeto_finalizado",SORT_OB,"ordObra")}
+      ${thOrd("Orçamento final.","orcamento_finalizado",SORT_OB,"ordObra")}${thOrd("Liberar","liberar",SORT_OB,"ordObra")}
+      ${thOrd("Controle de prazo","controle_prazo",SORT_OB,"ordObra")}${thOrd("Status","status",SORT_OB,"ordObra")}</tr></thead><tbody>`+
+      l.map(o=>`<tr onclick="abrirObra('${o.id}')"><td class="stick"><span class="obralink">${esc(o.titulo||"(sem endereço)")}</span>${o.pendente?' <span class="tag">criando…</span>':""}</td>
+        <td>${esc(o.setor||"—")}</td><td>${esc(o.resp||"—")}</td><td>${dt(o.data_prevista)}</td>
+        <td>${tagSN(o.projeto_finalizado)}</td><td>${tagSN(o.orcamento_finalizado)}</td><td>${tagSN(o.liberar)}</td>
+        <td class="prazo">${esc(o.controle_prazo||"—")}</td><td><span class="tag">${esc(o.status||"—")}</span></td></tr>`).join("")+
+      `</tbody></table></div>`:`<div class="vazio">Nenhuma obra nesta lista.</div>`;
+}
+
+/* ===================== ABA ATIVIDADES (por pessoa) ===================== */
+function pintarAtividades(){
+  const atv=D.atividades.filter(a=>!ehLig(a) && (VER_FIN||!sumir(a)));
+  const cont={}; atv.forEach(a=>(a.resp||[]).forEach(p=>cont[p]=(cont[p]||0)+1));
+  const nomes=Object.keys(cont).sort((a,b)=>a.localeCompare(b,"pt-BR"));
+  if(!PESSOA||!cont[PESSOA]) PESSOA=(OB_S&&nomes.find(n=>N(n)===N(OB_S.nome)))||nomes[0]||null;
+  const minhas=atv.filter(a=>(a.resp||[]).indexOf(PESSOA)>=0);
+  const grupos={}; minhas.forEach(a=>{ const k=a.tipo||"(sem tipo)"; (grupos[k]=grupos[k]||[]).push(a); });
+  const ks=Object.keys(grupos).sort((a,b)=>ordemTipo(a)-ordemTipo(b)||a.localeCompare(b));
+  const atr=minhas.filter(atrasada).length;
+  document.getElementById("view").innerHTML=`
+    <div class="sec"><span class="cond">Atividades por pessoa</span></div>
+    <div class="toolbar"><div class="legenda">
+      ${nomes.map((n,i)=>`<span class="sw ${n===PESSOA?"on":""}" title="Ver as atividades de ${esc(n)}" onclick="PESSOA=NOMES_ATV[${i}];FIXAS.clear();pintarAtividades()">${esc(n)} <b>${cont[n]}</b></span>`).join("")}
+      <label class="sw"><input type="checkbox" ${VER_FIN?"checked":""} onchange="VER_FIN=this.checked;pintarAtividades()"> incluir finalizadas</label>
+    </div></div>
+    ${PESSOA?`<div class="info-bar">
+      <div class="icard"><div class="ival">${minhas.length}</div><div class="ilab">${VER_FIN?"Atividades":"Em aberto"}</div></div>
+      <div class="icard"><div class="ival r">${atr}</div><div class="ilab">Em atraso</div></div>
+      <div class="icard"><div class="ival">${ks.length}</div><div class="ilab">Tipos</div></div></div>`:""}
+    ${ks.length?ks.map(k=>{ const g=SORT_ATV.k?ordenar(grupos[k],SORT_ATV):grupos[k].sort((a,b)=>String(a.data_final||"9999").localeCompare(String(b.data_final||"9999")));
+      const na=g.filter(atrasada).length;
+      return `<details class="grupo" open><summary>${esc(k)}<span class="qtd ${na?"r":""}">${g.length}${na?` · ${na} em atraso`:""}</span></summary>
+        <div class="corpo">${cabAtv(true)}${g.map(a=>linhaAtv(a,true)).join("")}</div></details>`; }).join("")
+      :`<div class="vazio">${PESSOA?"Nenhuma atividade para esta pessoa.":"Nenhuma atividade encontrada."}</div>`}`;
+  window.NOMES_ATV=nomes;
+}
+function cabAtv(comObra){
+  const c=(rot,k)=>`<div onclick="ordAtv('${k}')">${rot}${SORT_ATV.k===k?`<span class="seta">${SORT_ATV.d>0?"▲":"▼"}</span>`:""}</div>`;
+  return `<div class="atv-cab">${c(comObra?"Obra / atividade":"Atividade",comObra?"titulo":"tipo")}${c("Responsável","resp")}${c("Status","status")}${c("Final prevista","data_final")}${c("Conclusão","data_conclusao")}${c("Controle de prazo","controle_prazo")}</div>`;
+}
+function linhaAtv(a,comObra){
+  const o=obraDe(a.obra_id)||{}, sts=opc("Status",D.opcoes_atividades);
+  return `<div class="atv ${atvFeita(a)?"fin":""} ${atrasada(a)?"atr":""} ${FIXAS.has(a.id)&&atvFeita(a)?"fixa":""}" style="--cor:${corTipo(a.tipo)}">
+    <div class="nmcol">${comObra?`<div class="obralink" style="font-size:12px" onclick="abrirObra('${o.id||""}')">${esc(o.titulo||"—")}</div>`:`<span class="tp">${esc(a.tipo||"—")}</span>`}
+      <div class="nm" onclick="abrirAtv('${a.id}')">${esc(a.titulo||a.tipo||"—")}</div></div>
+    <div><div class="k">Responsável</div><div class="v">${esc((a.resp||[]).join(", ")||"—")}</div></div>
+    <div><div class="k">Status</div><select onchange="gravarAtv('${a.id}','Status',this.value,this)">
+      ${(sts.length?sts:[a.status||""]).map(s=>`<option ${N(s)===N(a.status)?"selected":""}>${esc(s)}</option>`).join("")}</select></div>
+    <div><div class="k">Final prevista</div><div class="v">${dt(a.data_final)}</div></div>
+    <div><div class="k">Conclusão</div><input type="date" value="${esc(a.data_conclusao||"")}" onchange="gravarAtv('${a.id}','Data De Conclusão da Atividade',this.value,this)"></div>
+    <div><div class="k">Controle de prazo</div><div class="v prazo">${esc(a.controle_prazo||"—")}</div></div>
+  </div>`;
+}
+/* 25/09/26 — gravação que NÃO se perde: vai pela fila do app.js (escrever).
+   Deu certo -> resposta normal. Rede caiu ou servidor não respondeu -> fica
+   guardada no navegador e sobe sozinha quando a conexão voltar ({enfileirado}).
+   Só volta atrás quando o servidor RECUSA de verdade (permissão, valor
+   inválido) — aí não adianta tentar de novo. */
+async function gravarNaFila(payload,rotulo){
+  let r; try{ r=await escrever(payload,rotulo); }catch(e){ r=null; }
+  if(r&&r.ok&&r.enviado) return Object.assign({ok:true},r.resposta||{});
+  if(r&&r.ok&&r.enfileirado) return {ok:true,enfileirado:true};
+  return r||{ok:false,erro:"sem conexão"};
+}
+/* grava com uma segunda tentativa automática: "sem conexão" quase sempre era
+   a resposta se perdendo no caminho (POST -> 302 -> GET), não falha real */
+async function gravarComRetry(payload,el){
+  let r=null;
+  for(let t=0;t<3;t++){
+    try{ r=await chamar(Object.assign({},payload),45000); }catch(e){ r={ok:false,erro:"sem conexão",rede:true}; }
+    if(r&&(r.ok||!r.rede)) break;
+    if(el) el.classList.add("tentando");
+    await new Promise(ok=>setTimeout(ok,2500*(t+1)));
+  }
+  if(el) el.classList.remove("tentando");
+  return r;
+}
+async function gravarAtv(id,prop,valor,el){
+  const a=D.atividades.find(x=>x.id===id); if(!a) return;
+  /* data digitada pela metade (ano "0002"): não grava nem some da lista */
+  if(/^Data/i.test(prop)&&valor&&!dataOk(valor)) return;
+  /* 24/09/26 — GRAVAÇÃO OTIMISTA. A tela muda NA HORA (e a atividade
+     concluída sai da lista na hora); o servidor grava por trás. Se ele
+     recusar de verdade, tudo volta como estava e o aviso diz o motivo. */
+  const antes={status:a.status,data_conclusao:a.data_conclusao,data_final:a.data_final,data_inicio:a.data_inicio,controle_prazo:a.controle_prazo};
+  const campo=ATV_PROP[prop];
+  if(campo) a[campo]=valor||null;
+  const autoConc=(prop==="Status"&&N(valor)==="FINALIZADO"&&!a.data_conclusao);
+  if(autoConc) a.data_conclusao=hoje();
+  a.controle_prazo=prazoLocal(a);
+  ponteGuardar("obras-atv",id,prop,valor||null);
+  if(autoConc) ponteGuardar("obras-atv",id,"Data De Conclusão da Atividade",a.data_conclusao);
+  const concluida=N(a.status)==="FINALIZADO"&&dataOk(a.data_conclusao);
+  if(concluida){
+    /* 25/09/26: a saída animada é só na aba Atividades. No painel da obra a
+       linha continua (ele mostra todas); antes ela ficava invisível e deixava
+       um buraco no meio da lista até o painel ser redesenhado. */
+    const lin=el&&el.closest(".atv"), naLista=lin&&!lin.closest(".painel");
+    if(naLista&&!VER_FIN){ lin.classList.add("saindo"); setTimeout(repintarSeguro,300); } else setTimeout(repintarSeguro,50);
+    toast(!naLista||VER_FIN?"Atividade concluída.":"Atividade concluída — saiu da lista (marque \"incluir finalizadas\" para ver).");
+    acompanharProxima(a.obra_id, true);
+  } else { if(el){ el.classList.remove("ok","erro"); el.classList.add("salvando"); } setTimeout(repintarSeguro,50); }
+
+  const r=await gravarNaFila(Object.assign({action:"obraAtvUpdate",pageId:id,prop:prop,valor:valor,obraId:a.obra_id},autoConc?{conclusaoSeVazia:true}:{}),"Atividade: "+(a.titulo||a.tipo||""));
+  const el2=el&&document.body.contains(el)?el:null;
+  if(el2) el2.classList.remove("salvando");
+  if(r&&r.ok&&r.enfileirado){
+    if(el2) el2.classList.add("ok");
+    if(_acomp[a.obra_id]&&_acomp[a.obra_id].espera){ delete _acomp[a.obra_id]; mostrarProcurando(false); }
+    toast("Sem conexão agora — a baixa ficou guardada e grava sozinha quando a conexão voltar.");
+  } else if(r&&r.ok){
+    if(el2) el2.classList.add("ok");
+    if(r.conclusao&&r.conclusao!==a.data_conclusao){ a.data_conclusao=r.conclusao; ponteGuardar("obras-atv",id,"Data De Conclusão da Atividade",r.conclusao); }
+    if(!concluida) toast("Salvo.");
+    else acompanharProxima(a.obra_id);        // agora sim a automação do Notion já rodou
+  } else {
+    Object.assign(a,antes);
+    if(_acomp[a.obra_id]&&_acomp[a.obra_id].espera){ delete _acomp[a.obra_id]; mostrarProcurando(false); }
+    try{ esquecerEdicao("obras-atv",id,prop); if(autoConc) esquecerEdicao("obras-atv",id,"Data De Conclusão da Atividade"); }catch(e){}
+    repintarSeguro();
+    const e3=document.querySelector(`[data-atv="${id}"]`); if(e3) e3.classList.add("erro");
+    toast("Não salvou: "+errMsg(r)+" — a atividade voltou como estava.");
+  }
+}
+
+/* 24/09/26 — ACOMPANHAMENTO AO VIVO depois de finalizar.
+   Finalizar uma atividade faz a automação do Notion criar a próxima em
+   segundos. Em vez de 3 consultas espaçadas (6, 15 e 35 s), a tela consulta a
+   obra em intervalos curtos e PARA na primeira atividade nova que aparecer:
+   2 s, 4 s, 6 s, 9 s, 12 s, 16 s, 20 s, 25 s, 30 s, 40 s, 50 s, 60 s.
+   Enquanto procura, uma faixa discreta avisa "procurando a próxima…".
+   Só uma busca por obra de cada vez (várias baixas seguidas não empilham). */
+const _acomp={};
+function acompanharProxima(obraId, soAviso){
+  if(!obraId) return;
+  if(soAviso){ _acomp[obraId]=_acomp[obraId]||{reinicia:false,espera:true}; mostrarProcurando(true); return; }
+  if(_acomp[obraId]&&!_acomp[obraId].espera) { _acomp[obraId].reinicia=true; return; }
+  delete _acomp[obraId];
+  const passos=[2,4,6,9,12,16,20,25,30,40,50,60], t0=Date.now();
+  const est=_acomp[obraId]={reinicia:false};
+  mostrarProcurando(true);
+  let i=0;
+  const tick=async()=>{
+    if(est.reinicia){ est.reinicia=false; i=0; }
+    const novas=await atualizarObraVivo(obraId);
+    if(novas&&novas.length){
+      toast("Nova atividade: "+novas.map(x=>x.titulo||x.tipo).join(", "));
+      delete _acomp[obraId]; mostrarProcurando(false); return;
+    }
+    if(i>=passos.length){ delete _acomp[obraId]; mostrarProcurando(false); return; }
+    const alvo=passos[i++]*1000, espera=Math.max(500,alvo-(Date.now()-t0));
+    setTimeout(tick,espera);
+  };
+  tick();
+}
+function mostrarProcurando(on){
+  let b=document.getElementById("procurando");
+  const ativos=Object.keys(_acomp).length;
+  if(!on&&!ativos){ if(b) b.remove(); return; }
+  if(!b){ b=document.createElement("div"); b.id="procurando"; document.body.appendChild(b); }
+  b.innerHTML='<span class="load"></span> procurando a próxima atividade no Notion…';
+}
+
+/* 24/09/26 — AO VIVO: outra pessoa gravou algo nas obras → esta tela relê
+   só aquela obra (obraVivo), em ~1 s, sem recarregar nada. */
+window.AO_VIVO_TRATA="obras";
+const _vivoFila={};
+window.addEventListener("portal-ao-vivo",ev=>{
+  const d=ev.detail||{}; if(d.tela!=="obras"||!D) return;
+  const me=(sessao()||{}).nome||"";
+  if(d.quem&&me&&d.quem===me) return;                       // fui eu
+  /* comentário novo de outra pessoa na obra/atividade que está aberta aqui */
+  if(d.acao==="obraComentarioNovo"&&d.id){
+    if(ATV===d.id) carregarComentarios(d.id,"com-atv",true);
+    else if(OBRA===d.id) carregarComentarios(d.id,"com-obra",true);
+    else delete COMS[d.id];
+    toast("Novo comentário"+(d.quem?" de "+d.quem:"")+".");
+    return;
+  }
+  let obraId=d.obraId;
+  if(!obraId&&d.id){ const at=D.atividades.find(x=>x.id===d.id); obraId=at?at.obra_id:(obraDe(d.id)?d.id:null); }
+  if(!obraId){ toast((d.quem||"Alguém")+" alterou as obras — use 🔄 Recarregar para ver."); return; }
+  clearTimeout(_vivoFila[obraId]);
+  _vivoFila[obraId]=setTimeout(()=>atualizarObraVivo(obraId).then(()=>{
+    const o=obraDe(obraId); toast("Atualizado ao vivo"+(d.quem?" por "+d.quem:"")+(o?": "+o.titulo:"")+".");
+  }),600);
+});
+
+/* mesma regra da fórmula CONTROLE DE PRAZO do Notion, para a tela não ficar
+   dizendo "EM ATRASO" numa atividade que acabou de ser concluída (item 3) */
+function prazoLocal(a){
+  const fin=a.data_final, conc=a.data_conclusao;
+  if(atvFeita(a)){ if(!fin||!conc) return a.controle_prazo;
+    return conc<=fin?"🟡😊 CONCLUÍDA NO PRAZO":"🔴⚠️ CONCLUÍDA APÓS O PRAZO"; }
+  if(!fin) return a.controle_prazo;
+  return fin<hoje()?"🔴 EM ATRASO":"🟢 NO PRAZO";
+}
+/* Traz a obra e as atividades dela direto do Notion (obraVivo). Devolve as
+   atividades que ainda não estavam na tela. */
+const _vivoEmVoo={};
+async function atualizarObraVivo(obraId){
+  if(!obraId||String(obraId).indexOf("tmp-")===0) return [];
+  if(_vivoEmVoo[obraId]) return _vivoEmVoo[obraId];
+  const pr=(async()=>{
+    let r; try{ r=await chamar({action:"obraVivo",obraId:obraId},40000); }catch(e){ r=null; }
+    if(!(r&&r.ok)) return [];
+    const o=obraDe(obraId);
+    if(o&&r.obra){ Object.keys(r.obra).forEach(k=>{ if(k!=="id") o[k]=r.obra[k]; }); o._vivo=true; o._bt=null; }
+    const vindas=r.atividades||[], ids=new Set(vindas.map(x=>x.id)), novas=[];
+    D.atividades=D.atividades.filter(x=>x.obra_id!==obraId||ids.has(x.id)||String(x.id).indexOf("tmp")===0);
+    vindas.forEach(v=>{ const a=D.atividades.find(x=>x.id===v.id);
+      if(a) Object.assign(a,v); else { D.atividades.push(v); novas.push(v); } });
+    ponteAtividades(null); ponteObras(null);   // leitura ao vivo pode vir atrasada: o que foi salvo prevalece
+    if(ABA==="alertas") pintarAlertas();
+    _IDXv=null;   // índice por obra refeito na próxima pintura
+    repintarSeguro();
+    return novas;
+  })();
+  _vivoEmVoo[obraId]=pr; pr.finally(()=>delete _vivoEmVoo[obraId]);
+  return pr;
+}
+/* repinta sem arrancar o foco de quem está digitando num campo do painel */
+function repintarSeguro(){
+  const f=document.activeElement, digitando=f&&/INPUT|SELECT|TEXTAREA/.test(f.tagName)&&f.closest&&f.closest(".painel");
+  if(digitando){ f.addEventListener("blur",()=>setTimeout(repintarSeguro,50),{once:true}); return; }
+  pintarTabs();
+  if(OBRA) pintarObraPainel();
+  if(ATV) pintarAtvPainel();
+  if(ABA==="atividades") pintarAtividades(); else if(ABA==="obras"&&document.getElementById("lista-obras")) pintarLista(); else if(ABA==="alertas") pintarAlertas();
+}
+function repintarAtvs(){ if(OBRA) pintarObraPainel(); if(ABA==="atividades") pintarAtividades(); if(ATV) pintarAtvPainel(); }
+
+/* ===================== ABA ALERTAS ===================== */
+function pintarAlertas(){
+  const mc=alertasMc(), cp=alertasCampos(), ct=alertasConta();
+  const leuMc=D.obras.some(o=>o.em_mc===true||o.em_mc===false);
+  document.getElementById("view").innerHTML=`
+    <div class="sec"><span class="cond">Obras que não estão no Mais Controle</span><span class="qtd">${mc.length}</span></div>
+    ${!leuMc?`<div class="vazio">Não foi possível ler a lista de obras do Mais Controle neste build.</div>`:
+      mc.length?mc.map(o=>`<div class="al"><span class="end" onclick="abrirObra('${o.id}')">${esc(o.titulo)}</span>
+        <span class="txt">Não encontrada no Mais Controle. Criar lá?</span>
+        <span class="acoes"><button class="bt bt-mini" onclick="decidirMc('${o.id}','Criar')">Criar</button>
+        <button class="bt bt-mini ghost" onclick="decidirMc('${o.id}','Não criar')">Não criar</button></span></div>`).join("")
+      :`<div class="vazio">Todas as obras em andamento já estão no Mais Controle (ou já têm decisão).</div>`}
+    <div class="sec"><span class="cond">Campos obrigatórios faltando</span><span class="qtd">${cp.length}</span></div>
+    ${cp.length?cp.map(o=>`<div class="al"><span class="end" onclick="abrirObra('${o.id}')">${esc(o.titulo)}</span>
+        <span class="txt">${faltasDe(o).map(f=>`<span class="falta">${esc(f)}</span>`).join("")}</span>
+        <span class="acoes"><button class="bt bt-mini az" onclick="abrirObra('${o.id}')">Preencher</button></span></div>`).join("")
+      :`<div class="vazio">Nenhuma obra em andamento com campo obrigatório vazio.</div>`}
+    <div class="sec"><span class="cond">Conta bancária a definir</span><span class="qtd">${ct.length}</span></div>
+    ${ct.length?ct.map(o=>`<div class="al"><span class="end" onclick="abrirObra('${o.id}')">${esc(o.titulo)}</span>
+        <span class="txt"><span class="falta">${o.conta_alerta==="CRIAR CONTA"?"CRIAR CONTA — conta ainda não existe no Mais Controle":"DÚVIDA — confirme qual é a conta"}</span></span>
+        <span class="acoes"><button class="bt bt-mini az" title="Abre a obra para escolher a conta bancária" onclick="abrirObra('${o.id}')">Escolher conta</button></span></div>`).join("")
+      :`<div class="vazio">Nenhuma obra em andamento com conta pendente.</div>`}`;
+}
+async function decidirMc(id,valor){
+  const o=obraDe(id); if(!o) return;
+  let r; try{ r=await chamar({action:"obraUpdate",pageId:id,prop:"MAIS CONTROLE",valor:valor},45000); }catch(e){ r={ok:false,erro:"sem conexão"}; }
+  if(r&&r.ok){ o.mais_controle=valor; toast(valor==="Criar"?"Marcada para criar no Mais Controle.":"Marcada para não criar."); pintar(); }
+  else toast("Não salvou: "+errMsg(r));
+}
+
+/* ===================== PAINEL DA OBRA ===================== */
+const CAMPOS=[
+  ["Status","status","Status","sel"],["Liberar obra p/ processo interno","liberar","Liberar Obra Para Processo Interno","sel"],
+  ["Projeto finalizado","projeto_finalizado","Projeto Finalizado","sel"],["Orçamento finalizado","orcamento_finalizado","Orçamento Finalizado","sel"],
+  ["Projeto aprovado","projeto_aprovado","Projeto Aprovado","sel"],["Data prevista p/ término","data_prevista","Data Prevista P/ Término","data"],
+  ["Conclusão do processo","data_conclusao","Data de Conclusão do Processo","data"],["Setor","setor","SETOR","setor"],
+  ["Cidade","cidade","Cidade","multi"],["Proprietário","proprietario","Proprietário","sel"],
+  ["Proprietário real","proprietario_real","Proprietário Real","sel"],["Responsável pela obra","resp_ids","Responsável Pela Obra","pessoa"],
+  ["Engenheiro RT","rt_ids","ENGENHEIRO RT","pessoa"],["Nº de casas","n_casas","Nº DE CASAS","num"],
+  ["Cota da empresa (%)","cota","COTA DA EMPRESA (%)","num"],["Aquisição do lote","data_lote","DATA DE AQUISIÇÃO DO LOTE","data"],
+  ["Implantação","implantacao","IMPLANTAÇÃO","sel"],["Área do lote (m²)","area_lote","ÁREA DO LOTE","num"],
+  ["Área construída averbada (m²)","area_averbada","ÁREA CONSTRUÍDA AVERBADA","num"],["Área pós habite-se (m²)","area_habite","ÁREA PÓS HABITE-SE","num"],
+  ["Mais Controle","mais_controle","MAIS CONTROLE","sel"],["Conta bancária","conta","CONTA","conta"]
+];
+function campoHtml(o,c,i){
+  const [rot,k,col,tipo]=c, v=o[k];
+  let inp;
+  if(tipo==="sel"||tipo==="setor"||tipo==="multi"){
+    const atual=tipo==="multi"?String(v||"").split(",")[0].trim():v;
+    let ops=ehLivre(col)?listaOpc(col):opc(col);
+    if(atual&&!ops.some(x=>N(x)===N(atual))) ops=[atual].concat(ops);   // valor antigo fora da lista continua visível
+    if(!ops.length&&!ehLivre(col)) return "";
+    inp=`<select onchange="gravarObra(${i},this)"><option value="">—</option>${ops.map(x=>`<option ${N(x)===N(atual)?"selected":""}>${esc(x)}</option>`).join("")}${ehLivre(col)?`<option value="__novo__">+ Novo…</option>`:""}</select>`;
+  }else if(tipo==="conta"){
+    /* 23/09/26 — CONTA é seleção com o NOME da conta (igual ao Mais Controle).
+       O valor atual só chega pelo obraVivo (o nome não vai para o dist/). */
+    const l=CONTAS||[], atual=v||"", ops=[["PESSOA FÍSICA","Pessoa física (sem conta)"]]
+      .concat(l.map(c=>[c.opcao,c.opcao])).concat([["CRIAR CONTA","CRIAR CONTA — a conta ainda não existe"]]);
+    const tem=ops.some(([x])=>N(x)===N(atual));
+    inp=`<select data-combo="1" onchange="gravarObra(${i},this)"><option value="" ${!atual?"selected":""}>${o._vivo?"—":"carregando…"}</option>${
+      ops.map(([val,rot])=>`<option value="${esc(val)}" ${N(val)===N(atual)?"selected":""}>${esc(rot)}</option>`).join("")}${
+      atual&&!tem?`<option value="${esc(atual)}" selected>${esc(atual)}${N(atual)===N("DÚVIDA")?" — escolha a conta certa":""}</option>`:""}</select>`;
+  }else if(tipo==="pessoa"){
+    const atual=(v||[])[0]||"";
+    inp=`<select onchange="gravarObra(${i},this)"><option value="">—</option>${D.pessoas.map(p=>`<option value="${p.id}" ${p.id===atual?"selected":""}>${esc(p.nome)}</option>`).join("")}</select>`;
+  }else if(tipo==="data"){ inp=`<input type="date" value="${esc(v||"")}" onchange="gravarObra(${i},this)">`; }
+  else{ inp=`<input type="number" step="any" value="${v==null?"":esc(v)}" onchange="gravarObra(${i},this)">`; }
+  return `<div class="ri"><div class="k">${esc(rot)}</div>${inp}</div>`;
+}
+function abrirObra(id){
+  if(!id||!obraDe(id)) return;
+  if(obraDe(id).pendente){ toast("Esta obra ainda está sendo criada."); return; }
+  OBRA=id; MODO="lista"; pintarObraPainel();
+  document.getElementById("ov1").classList.add("on"); document.getElementById("p1").classList.add("on");
+  document.getElementById("p1-corpo").scrollTop=0;
+  carregarContas();
+  atualizarObraVivo(id).then(()=>preCarregarConteudos(id));
+  carregarComentarios(id,"com-obra");
+}
+function fecharObra(){ OBRA=null; document.getElementById("ov1").classList.remove("on"); document.getElementById("p1").classList.remove("on"); }
+function pintarObraPainel(){
+  const o=obraDe(OBRA); if(!o) return;
+  document.getElementById("p1-end").textContent=o.titulo||"(sem endereço)";
+  document.getElementById("p1-loc").textContent=[o.setor,o.cidade,o.resp].filter(Boolean).join(" · ");
+  const atv=atvsDaObra(o.id);
+  const normais=atv.filter(a=>!ehLig(a)).sort(ordenaAtv), lig=atv.filter(ehLig).sort(ordenaAtv);
+  const falt=faltasDe(o), feitas=normais.filter(atvFeita).length;
+  let h=`<div class="chips"><span class="chip">${esc(o.status||"sem status")}</span>
+    ${o.controle_prazo?`<span class="chip ${N(o.controle_prazo).indexOf("ATRASO")>=0?"alerta":""}">${esc(o.controle_prazo)}</span>`:""}
+    ${normais.length?`<span class="chip ok">${feitas} de ${normais.length} atividades concluídas</span>`:""}
+    ${o.em_mc===true?`<span class="chip ok">No Mais Controle</span>`:o.em_mc===false?`<span class="chip alerta">Fora do Mais Controle${o.mais_controle?" · "+esc(o.mais_controle):""}</span>`:""}
+    ${falt.length?`<span class="chip alerta">Falta: ${esc(falt.join(", "))}</span>`:""}</div>`;
+  h+=`<div class="grp">Dados da obra</div><div class="resumo">${CAMPOS.map((c,i)=>campoHtml(o,c,i)).join("")}</div>`;
+  h+=`<div class="grp">Atividades <span class="sp"></span>
+      <button class="tg ${MODO==="lista"?"on":""}" title="Atividades em lista, por tipo" onclick="MODO='lista';pintarObraPainel()">Lista</button>
+      <button class="tg ${MODO==="crono"?"on":""}" title="Atividades no tempo (início → prazo)" onclick="MODO='crono';pintarObraPainel()">Cronograma</button></div><div class="pl">`;
+  if(!normais.length) h+=`<div class="vazio">Nenhuma atividade ligada a esta obra ainda.</div>`;
+  else if(MODO==="lista") h+=cabAtv(false)+ordenar(normais,SORT_ATV.k?SORT_ATV:{k:null}).map(a=>linhaAtv(a,false)).join("");
+  else h+=gantt(normais);
+  h+=`</div><div class="grp">Ligação de água e energia</div><div class="pl">`;
+  h+=lig.length?cabAtv(false)+lig.map(a=>linhaAtv(a,false)).join(""):`<div class="vazio">Nenhuma atividade de ligação ainda.</div>`;
+  /* Senador Canedo: SANESC + EQUATORIAL e NUNCA esgoto. Goiânia: SANEAGO +
+     EQUATORIAL, com SANEAGO ESGOTO quando for "c/ esgoto". */
+  const canedo=N(o.cidade).indexOf("CANEDO")>=0, semCidade=!o.cidade;
+  /* item 9: depois de criadas, os botões travam e mostram JÁ CRIADO */
+  const jaCriado=(o.lig_criadas||0)>0||(o.vendas_criadas||0)>0, liberado=!!(window.LIG_LIBERA||{})[o.id];
+  if(jaCriado) h+=`<div class="ja-criado">✓ JÁ CRIADO — ${o.lig_criadas||0} ligações e ${o.vendas_criadas||0} vendas desta obra.
+      ${ehAdmTela()&&!liberado?`<button class="bt bt-mini ghost" title="Libera os botões para criar de novo, mesmo já tendo ligações/vendas (só ADM)" onclick="(window.LIG_LIBERA=window.LIG_LIBERA||{})['${o.id}']=1;pintarObraPainel()">criar de novo (ADM)</button>`:""}</div>`;
+  h+=`<div class="lig-bts">${[1,2,3,4,5].map(n=>[false].concat(canedo?[]:[true]).map(e=>
+      `<button class="bt" ${semCidade||(jaCriado&&!liberado)?"disabled":""} title="Cria ${n} ${n===1?"linha":"linhas"} de ligação de água e energia${e?" (com esgoto)":""} e ${n} ${n===1?"venda":"vendas"} para esta obra" onclick="criarLigacoes(${n},${e},this${jaCriado?",true":""})">${jaCriado&&!liberado?"JÁ CRIADO · ":"→ "}${n} ${n===1?"CASA":"CASAS"}${e?" C/ ESGOTO":""}</button>`).join("")).join("")}</div>
+    <div class="ajuda">${semCidade?"Preencha a CIDADE da obra para liberar os botões. ":""}
+      ${canedo?"Senador Canedo: SANESC + EQUATORIAL (sem esgoto)":"Goiânia: SANEAGO + EQUATORIAL (com SANEAGO ESGOTO nos botões \"c/ esgoto\")"}
+      · cada casa também ganha a linha em Vendas.</div>`;
+  h+=`</div><div class="grp">Comentários e imagens</div><div class="pl" id="com-obra">${comentariosHtml(o.id)}</div>`;
+  document.getElementById("p1-corpo").innerHTML=h;
+  aplicarCombos(document.getElementById("p1-corpo"));
+}
+async function gravarObra(i,el){
+  const o=obraDe(OBRA); if(!o) return;
+  const [rot,k,col,tipo]=CAMPOS[i];
+  if(el.value==="__novo__"){
+    const nv=pedirNovo(col);
+    if(!nv){ pintarObraPainel(); return; }
+    const op=document.createElement("option"); op.textContent=nv; el.insertBefore(op,el.lastElementChild); el.value=nv;
+  }
+  let valor=el.value; if(tipo==="pessoa"||tipo==="multi") valor=valor?[valor]:[];
+  if(tipo==="data"&&valor&&!dataOk(valor)) return;      // data pela metade: espera completar
+  el.classList.remove("ok","erro"); el.classList.add("salvando");
+  /* Liberar sai pela LEITURA (é lá que o ObrasSync cria a Compatibilização na
+     hora); conta bancária tem ação própria; o resto vai pela ESCRITA */
+  if(tipo==="conta"&&!valor) return;
+  const payload=tipo==="conta"?{action:"obraConta",pageId:o.id,conta:valor}
+    :{action:N(col)===N("Liberar Obra Para Processo Interno")?"obraLiberar":"obraUpdate",pageId:o.id,prop:col,valor:valor};
+  const r=await gravarNaFila(payload,"Obra: "+(o.titulo||""));
+  el.classList.remove("salvando");
+  if(r&&r.ok){
+    el.classList.add("ok");
+    if(tipo==="pessoa"){ o[k]=valor; const p=D.pessoas.find(x=>x.id===valor[0]); o[k==="resp_ids"?"resp":"rt"]=p?p.nome:""; }
+    else if(tipo==="num") o[k]=el.value===""?null:Number(el.value);
+    else if(tipo==="conta"){ o[k]=el.value; o.conta_alerta=(el.value==="CRIAR CONTA"||el.value==="DÚVIDA")?el.value:null; }
+    else o[k]=el.value||null;
+    ponteGuardar("obras",o.id,col,o[k]);           // pessoa entra também (ids): o alerta não volta
+    o._bt=null;
+    toast(r.compat&&r.compat.criada?"Criado para esta obra: "+(r.compat.criadas||[]).join(" e ")+".":rot+" salvo.");
+    pintarTabs(); if(ABA==="obras") pintarLista(); else if(ABA==="alertas") pintarAlertas();
+    atualizarObraVivo(o.id);
+  }else{ el.classList.add("erro"); toast("Não salvou: "+errMsg(r)); }
+}
+
+/* cronograma: barra de Data De Início até a conclusão (ou final prevista) */
+function gantt(lista){
+  const ini=a=>a.data_inicio||a.data_criacao, fimA=a=>a.data_conclusao||a.data_final||ini(a);
+  const ds=lista.flatMap(a=>[ini(a),fimA(a)]).filter(Boolean).concat([hoje()]).sort();
+  const t0=new Date(ds[0]+"T12:00:00"); t0.setDate(1);
+  const t1=new Date(ds[ds.length-1]+"T12:00:00"); t1.setMonth(t1.getMonth()+1,1);
+  const tot=(t1-t0)||1, pos=d=>Math.max(0,Math.min(100,(new Date(d+"T12:00:00")-t0)/tot*100));
+  const meses=[]; const m=new Date(t0); while(m<t1){ meses.push(new Date(m)); m.setMonth(m.getMonth()+1); }
+  const MES=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  let h=`<div class="gantt"><div class="gt"><div class="ghead"><div>Atividade</div><div class="gmeses">`+
+    meses.map(x=>`<div class="gmes" style="left:${pos(x.toISOString().slice(0,10))}%">${MES[x.getMonth()]}/${String(x.getFullYear()).slice(2)}</div>`).join("")+`</div></div>`;
+  lista.forEach(a=>{
+    const i=ini(a), f=fimA(a), cls=atvFeita(a)?"fin":atrasada(a)?"atr":"";
+    const l=i?pos(i):0, w=i?Math.max(0.8,pos(f)-pos(i)):0;
+    h+=`<div class="gr"><div class="gl" onclick="abrirAtv('${a.id}')">${esc(a.titulo||a.tipo)}<small>${esc((a.resp||[]).join(", "))}</small></div>
+      <div class="gtr"><div class="ghoje" style="left:${pos(hoje())}%"></div>
+      ${i?`<div class="gbar ${cls}" style="left:${l}%;width:${w}%" title="${dt(i)} → ${dt(f)}" onclick="abrirAtv('${a.id}')">${dt(i).slice(0,5)} → ${dt(f).slice(0,5)}</div>`:""}</div></div>`;
+  });
+  return h+`</div></div><div class="ajuda">Azul = em andamento · Verde = concluída · Vermelho = em atraso · Linha laranja = hoje</div>`;
+}
+
+/* ===================== PAINEL DA ATIVIDADE ===================== */
+function abrirAtv(id){
+  if(!D.atividades.find(x=>x.id===id)) return;
+  ATV=id; CONT=CONT_MEM[id]||null; pintarAtvPainel();
+  document.getElementById("ov2").classList.add("on"); document.getElementById("p2").classList.add("on");
+  /* já tem cópia de menos de 2 min (pré-carregada ao abrir a obra): não pede de novo */
+  /* 24/09/26: a atividade aberta NUNCA espera o pré-carregamento — pede o
+     conteúdo dela na hora, com prioridade na fila. Se já tem cópia, mostra a
+     cópia e confere por trás. */
+  if(!CONT||Date.now()-(CONT.t||0)>120000) carregarConteudo(id);
+  carregarComentarios(id,"com-atv");
+}
+function fecharAtv(){ ATV=null; document.getElementById("ov2").classList.remove("on"); document.getElementById("p2").classList.remove("on"); }
+function pintarAtvPainel(){
+  const a=D.atividades.find(x=>x.id===ATV); if(!a) return;
+  const o=obraDe(a.obra_id)||{}, sts=opc("Status",D.opcoes_atividades);
+  document.getElementById("p2-end").textContent=a.titulo||a.tipo||"Atividade";
+  document.getElementById("p2-loc").textContent=[o.titulo,a.tipo].filter(Boolean).join(" · ");
+  let h=`<div class="chips">${a.controle_prazo?`<span class="chip ${atrasada(a)?"alerta":atvFeita(a)?"ok":""}">${esc(a.controle_prazo)}</span>`:""}</div>
+    <div class="grp">Dados da atividade</div><div class="resumo">
+    <div class="ri"><div class="k">Status</div><select onchange="gravarAtv('${a.id}','Status',this.value,this)">${(sts.length?sts:[a.status||""]).map(s=>`<option ${N(s)===N(a.status)?"selected":""}>${esc(s)}</option>`).join("")}</select></div>
+    <div class="ri"><div class="k">Responsável</div><div class="ro">${esc((a.resp||[]).join(", ")||"—")}</div></div>
+    <div class="ri"><div class="k">Criação</div><div class="ro">${dt(a.data_criacao)}</div></div>
+    <div class="ri"><div class="k">Início</div><input type="date" value="${esc(a.data_inicio||"")}" onchange="gravarAtv('${a.id}','Data De Início',this.value,this)"></div>
+    <div class="ri"><div class="k">Final prevista</div><input type="date" value="${esc(a.data_final||"")}" onchange="gravarAtv('${a.id}','Data Final Prevista',this.value,this)"></div>
+    <div class="ri"><div class="k">Conclusão</div><input type="date" value="${esc(a.data_conclusao||"")}" onchange="gravarAtv('${a.id}','Data De Conclusão da Atividade',this.value,this)"></div>
+    </div>${acoesHtml(a)}<div class="grp">Checklist e conteúdo</div><div id="p2-cont">${
+      CONT===null?`<div class="cont"><span class="load"></span> Carregando o conteúdo da atividade…</div>`
+      :CONT.erro?`<div class="cont" style="color:var(--verm)">Não consegui carregar: ${esc(CONT.erro)}
+          <button class="bt bt-mini ghost" style="margin-left:8px" title="Pede o conteúdo de novo ao servidor" onclick="CONT=null;pintarAtvPainel();carregarConteudo('${a.id}')">Tentar de novo</button></div>`
+      :conteudoHtml(CONT.blocos)}</div>
+    <div class="grp">Comentários e imagens</div><div class="pl" id="com-atv">${comentariosHtml(a.id)}</div>`;
+  document.getElementById("p2-corpo").innerHTML=h;
+}
+async function carregarConteudo(id, tentativa){
+  /* 24/09/26: 25 s por tentativa e UMA nova tentativa automática (antes: 60 s
+     parado e depois "não respondeu"). Na falha, a tela oferece tentar de novo. */
+  /* prioritário: passa na frente do pré-carregamento na fila do navegador, e
+     vai à LEITURA, que é onde o aquecimento deixa o conteúdo pronto no cache */
+  let r; try{ r=await chamar({action:"obraAtvConteudo",pageId:id},25000,true); }catch(e){ r={ok:false,erro:"sem conexão"}; }
+  if(!(r&&r.ok)&&!tentativa&&ATV===id){ return carregarConteudo(id,1); }
+  if(r&&r.ok) contGuardar(id,r.blocos||[]);
+  if(ATV!==id) return;
+  if(!(r&&r.ok)&&CONT_MEM[id]) return;   // falhou mas já temos uma cópia: fica com ela
+  const box=document.getElementById("p2-cont"), abertos=box?[...box.querySelectorAll("details")].map(d=>d.open):[];
+  CONT=(r&&r.ok)?CONT_MEM[id]:{erro:errMsg(r)};
+  pintarAtvPainel();
+  const nb=document.getElementById("p2-cont"); if(nb) [...nb.querySelectorAll("details")].forEach((d,i)=>{ if(abertos[i]) d.open=true; });
+}
+function contarTodos(bs,c){ c=c||{t:0,f:0}; (bs||[]).forEach(b=>{ if(b.tipo==="to_do"){ c.t++; if(b.marcado) c.f++; } contarTodos(b.filhos,c); }); return c; }
+function conteudoHtml(bs){
+  if(!bs||!bs.length) return `<div class="cont"><div class="vazio">Esta atividade não tem checklist nem conteúdo.</div></div>`;
+  const c=contarTodos(bs);
+  return (c.t?`<div class="ajuda" style="padding:0 22px">${c.f} de ${c.t} itens concluídos</div><div class="progresso"><div style="width:${Math.round(c.f/c.t*100)}%"></div></div>`:"")+
+    `<div class="cont">${blocosHtml(bs)}</div>`;
+}
+/* 25/09/26 — link vira link: endereço escrito no texto (https://...) e texto
+   com link do Notion abrem numa nova aba. */
+function linkar(txt,links){
+  let h=esc(txt||"");
+  (links||[]).forEach(l=>{ const e=esc(l.t||""); if(e&&l.h&&/^https?:/i.test(l.h)&&h.indexOf(e)>=0)
+    h=h.replace(e,`<a href="${esc(l.h)}" target="_blank" rel="noopener" title="Abre o link numa nova aba">${e}</a>`); });
+  return h.replace(/(^|[\s(])(https?:\/\/[^\s<"]+[^\s<".,;:!?)\]])/gi,(m,a,u)=>a+`<a href="${u}" target="_blank" rel="noopener" title="Abre o link numa nova aba">${u}</a>`);
+}
+function blocosHtml(bs){
+  let h="", lista=null;
+  const fecha=()=>{ if(lista){ h+=`</${lista}>`; lista=null; } };
+  (bs||[]).forEach(b=>{
+    const t=linkar(b.texto||"",b.links), filhos=b.filhos&&b.filhos.length?blocosHtml(b.filhos):"";
+    if(b.tipo==="bulleted_list_item"||b.tipo==="numbered_list_item"){
+      const tag=b.tipo==="bulleted_list_item"?"ul":"ol";
+      if(lista!==tag){ fecha(); h+=`<${tag}>`; lista=tag; }
+      h+=`<li>${t}${filhos}</li>`; return;
+    }
+    fecha();
+    if(b.tipo==="heading_1") h+=`<h1>${t}</h1>${filhos}`;
+    else if(b.tipo==="heading_2") h+=`<h2>${t}</h2>${filhos}`;
+    else if(b.tipo==="heading_3") h+=`<h3>${t}</h3>${filhos}`;
+    else if(b.tipo==="to_do") h+=`<label class="todo ${b.marcado?"feito":""}"><input type="checkbox" ${b.marcado?"checked":""} onchange="marcar('${b.id}',this)"><span>${t||"&nbsp;"}</span></label>${filhos?`<div style="margin-left:24px">${filhos}</div>`:""}`;
+    else if(b.tipo==="toggle") h+=`<details><summary>${t||"(sem título)"}</summary>${filhos}</details>`;
+    else if(b.tipo==="callout"||b.tipo==="quote") h+=`<div class="callout">${t}${filhos}</div>`;
+    else if(b.tipo==="divider") h+=`<hr>`;
+    else if(b.tipo==="image"&&b.url) h+=`<a href="${esc(b.url)}" target="_blank" rel="noopener"><img src="${esc(b.url)}" style="max-width:100%;border-radius:8px;margin:6px 0"></a>`;
+    else if((b.tipo==="file"||b.tipo==="pdf")&&b.url) h+=`<p><a href="${esc(b.url)}" target="_blank" rel="noopener">📎 ${esc(b.texto||"arquivo")}</a></p>`;
+    else if(t||filhos) h+=(t?`<p>${t}</p>`:"")+filhos;
+  });
+  fecha();
+  return h;
+}
+function acharBloco(bs,id){ for(const b of bs||[]){ if(b.id===id) return b; const x=acharBloco(b.filhos,id); if(x) return x; } return null; }
+async function marcar(blockId,el){
+  const v=el.checked; el.disabled=true;
+  let r; try{ r=await chamar({action:"obraAtvCheck",blockId:blockId,marcado:v,pageId:ATV},30000); }catch(e){ r={ok:false,erro:"sem conexão"}; }
+  el.disabled=false;
+  if(r&&r.ok){
+    const b=CONT&&acharBloco(CONT.blocos,blockId); if(b) b.marcado=v;
+    /* guarda quais <details> estavam abertos para não fechar tudo ao repintar */
+    const box=document.getElementById("p2-cont"), abertos=[...box.querySelectorAll("details")].map(d=>d.open);
+    box.innerHTML=conteudoHtml(CONT.blocos);
+    [...box.querySelectorAll("details")].forEach((d,i)=>{ if(abertos[i]) d.open=true; });
+  }else{ el.checked=!v; toast("Não salvou: "+errMsg(r)); }
+}
+
+/* botões da atividade (os que existiam dentro da página no Notion) */
+function acoesHtml(a){
+  const l=ACOES_POR_TIPO.filter(x=>String(a.tipo||"").trim().indexOf(x.tipo)===0);
+  if(!l.length) return "";
+  return `<div class="grp">Ações</div><div class="acoes-atv">`+
+    l.map(x=>`<button class="bt" onclick="executarAcao('${a.id}','${x.id}',this)">→ ${esc(x.rotulo)}</button>`).join("")+`</div>`;
+}
+async function executarAcao(atvId,acao,bt){
+  const cfg=ACOES_POR_TIPO.find(x=>x.id===acao), a=D.atividades.find(x=>x.id===atvId);
+  if(!cfg||!a) return;
+  if(!confirm(`${cfg.rotulo}: criar "${cfg.cria.titulo}" para ${(obraDe(a.obra_id)||{}).titulo||"esta obra"}?`)) return;
+  const op=novoOpId(); bt.disabled=true; const txt=bt.textContent; bt.innerHTML='<span class="load"></span> Criando…';
+  let r=null;
+  for(let t=0;t<2&&!(r&&(r.ok||r.erro));t++){ try{ r=await chamar({action:"obraAtvAcao",pageId:atvId,acao:acao,opId:op},60000); }catch(e){ r=null; } }
+  bt.disabled=false; bt.textContent=txt;
+  if(r&&r.ok){
+    _IDXv=null;
+    D.atividades.push({id:r.id,titulo:r.titulo,tipo:cfg.cria.tipo,status:"Não começou",resp:[],obra_id:r.obraId,
+      data_criacao:r.dataInicio,data_inicio:r.dataInicio,data_final:r.dataFinal});
+    toast(r.titulo+" criada. O responsável aparece no próximo build.");
+    if(OBRA) pintarObraPainel();
+  }else toast("Não criou: "+(r?errMsg(r):"sem resposta do servidor — confira a lista antes de tentar de novo"));
+}
+
+/* botões de ligação (os mesmos da página da obra no Notion) */
+async function criarLigacoes(n,esgoto,bt,forcar){
+  const o=obraDe(OBRA); if(!o) return;
+  const rot=`${n} ${n===1?"casa":"casas"}${esgoto?" c/ esgoto":""}`;
+  if(!forcar&&!confirm(`Criar ligações e vendas para ${o.titulo} — ${rot}?\n\n${n*(esgoto?3:2)} linhas em Ligações e ${n} em Vendas.`)) return;
+  const op=novoOpId(), txt=bt.textContent; bt.disabled=true; bt.innerHTML='<span class="load"></span> Criando…';
+  let r=null;
+  for(let t=0;t<2&&!(r&&(r.ok||r.erro));t++){ try{ r=await chamar({action:"obraLigacoes",pageId:o.id,casas:n,esgoto:esgoto,forcar:!!forcar,opId:op},120000); }catch(e){ r=null; } }
+  bt.disabled=false; bt.textContent=txt;
+  if(r&&r.ok){ o.lig_criadas=r.ligacoes; o.vendas_criadas=r.vendas; if(window.LIG_LIBERA) delete window.LIG_LIBERA[o.id]; pintarObraPainel();
+    toast(`Criadas ${r.ligacoes} ligações (${r.modelos||""}) e ${r.vendas} vendas`+(r.responsavel?` — responsável: ${r.responsavel}`:"")+
+    (r.semResponsavel?` — não achei a pessoa "${r.semResponsavel}", RESPONSÁVEL ficou vazio`:"")+"."); return; }
+  if(r&&r.erro==="JA_EXISTEM"){
+    if(confirm(`Esta obra já tem ${r.ligacoes} ligações e ${r.vendas} vendas. Criar mesmo assim?`)) return criarLigacoes(n,esgoto,bt,true);
+    return;
+  }
+  toast("Não criou: "+(r?errMsg(r):"sem resposta do servidor — confira em Ligações antes de tentar de novo"));
+}
+
+/* ===================== FORMULÁRIO ===================== */
+function preencherSel(id,ops,vals,novo){
+  document.getElementById(id).innerHTML=`<option value="">Selecione…</option>`+ops.map((x,i)=>`<option value="${esc(vals?vals[i]:x)}">${esc(x)}</option>`).join("")+
+    (novo?`<option value="__novo__">+ Novo…</option>`:"");
+}
+/* conta bancária (T7): a lista só existe autenticada — nunca vai para dist/
+   nem para arquivo público. Carrega uma vez por sessão; se o backend ainda
+   não tiver a ação (ou falhar), o campo fica só com "Sem conta" e um aviso
+   discreto, sem travar a criação da obra. */
+function preencherSelConta(){
+  const el=document.getElementById("f-conta"), antes=el?el.value:"";
+  const nomes=["Pessoa física (sem conta)"].concat((CONTAS||[]).map(c=>c.opcao)).concat(["CRIAR CONTA — a conta ainda não existe"]);
+  const vals=["PESSOA FÍSICA"].concat((CONTAS||[]).map(c=>c.opcao)).concat(["CRIAR CONTA"]);
+  preencherSel("f-conta",nomes,vals);
+  if(antes&&vals.indexOf(antes)>=0) el.value=antes;          // não perde o que já foi escolhido
+  const av=document.getElementById("a-conta"); if(av) av.textContent=CONTAS_AVISO;
+}
+async function carregarContas(forcar){
+  if(_contasEmVoo) return _contasEmVoo;
+  if(!forcar && Date.now()-_contasFresco<5*60000) return;
+  _contasEmVoo=(async()=>{
+    let r; try{ r=await chamar({action:"contasBancarias"},30000,true); }catch(e){ r=null; }
+    if(r&&r.ok&&Array.isArray(r.contas)&&(r.contas.length||!(D&&Array.isArray(D.contas)&&D.contas.length))){
+      CONTAS=r.contas; CONTAS_AVISO=""; _contasFresco=Date.now(); _contasTent=0;
+      try{ localStorage.setItem(CONTAS_KEY,JSON.stringify({t:Date.now(),l:CONTAS})); }catch(e){}
+    } else if(!CONTAS||!CONTAS.length){
+      CONTAS=CONTAS||[]; CONTAS_AVISO="carregando a lista de contas… (tentando de novo)";
+      /* 25/09/26: não desiste — tenta de novo em 10, 20, 40 e 80 s */
+      _contasTent=(_contasTent||0)+1;
+      if(_contasTent<=4) setTimeout(()=>carregarContas(true),10000*Math.pow(2,_contasTent-1));
+      else CONTAS_AVISO="a lista de contas não carregou — use 🔄 Recarregar";
+    }
+    if(document.getElementById("mf").classList.contains("on")){ preencherSelConta(); aplicarCombos(document.getElementById("mf")); }
+    if(OBRA) repintarSeguro();
+  })();
+  try{ await _contasEmVoo; } finally{ _contasEmVoo=null; }
+}
+function abrirForm(valores){
+  preencherSel("f-setor",listaOpc("SETOR"),null,true);
+  preencherSel("f-cidade",listaOpc("Cidade"),null,true);
+  preencherSel("f-prop",listaOpc("Proprietário"),null,true);
+  preencherSel("f-propreal",listaOpc("Proprietário Real"),null,true);
+  preencherSelConta(); carregarContas();
+  preencherSel("f-resp",D.pessoas.map(p=>p.nome),D.pessoas.map(p=>p.id));
+  preencherSel("f-rt",D.pessoas.map(p=>p.nome),D.pessoas.map(p=>p.id));
+  preencherSel("f-impl",opc("IMPLANTAÇÃO"));
+  ["f-end","f-cota","f-lote","f-casas","f-alote","f-aaverb","f-ahab"].forEach(x=>document.getElementById(x).value="");
+  document.getElementById("f-estudo").checked=false;
+  document.getElementById("f-erro").textContent="";
+  if(valores){        // reabrindo depois de um erro: devolve tudo preenchido
+    const põe=(id,v)=>{ if(v!=null&&v!=="") document.getElementById(id).value=v; };
+    põe("f-end",valores.endereco); põe("f-setor",valores.setor); põe("f-cidade",valores.cidade);
+    põe("f-prop",valores.proprietario); põe("f-propreal",valores.proprietarioReal);
+    põe("f-conta",valores.conta); põe("f-resp",valores.resp); põe("f-rt",valores.rt); põe("f-cota",valores.cota);
+    põe("f-lote",valores.dataLote); põe("f-casas",valores.nCasas); põe("f-impl",valores.implantacao);
+    põe("f-alote",valores.areaLote); põe("f-aaverb",valores.areaAverbada); põe("f-ahab",valores.areaHabite);
+    document.getElementById("f-estudo").checked=!!valores.estudoLayout;
+  }
+  checarEnd();
+  window._opObra=(valores&&valores.opId)||novoOpId();
+  document.getElementById("mf").classList.add("on");
+  aplicarCombos(document.getElementById("mf"));
+}
+function fecharForm(){ document.getElementById("mf").classList.remove("on"); }
+const ERROS={ ENDERECO_OBRIGATORIO:"Informe o endereço.", ENDERECO_COM_PREFIXO:"Endereço sem prefixo de rua/avenida.",
+  ENDERECO_SEM_QD_LT:"Endereço precisa ter QD e LT.", ENDERECO_FORA_DO_PADRAO:"Endereço fora do padrão.",
+  JA_EXISTE:"Já existe uma obra com este endereço.", SEM_PERMISSAO:"Seu login não tem o acesso OBRAS.", MODO_TESTE:"Modo teste: nada é gravado." };
+/* CRIAÇÃO EM FILA (set/26) — para lançar várias obras seguidas sem esperar.
+   A obra entra na lista na hora, marcada como "criando…", e a gravação segue
+   por trás. O opId garante que reenviar não duplica; se o servidor recusar, a
+   linha some e o formulário volta com tudo preenchido para corrigir. */
+async function enviarObra(continuar){
+  const g=id=>document.getElementById(id).value.trim(), erro=document.getElementById("f-erro");
+  if(!checarEnd()){ erro.textContent="Corrija o endereço."; return; }
+  const contaSel=g("f-conta");   // nome da conta, "PESSOA FÍSICA" ou "CRIAR CONTA"
+  const p={ action:"obraNova", opId:window._opObra, endereco:g("f-end").toUpperCase().replace(/\s+/g," "),
+    setor:g("f-setor"), cidade:g("f-cidade"), proprietario:g("f-prop"), proprietarioReal:g("f-propreal"),
+    conta:contaSel,
+    resp:g("f-resp"), rt:g("f-rt"), cota:g("f-cota"), dataLote:g("f-lote"), nCasas:g("f-casas"), implantacao:g("f-impl"),
+    areaLote:g("f-alote"), areaAverbada:g("f-aaverb"), areaHabite:g("f-ahab"), estudoLayout:document.getElementById("f-estudo").checked };
+  const falta=[["setor","Setor",!p.setor],["cidade","Cidade",!p.cidade],["proprietario","Proprietário",!p.proprietario],
+    ["proprietarioReal","Proprietário real",!p.proprietarioReal],["conta","Conta bancária",!contaSel],
+    ["resp","Responsável pela obra",!p.resp],["rt","Engenheiro RT",!p.rt],["cota","Cota",!p.cota],
+    ["dataLote","Data de aquisição do lote",!p.dataLote]]
+    .filter(([,,vazio])=>vazio).map(([,r])=>r);
+  if(falta.length){ erro.textContent="Preencha: "+falta.join(", "); return; }
+  erro.textContent="";
+
+  /* a linha já aparece na lista, com aviso de que ainda está gravando */
+  const pes=id=>(D.pessoas.find(x=>x.id===id)||{}).nome||"", iso=d=>d.toISOString().slice(0,10);
+  const local={ id:"tmp-"+p.opId, pendente:true, titulo:p.endereco, setor:p.setor, cidade:p.cidade,
+    proprietario:p.proprietario, proprietario_real:p.proprietarioReal, resp:pes(p.resp), resp_ids:[p.resp],
+    rt:pes(p.rt), rt_ids:[p.rt], status:"Não começou", liberar:"Não", data_inicial:iso(new Date()),
+    data_prevista:iso(new Date(Date.now()+37*864e5)), n_casas:p.nCasas?Number(p.nCasas):null,
+    projeto_finalizado:"Não", orcamento_finalizado:"Não", projeto_aprovado:"Não", conta:p.conta||null, conta_alerta:p.conta==="CRIAR CONTA"?"CRIAR CONTA":null, cota:Number(p.cota),
+    data_lote:p.dataLote, implantacao:p.implantacao||null, mais_controle:"Criar", em_mc:null };
+  D.obras.unshift(local);
+  if(continuar){        // próxima obra: só o endereço e as áreas são limpos
+    ["f-end","f-alote","f-aaverb","f-ahab"].forEach(x=>document.getElementById(x).value="");
+    document.getElementById("f-estudo").checked=false;
+    window._opObra=novoOpId(); checarEnd(); document.getElementById("f-end").focus();
+    toast("Criando "+p.endereco+"… o formulário continua aberto para a próxima.");
+  }else fecharForm();
+  ABA="obras"; FILTRO="andamento"; pintar();
+  toast("Criando "+p.endereco+"…");
+
+  let r=null;
+  for(let t=0;t<2&&!(r&&(r.ok||r.erro));t++){ try{ r=await chamar(Object.assign({},p),90000); }catch(e){ r=null; } }
+  const i=D.obras.findIndex(o=>o.id===local.id);
+  if(r&&r.ok){
+    if(i>=0){ D.obras[i].id=r.id; D.obras[i].titulo=r.titulo; delete D.obras[i].pendente; }
+    setTimeout(()=>atualizarObraVivo(r.id),8000);
+    if(ABA==="obras") pintarLista();
+    toast("Obra "+r.titulo+" criada. Atividades e linha em Documentos aparecem em alguns minutos.");
+    return;
+  }
+  if(i>=0) D.obras.splice(i,1);            // não gravou: tira a linha provisória
+  if(ABA==="obras") pintarLista();
+  const msg=!r?"Sem resposta do servidor — confira a lista antes de tentar de novo."
+    :(ERROS[String(r.erro||"").split(":")[0]]||errMsg(r))+(r.sugestao?` Sugestão: ${r.sugestao}`:"");
+  toast("Não criou "+p.endereco+": "+msg);
+  abrirForm(p);                            // volta com os dados para corrigir
+  document.getElementById("f-erro").textContent=msg;
+}
+
+/* ===================== SELEÇÃO COM PESQUISA (item 8) =====================
+   O <select> continua existindo (escondido) e é ele que guarda o valor e
+   dispara o onchange de sempre. Por cima entra uma caixa onde dá para digitar
+   e filtrar. Vale para o formulário de nova obra e para o painel da obra. */
+const ehAdmTela=()=>OB_S&&String(OB_S.tipo).toUpperCase()==="ADM";
+function aplicarCombos(raiz){ (raiz||document).querySelectorAll("select").forEach(sel=>{
+  if(sel.dataset.semCombo||sel.closest(".cb")||sel.closest(".atv")||sel.closest(".toolbar")) { if(sel._cb) comboSync(sel); return; }
+  if(sel.options.length<7 && !sel.dataset.combo) return;
+  comboMontar(sel); }); }
+function comboMontar(sel){
+  if(sel._cb){ comboSync(sel); return; }
+  const cx=document.createElement("div"); cx.className="cb";
+  const inp=document.createElement("input"); inp.type="text"; inp.className="cb-in"; inp.autocomplete="off"; inp.placeholder="Digite para buscar…";
+  const lista=document.createElement("div"); lista.className="cb-lista";
+  sel.parentNode.insertBefore(cx,sel); cx.appendChild(inp); cx.appendChild(lista); cx.appendChild(sel);
+  sel.style.display="none"; sel._cb={cx,inp,lista};
+  let ativo=-1;
+  const opcoes=()=>[...sel.options].filter(o=>o.value!==""||!o.text.match(/Selecione|^—$/));
+  function desenhar(){
+    const q=N(inp.value), ops=opcoes().filter(o=>o.value==="__novo__"||!q||N(o.text).indexOf(q)>=0);
+    ativo=ops.length?0:-1;
+    lista.innerHTML=ops.length?ops.map((o,i)=>`<div class="cb-op ${o.value==="__novo__"?"novo":""} ${i===0?"ativo":""}" data-v="${esc(o.value)}">${esc(o.text)}</div>`).join("")
+      :`<div class="cb-vazio">Nada encontrado</div>`;
+  }
+  function escolher(v){ sel.value=v; cx.classList.remove("on"); sel.dispatchEvent(new Event("change",{bubbles:true})); setTimeout(()=>comboSync(sel),0); }
+  inp.addEventListener("focus",()=>{ inp.value=""; cx.classList.add("on"); desenhar(); });
+  inp.addEventListener("input",desenhar);
+  inp.addEventListener("keydown",e=>{
+    const els=[...lista.querySelectorAll(".cb-op")];
+    if(e.key==="ArrowDown"||e.key==="ArrowUp"){ e.preventDefault(); if(!els.length) return;
+      ativo=(ativo+(e.key==="ArrowDown"?1:-1)+els.length)%els.length; els.forEach((x,i)=>x.classList.toggle("ativo",i===ativo)); els[ativo].scrollIntoView({block:"nearest"}); }
+    else if(e.key==="Enter"){ e.preventDefault(); if(els[ativo]) escolher(els[ativo].dataset.v); }
+    else if(e.key==="Escape"){ e.stopPropagation(); inp.blur(); }
+  });
+  lista.addEventListener("mousedown",e=>{ const op=e.target.closest(".cb-op"); if(op){ e.preventDefault(); escolher(op.dataset.v); } });
+  inp.addEventListener("blur",()=>setTimeout(()=>{ cx.classList.remove("on"); comboSync(sel); },150));
+  sel.addEventListener("change",()=>comboSync(sel));
+  comboSync(sel);
+}
+function comboSync(sel){ if(!sel._cb) return; const o=sel.options[sel.selectedIndex];
+  sel._cb.inp.value=o&&o.value&&o.value!=="__novo__"?o.text:""; sel._cb.inp.placeholder=o&&!o.value?(o.text==="—"?"—":"Selecione… (digite para buscar)"):"Digite para buscar…";
+  ["salvando","ok","erro","tentando"].forEach(c=>sel._cb.inp.classList.toggle(c,sel.classList.contains(c))); }
+/* o combo precisa refletir as cores de "salvando/ok/erro" do select escondido */
+new MutationObserver(ms=>ms.forEach(m=>{ if(m.target._cb) comboSync(m.target); })).observe(document.body,{subtree:true,attributes:true,attributeFilter:["class"]});
+
+/* ===================== CONTEÚDO PRÉ-CARREGADO (extra 2) =====================
+   Ao abrir a obra, o checklist de TODAS as atividades dela vem numa chamada
+   só, por trás. Quando a pessoa clica, já está aqui. */
+const LOTE_ANDANDO=new Set();
+/* 24/09/26 — em LOTES DE 5, um depois do outro. Pedir as ~20 atividades de
+   uma vez gerava uma resposta grande demais: o Google devolvia 404 na etapa
+   "echo" (o mesmo limite que derrubou a Análise de Dados) e nada chegava.
+   Com o aquecimento no servidor (Melhorias m5), quase tudo já vem do cache. */
+const LOTE_TAM=5;
+async function preCarregarConteudos(obraId){
+  const ids=D.atividades.filter(a=>a.obra_id===obraId&&!ehLig(a)&&String(a.id).indexOf("tmp")!==0)
+    .sort((x,y)=>(atvFeita(x)?1:0)-(atvFeita(y)?1:0))                 // as abertas primeiro
+    .filter(a=>!CONT_MEM[a.id]||Date.now()-(CONT_MEM[a.id].t||0)>10*60000).map(a=>a.id);
+  for(let i=0;i<ids.length;i+=LOTE_TAM){
+    if(OBRA!==obraId) return;                                          // fechou a obra: para
+    const lote=ids.slice(i,i+LOTE_TAM).filter(x=>x!==ATV||!CONT);
+    if(!lote.length) continue;
+    lote.forEach(x=>LOTE_ANDANDO.add(x));
+    let r; try{ r=await chamar({action:"obraAtvConteudoLote",ids:lote},40000); }catch(e){ r=null; }
+    lote.forEach(x=>LOTE_ANDANDO.delete(x));
+    if(!(r&&r.ok&&r.conteudos)) return;                                // falhou: não insiste agora
+    Object.keys(r.conteudos).forEach(id=>contGuardar(id,r.conteudos[id]||[]));
+    Object.keys(r.comentarios||{}).forEach(id=>{ if(!Array.isArray(COMS[id])) comsGuardar(id,r.comentarios[id]); });
+    if(ATV&&r.conteudos[ATV]&&(!CONT||CONT.erro)){ CONT=CONT_MEM[ATV]; pintarAtvPainel(); }
+  }
+}
+
+/* ===================== COMENTÁRIOS E IMAGENS (extra 1) ===================== */
+/* 24/09/26 — os comentários ficam guardados no navegador (como o checklist):
+   a obra/atividade abre com a última cópia na tela e o servidor só confere.
+   O pré-carregamento em lote também já traz os que estão prontos no cache. */
+const COMS_KEY="obras_coms_v1";
+const COMS=(function(){ try{ const x=JSON.parse(localStorage.getItem(COMS_KEY)||"{}")||{}; const o={}; for(const k in x) o[k]=x[k].l; return o; }catch(e){ return {}; } })();
+function comsGuardar(id,lista){
+  COMS[id]=lista;
+  try{
+    const x=JSON.parse(localStorage.getItem(COMS_KEY)||"{}")||{}; x[id]={t:Date.now(),l:lista};
+    const ks=Object.keys(x); if(ks.length>150) ks.sort((a,b)=>x[a].t-x[b].t).slice(0,ks.length-150).forEach(k=>delete x[k]);
+    localStorage.setItem(COMS_KEY,JSON.stringify(x));
+  }catch(e){}
+}
+function comentariosHtml(pageId){
+  const l=COMS[pageId];
+  const lista=l===undefined?`<div class="ajuda"><span class="load"></span> carregando comentários…</div>`
+    :l.erro?`<div class="ajuda err">Não carregou os comentários: ${esc(l.erro)}</div>`
+    :!l.length?`<div class="ajuda">Nenhum comentário ainda.</div>`
+    :l.map(c=>`<div class="com"><div class="qm">${esc(c.autor||"")} · ${c.criadoEm?new Date(c.criadoEm).toLocaleString("pt-BR"):""}</div>
+      ${c.texto?`<div class="tx">${linkar(c.texto)}</div>`:""}
+      ${(c.anexos||[]).map(a=>a.url?(a.categoria==="image"||/\.(png|jpe?g|gif|webp|heic)(\?|$)/i.test(a.url)
+          ?`<a href="${esc(a.url)}" target="_blank" rel="noopener"><img src="${esc(a.url)}" alt=""></a>`
+          :`<a class="arq" href="${esc(a.url)}" target="_blank" rel="noopener">📎 ${esc(a.nome||"arquivo")}</a>`):"").join("")}</div>`).join("");
+  return `<div class="com-lista">${lista}</div>
+    <div class="com-form"><textarea id="ct-${pageId}" placeholder="Escreva um comentário…"></textarea>
+      <label class="bt ghost" style="cursor:pointer" title="Anexa uma imagem ou PDF ao comentário (até 8 MB)">📷 Anexar<input type="file" accept="image/*,application/pdf" style="display:none" onchange="comentarioArquivo('${pageId}',this)"></label>
+      <button class="bt" id="cb-${pageId}" title="Envia o comentário (e o anexo, se houver) para a página no Notion" onclick="enviarComentario('${pageId}')">Enviar</button>
+      <div class="com-anexo" id="ca-${pageId}"></div></div>`;
+}
+async function carregarComentarios(pageId,boxId,fresco){
+  let r; try{ r=await chamar(Object.assign({action:"obraComentarios",pageId:pageId},fresco?{fresco:true}:{}),25000,true); }catch(e){ r={ok:false,erro:"sem conexão"}; }
+  if(r&&r.ok) comsGuardar(pageId,r.comentarios||[]);
+  else if(Array.isArray(COMS[pageId])) return;          // falhou, mas já tem cópia na tela: fica com ela
+  else COMS[pageId]={erro:errMsg(r)};
+  const box=document.getElementById(boxId); if(!box) return;
+  const txt=document.getElementById("ct-"+pageId), rascunho=txt?txt.value:"";
+  box.innerHTML=comentariosHtml(pageId);
+  const t2=document.getElementById("ct-"+pageId); if(t2&&rascunho) t2.value=rascunho;
+}
+const COM_ARQ={};
+function comentarioArquivo(pageId,inp){
+  const f=inp.files&&inp.files[0]; if(!f) return;
+  if(f.size>8*1024*1024){ toast("Arquivo muito grande (máximo 8 MB)."); inp.value=""; return; }
+  COM_ARQ[pageId]=f; document.getElementById("ca-"+pageId).textContent="Anexo: "+f.name+" (vai junto ao enviar)";
+}
+async function enviarComentario(pageId){
+  const t=document.getElementById("ct-"+pageId), bt=document.getElementById("cb-"+pageId);
+  const texto=(t&&t.value||"").trim(), f=COM_ARQ[pageId];
+  if(!texto&&!f){ toast("Escreva algo ou anexe uma imagem."); return; }
+  let arquivo=null;
+  if(f){ try{ const b64=await new Promise((ok,err)=>{ const rd=new FileReader(); rd.onload=()=>ok(String(rd.result).split(",")[1]); rd.onerror=err; rd.readAsDataURL(f); });
+      arquivo={filename:f.name,mimeType:f.type||"application/octet-stream",dataBase64:b64}; }catch(e){ toast("Não consegui ler o arquivo."); return; } }
+  bt.disabled=true; bt.innerHTML='<span class="load"></span>';
+  let r; try{ r=await chamar({action:"obraComentarioNovo",pageId:pageId,texto:texto,arquivo:arquivo},90000); }catch(e){ r={ok:false,erro:"sem conexão"}; }
+  bt.disabled=false; bt.textContent="Enviar";
+  if(!(r&&r.ok)){ toast("Não enviou: "+errMsg(r)); return; }
+  delete COM_ARQ[pageId]; if(t) t.value="";
+  toast(r.anexoNoCorpo?"Enviado — o anexo ficou no corpo da página no Notion.":"Comentário enviado.");
+  carregarComentarios(pageId,document.getElementById("com-atv")&&ATV===pageId?"com-atv":"com-obra",true);
+}
+
+/* ===================== CONTAS BANCÁRIAS (aba própria) =====================
+   Lista do banco CONTAS BANCÁRIAS (mantido pelo robô com as contas do Mais
+   Controle): Conta, Aparece e Situação. Marcar "Aparece" é o que coloca a
+   conta na lista de escolha da obra. ADM e MASTER marcam; os demais só veem. */
+let CTS=null, CT_FILTRO="ativas", CT_BUSCA="";
+async function pintarContas(forcar){
+  const v=document.getElementById("view");
+  /* 25/09/26 — a aba abre NA HORA com a lista publicada no arquivo (build);
+     o servidor confere por trás e, se responder, a tabela se atualiza. Antes
+     ela ficava presa em "Carregando contas…" esperando o Apps Script. */
+  if(!CTS&&D&&Array.isArray(D.contas_todas)&&D.contas_todas.length){
+    const s0=sessao()||{}, adm=["ADM","MASTER"].indexOf(String(s0.tipo||"").toUpperCase())>=0;
+    CTS={ok:true,contas:D.contas_todas.map(c=>Object.assign({},c)),podeEditar:adm,doArquivo:true};
+  }
+  if(!CTS){
+    v.innerHTML=`<div class="sec"><span class="cond">Contas bancárias</span></div><div class="vazio"><span class="load"></span> Carregando contas…</div>`;
+    await ctBuscar(true);
+    if(!CTS){ v.innerHTML=`<div class="sec"><span class="cond">Contas bancárias</span></div><div class="vazio">Não carregou agora. <button class="bt bt-mini ghost" onclick="pintarContas(true)">Tentar de novo</button></div>`; return; }
+  } else if(forcar||CTS.doArquivo) ctBuscar(forcar);      // confere por trás, sem travar a tela
+  if(ABA!=="contas") return;
+  const ativa=c=>N(c.situacao).indexOf("SUMIU")<0, q=N(CT_BUSCA);
+  let l=CTS.contas.filter(c=>(CT_FILTRO==="todas"||(CT_FILTRO==="ativas"?ativa(c):!ativa(c))) && (!q||N(c.conta).indexOf(q)>=0));
+  const nAp=CTS.contas.filter(c=>c.aparece&&ativa(c)).length;
+  v.innerHTML=`<div class="sec"><span class="cond">Contas bancárias</span><span class="qtd">${CTS.contas.length}</span></div>
+    <div class="toolbar"><input class="busca" placeholder="Buscar conta…" value="${esc(CT_BUSCA)}" oninput="CT_BUSCA=this.value;clearTimeout(window._ctT);window._ctT=setTimeout(()=>{pintarContas();const b=document.querySelector('#view .busca');if(b){b.focus();b.setSelectionRange(b.value.length,b.value.length);}},200)">
+      <select onchange="CT_FILTRO=this.value;pintarContas()" style="max-width:190px">
+        ${[["ativas","Só ativas no ERP"],["inativas","Só as que sumiram do ERP"],["todas","Todas"]].map(([k,t])=>`<option value="${k}" ${CT_FILTRO===k?"selected":""}>${t}</option>`).join("")}</select>
+      <button class="bt ghost" title="Recarrega as contas do Notion" onclick="pintarContas(true)">↻ Atualizar</button></div>
+    <div class="ajuda" style="margin-bottom:8px">${nAp} conta(s) aparecendo para escolha na obra.${CTS.podeEditar?" Marque ou desmarque \"Aparece\" — grava na hora.":""}</div>
+    <div class="tabela-wrap"><table><thead><tr><th class="stick">Conta</th><th>Aparece</th><th>Situação</th></tr></thead><tbody>${
+      l.length?l.map(c=>`<tr><td class="stick">${esc(c.conta)}</td>
+        <td><input type="checkbox" ${c.aparece?"checked":""} ${CTS.podeEditar?"":"disabled"} onchange="marcarAparece('${c.id}',this)"></td>
+        <td>${ativa(c)?`<span class="tag sim">${esc(c.situacao||"Ativa")}</span>`:`<span class="tag nao">${esc(c.situacao)}</span>`}</td></tr>`).join("")
+      :`<tr><td colspan="3" class="vazio">Nenhuma conta neste filtro.</td></tr>`}</tbody></table></div>`;
+}
+let CT_BUSCANDO=false;
+async function ctBuscar(avisar){
+  if(CT_BUSCANDO) return; CT_BUSCANDO=true;
+  let r; try{ r=await chamar({action:"contasTodas"},30000,true); }catch(e){ r=null; }
+  CT_BUSCANDO=false;
+  if(r&&r.ok&&Array.isArray(r.contas)&&r.contas.length){ CTS=r; if(ABA==="contas") pintarContas(); return; }
+  if(CTS){ CTS.doArquivo=false; if(avisar) toast("Não consegui atualizar agora — mostrando a última lista publicada."); }
+}
+async function marcarAparece(id,el){
+  const c=CTS&&CTS.contas.find(x=>x.id===id); if(!c) return;
+  el.disabled=true;
+  const r=await gravarComRetry({action:"contaAparece",pageId:id,aparece:el.checked},el);
+  el.disabled=false;
+  if(r&&r.ok){ c.aparece=el.checked; carregarContas(true); toast(el.checked?"Conta aparecendo para escolha.":"Conta escondida da escolha."); }
+  else { el.checked=!el.checked; toast("Não salvou: "+errMsg(r)); }
+}
+
+/* ===================== CADASTROS INVESTIDORES (itens 11 e 12) =====================
+   Lista do cadastro de proprietários/investidores. CPF/CNPJ e demais dados
+   sensíveis só aparecem depois do botão "Carregar CPFs". Editar: ADM e MASTER. */
+async function pintarInvestidores(forcar){
+  const v=document.getElementById("view");
+  if(!INV||forcar){
+    v.innerHTML=`<div class="sec"><span class="cond">Cadastros investidores</span></div><div class="vazio"><span class="load"></span> Carregando cadastro…</div>`;
+    let r; try{ r=await chamar({action:"investidores"},60000); }catch(e){ r={ok:false,erro:"sem conexão"}; }
+    if(!(r&&r.ok)){ v.innerHTML=`<div class="sec"><span class="cond">Cadastros investidores</span></div><div class="vazio">Não carregou: ${esc(errMsg(r))}</div>`; return; }
+    INV=r;
+  }
+  if(ABA!=="investidores") return;
+  const cols=INV.colunas.slice().sort((a,b)=>(b.tipo==="title")-(a.tipo==="title")), q=N(INV_BUSCA);
+  const tit=cols.find(c=>c.tipo==="title");
+  let linhas=INV.linhas.slice().sort((a,b)=>String(a.v[tit&&tit.nome]||"").localeCompare(String(b.v[tit&&tit.nome]||""),"pt-BR"));
+  if(q) linhas=linhas.filter(l=>N(Object.values(l.v).join(" ")+" "+Object.values((INV_SENS||{})[l.id]||{}).join(" ")).indexOf(q)>=0);
+  const pode=INV.podeEditar;
+  v.innerHTML=`<div class="sec"><span class="cond">Cadastros investidores</span><span class="qtd">${INV.linhas.length}</span></div>
+    <div class="toolbar"><input class="busca" placeholder="Buscar nome, CPF/CNPJ…" value="${esc(INV_BUSCA)}" oninput="INV_BUSCA=this.value;clearTimeout(window._invT);window._invT=setTimeout(()=>{pintarInvestidores();const b=document.querySelector('#view .busca');if(b){b.focus();b.setSelectionRange(b.value.length,b.value.length);}},250)">
+      ${INV_SENS?`<span class="tag sim">CPFs carregados</span>`:`<button class="bt az" title="Carrega CPF/CNPJ e data de nascimento. Fica registrado quem carregou." onclick="carregarSensInv(this)">🔓 Carregar CPFs</button>`}
+      <button class="bt ghost" title="Recarrega o cadastro do Notion" onclick="pintarInvestidores(true)">↻ Atualizar</button></div>
+    ${pode?`<div class="ajuda" style="margin-bottom:8px">Você pode editar: a alteração grava no Notion ao sair do campo.</div>`:""}
+    <div class="tabela-wrap"><table><thead><tr>${cols.map(c=>`<th class="${c.tipo==="title"?"stick":""}">${esc(c.nome)}</th>`).join("")}</tr></thead><tbody>${
+      linhas.map(l=>`<tr>${cols.map(c=>{
+        const sens=c.sensivel&&!INV_SENS, val=c.sensivel?(INV_SENS&&(INV_SENS[l.id]||{})[c.nome]):l.v[c.nome];
+        if(sens) return `<td class="sens">•••</td>`;
+        if(!pode||!c.editavel||(c.sensivel&&!INV_SENS)) return `<td class="${c.tipo==="title"?"stick":""}">${esc(val==null?"—":val)}</td>`;
+        return `<td class="inv-cel ${c.tipo==="title"?"stick":""}">${invInput(l.id,c,val)}</td>`;
+      }).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+function invInput(id,c,val){
+  const on=`onchange="gravarInv('${id}',this.dataset.col,this)" data-col="${esc(c.nome)}"`;
+  if(c.tipo==="select"||c.tipo==="status") return `<select ${on}><option value="">—</option>${(c.opcoes||[]).map(o=>`<option ${N(o)===N(val)?"selected":""}>${esc(o)}</option>`).join("")}</select>`;
+  if(c.tipo==="date") return `<input type="date" value="${esc(val||"")}" ${on}>`;
+  if(c.tipo==="checkbox") return `<input type="checkbox" ${val?"checked":""} ${on}>`;
+  return `<input type="${c.tipo==="number"?"number":"text"}" value="${esc(val==null?"":val)}" ${on}>`;
+}
+async function carregarSensInv(bt){
+  bt.disabled=true; bt.innerHTML='<span class="load"></span> carregando…';
+  let r; try{ r=await chamar({action:"investidoresSensiveis"},60000); }catch(e){ r={ok:false,erro:"sem conexão"}; }
+  if(!(r&&r.ok)){ bt.disabled=false; bt.textContent="🔓 Carregar CPFs"; toast("Não carregou: "+errMsg(r)); return; }
+  INV_SENS=r.valores||{}; pintarInvestidores();
+}
+async function gravarInv(id,col,el){
+  const valor=el.type==="checkbox"?el.checked:el.value;
+  if(el.type==="date"&&valor&&!dataOk(valor)) return;
+  el.classList.remove("ok","erro"); el.classList.add("salvando");
+  const r=await gravarComRetry({action:"investidorUpdate",pageId:id,prop:col,valor:valor},el);
+  el.classList.remove("salvando");
+  if(r&&r.ok){ el.classList.add("ok");
+    const l=INV.linhas.find(x=>x.id===id); const c=INV.colunas.find(x=>x.nome===col);
+    if(c&&c.sensivel){ if(INV_SENS&&INV_SENS[id]) INV_SENS[id][col]=valor; } else if(l) l.v[col]=valor;
+  } else { el.classList.add("erro"); toast("Não salvou: "+errMsg(r)); }
+}
+
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ if(ATV) fecharAtv(); else if(OBRA) fecharObra(); else fecharForm(); } });
+if(PODE) carregar();
+</script>
+</body>
+</html>

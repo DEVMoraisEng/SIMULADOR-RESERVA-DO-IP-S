@@ -66,6 +66,8 @@
   .status.processando{background:#FBEEC8;border-color:var(--amarelo);color:var(--marrom);}
   .status.ok{background:#EAF6EF;border-color:#8CC9A5;color:#1D5433;}
   .status.erro{background:#FBEDEA;border-color:#E2A493;color:#8A2E17;}
+  /* r62 — unidade reservada: aviso azul (é informação, não erro) */
+  .status.reservada{background:#EAF2FA;border-color:#BBD5EC;border-left:4px solid #1F6FB2;color:#1F4E79;}
   .resumo{background:var(--fundo);border:1px dashed var(--borda);border-radius:8px;padding:16px;font-size:13px;color:var(--texto-suave);line-height:1.6;}
   .copia{font-size:12px;color:var(--texto-suave);margin-top:6px;}
   @media(max-width:640px){.linha{grid-template-columns:1fr;}header h1{font-size:15px;}}
@@ -491,6 +493,12 @@
         <span>Autorizo o uso dos dados informados para análise desta proposta e
         para receber o retorno por e-mail.</span>
       </label>
+      <!-- r62 — só aparece quando a unidade escolhida está RESERVADA -->
+      <label class="check" id="boxCienciaReserva" style="display:none">
+        <input type="checkbox" id="cienciaReserva">
+        <span>Estou ciente de que a <b>unidade <span id="unCienciaReserva"></span> está reservada</b> e de que
+        esta proposta <b>só será analisada caso haja desistência</b> da reserva atual.</span>
+      </label>
       <label class="check">
         <input type="checkbox" id="ciencia">
         <span>Declaro que li o aviso acima e estou ciente de que os valores são <b>estimativas</b>,
@@ -725,7 +733,36 @@
   }
 
   function livresDisponiveis(){
-    return UNIDADES.some(function(u){return estadoUn(u)==='DISPONIVEL';});
+    return UNIDADES.some(aceitaProposta);
+  }
+  /* r62 — RESERVADA também aceita proposta (só é analisada se houver
+     desistência). Vendida e "em breve" continuam de fora. */
+  function aceitaProposta(u){
+    var e=estadoUn(u); return e==='DISPONIVEL' || e==='RESERVADA';
+  }
+  function unidadeReservada(){ return estadoUn(unidadeAtual())==='RESERVADA'; }
+  /* Aviso azul no passo 1 e a declaração de ciência no último passo. */
+  function avisarReserva(){
+    var u=unidadeAtual(), res=!!u && estadoUn(u)==='RESERVADA';
+    var av=document.getElementById('avisoUnidade');
+    /* um aviso de ERRO na tela (unidade pedida vendida, nenhuma livre) tem
+       prioridade: ele some quando a pessoa troca de unidade */
+    var erroNaTela = av.style.display==='block' && av.className.indexOf('erro')>=0;
+    if(res && erroNaTela){
+      /* mantém o erro; a declaração de ciência (abaixo) continua valendo */
+    } else if(res){
+      av.className='status reservada'; av.style.display='block';
+      av.innerHTML='<b>A unidade '+u.unidade+' está RESERVADA.</b><br>Você pode enviar a proposta normalmente, '+
+        'mas ela fica registrada e <b>só será analisada caso haja desistência</b> da reserva atual.';
+    } else if(av.className.indexOf('reservada')>=0){
+      av.style.display='none'; av.className='status erro';
+    }
+    var box=document.getElementById('boxCienciaReserva');
+    if(box){
+      box.style.display = res ? '' : 'none';
+      if(!res) document.getElementById('cienciaReserva').checked=false;
+      document.getElementById('unCienciaReserva').textContent = res ? u.unidade : '';
+    }
   }
   function unidadeAtual(){
     var v=F().unidade.value;
@@ -1284,6 +1321,11 @@
           return erro('A simulação precisa da <b>renda aprovada</b> do proponente.', f.rendaAprovada);
         if(f.jaBeneficiado.checked && !f.dataConcessaoBeneficio.value)
           return erro('Informe a <b>data da concessão do benefício</b>.', f.dataConcessaoBeneficio);
+        /* r62 (item 2) — marcou relacionamento com a CAIXA: uma das duas
+           opções de baixo é obrigatória, como no SIOP. */
+        if(f.relacionamentoCaixa.checked && !f.servidorPublico.checked && !f.creditoSalarioCaixa.checked)
+          return erro('Você marcou <b>relacionamento com a CAIXA</b>: marque pelo menos uma das opções '+
+                      'abaixo dele (servidor público ou crédito salário/Previdência).', f.servidorPublico);
         if(!produtosSelecionados.length)
           return erro('Marque pelo menos uma <b>linha de financiamento</b> para simular.',
                       document.querySelector('#produtos .produto'));
@@ -1447,13 +1489,14 @@
   function montarSelect(){
     var sel=F().unidade;
     var escolhida=sel.dataset.escolhida||'';
-    /* ITEM 14 — só unidade DISPONÍVEL aceita proposta. Reservada e vendida
-       ficam de fora da lista; a simulação continua liberada no simulador. */
-    var livres=UNIDADES.filter(function(u){return estadoUn(u)==='DISPONIVEL';});
+    /* ITEM 14 — vendida e "em breve" ficam de fora da lista.
+       r62 — RESERVADA entra (marcada na lista): a proposta é aceita, mas só
+       é analisada se houver desistência. */
+    var livres=UNIDADES.filter(aceitaProposta);
     var lista=livres.length?livres:UNIDADES;
     sel.innerHTML=lista.map(function(u){
       return '<option value="'+u.unidade+'">Unidade '+u.unidade+' — T'+(u.tipo||'—')+
-             ' · '+brl(u.valorVenda)+'</option>';
+             ' · '+brl(u.valorVenda)+(estadoUn(u)==='RESERVADA'?' · RESERVADA':'')+'</option>';
     }).join('');
     var pedida=escolhida || param('unidade');
     var av=document.getElementById('avisoUnidade');
@@ -1462,10 +1505,11 @@
       var achou=null;
       for(var i=0;i<UNIDADES.length;i++) if(String(UNIDADES[i].unidade)===String(pedida)) achou=UNIDADES[i];
       var est=achou?estadoUn(achou):'BREVE';
-      if(achou && est!=='DISPONIVEL'){
+      if(achou && est!=='DISPONIVEL' && est!=='RESERVADA'){
+        av.className='status erro';
         av.style.display='block';
         av.innerHTML='<b>A unidade '+pedida+' está '+
-          (est==='RESERVADA'?'reservada':(est==='VENDIDA'?'vendida':'indisponível'))+
+          (est==='VENDIDA'?'vendida':'indisponível')+
           '.</b><br>Não dá para enviar proposta para ela. Escolha outra unidade na lista acima — '+
           'a <b>simulação</b> continua liberada normalmente pelo mapa.';
       } else {
@@ -1476,12 +1520,14 @@
       av.style.display='none';
     }
     if(!livresDisponiveis()){
+      av.className='status erro';
       av.style.display='block';
       av.innerHTML='<b>Nenhuma unidade disponível para proposta no momento.</b>';
     }
     aoTrocarUnidade();
   }
   function aoTrocarUnidade(){
+    avisarReserva();
     var u=unidadeAtual();
     document.getElementById('preco').value = u ? brl(u.valorVenda) : '';
     montarFluxo();
@@ -1495,7 +1541,7 @@
     if(!validarPasso(1)){ irPara(1); return; }
     if(!validarPasso(2)){ irPara(2); return; }
     if(!validarPasso(4)){ irPara(4); return; }
-    if(estadoUn(unidadeAtual())!=='DISPONIVEL'){
+    if(!aceitaProposta(unidadeAtual())){
       return erro('Esta unidade não está disponível para proposta.');
     }
     if(!f.vendedor.value.trim()) return erro('Informe o <b>corretor</b>.', f.vendedor);
@@ -1509,6 +1555,9 @@
     if(!document.getElementById('ciencia').checked)
       return erro('Marque a declaração de ciência do <b>aviso importante</b> (caráter estimativo).',
                   document.getElementById('ciencia'));
+    if(unidadeReservada() && !document.getElementById('cienciaReserva').checked)
+      return erro('A unidade está <b>reservada</b>: marque a declaração de que a proposta só será '+
+                  'analisada caso haja desistência.', document.getElementById('cienciaReserva'));
 
     montarFluxo();
     var u=unidadeAtual();
@@ -1577,6 +1626,9 @@
          duplica e a tela consegue confirmar se a proposta foi criada */
       idEnvio:ID_ENVIO,
       cienciaEstimativa:true,
+      /* r62 — a unidade estava reservada no envio (o servidor confere) */
+      unidadeReservada:unidadeReservada(),
+      cienciaReserva:unidadeReservada(),
       esquema:(document.getElementById('fluxo').dataset.esquema||''),
       /* ITEM 15 — a conta dos sinais vai pronta: é o crivo de aceite no
          portal e no e-mail, e ninguém precisa refazer a matemática. */
@@ -1808,6 +1860,10 @@
   somarRenda();
   F().unidade.addEventListener('change', function(){
     F().unidade.dataset.escolhida = F().unidade.value;   // sobrevive à atualização ao vivo
+    /* r62 — trocou de unidade: o aviso anterior (ex.: "a unidade X está
+       vendida") não vale mais; avisarReserva mostra o da nova, se houver. */
+    var avU=document.getElementById('avisoUnidade');
+    if(avU && livresDisponiveis()){ avU.style.display='none'; avU.className='status erro'; }
     aoTrocarUnidade();
   });
   carregarUnidades();

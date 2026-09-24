@@ -377,7 +377,8 @@
     mostrarPlantaModal(u);
     // lista das unidades desse tipo
     /* ITEM 11 — cada unidade livre tem os dois caminhos: simular e enviar
-       proposta. Reservada ainda simula, mas não recebe proposta. */
+       proposta. r62 — reservada também tem os dois: a proposta entra, mas só
+       é analisada se houver desistência (o aviso aparece no formulário). */
     document.getElementById('mUns').innerHTML = us.map(function(x){
       var livre = disponivelParaVenda(x), res = reservado(x);
       var est = vendido(x)?'Vendida':(res?'Reservada':(indisponivel(x)?'Em breve':'Disponível'));
@@ -385,7 +386,8 @@
       var botoes = livre
         ? '<div class="cta2"><button class="s" onclick="event.stopPropagation();simular('+a+')">Simular</button>'+
           '<button class="p" onclick="event.stopPropagation();proposta('+a+')">Proposta</button></div>'
-        : (res ? '<div class="cta2"><button class="s" onclick="event.stopPropagation();simular('+a+')">Simular</button></div>' : '');
+        : (res ? '<div class="cta2"><button class="s" onclick="event.stopPropagation();simular('+a+')">Simular</button>'+
+                 '<button class="p" onclick="event.stopPropagation();proposta('+a+')">Proposta</button></div>' : '');
       return '<div class="un-chip'+(livre?' ok':' off')+'"'+(res?' style="opacity:.8"':'')+'><b>Un. '+x.unidade+'</b>'+
              '<small>'+(x.valorVenda?fmt(x.valorVenda):'—')+'<br>'+est+'</small>'+botoes+'</div>';
     }).join('');
@@ -476,13 +478,14 @@
       document.getElementById('popProp').title='';
       avisoProp.style.display='none';
     }else if(est==='RESERVADA'){
-      /* Item 14: reservada não aceita nova proposta, mas continua podendo
-         simular — o corretor precisa do número mesmo sem a unidade livre. */
+      /* r62 — reservada volta a aceitar proposta (e simulação). Quem envia
+         fica ciente de que ela só é analisada se houver desistência. */
       pop.classList.remove('indisponivel'); acoes.style.display='flex';
-      document.getElementById('popProp').disabled=true;
-      document.getElementById('popProp').title='Unidade reservada — proposta bloqueada.';
+      document.getElementById('popProp').disabled=false;
+      document.getElementById('popProp').title='Unidade reservada — a proposta só é analisada se houver desistência.';
       avisoProp.style.display='block';
-      avisoProp.textContent='Unidade reservada. Dá para simular, mas não para enviar proposta.';
+      avisoProp.innerHTML='<b>Unidade reservada.</b> Dá para simular e enviar proposta, mas ela só será '+
+                          'analisada caso haja desistência da reserva atual.';
     }else{
       pop.classList.add('indisponivel'); acoes.style.display='none';
       avisoProp.style.display='none';

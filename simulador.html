@@ -66,6 +66,8 @@
   .status.processando{background:#FBEEC8;border-color:var(--amarelo);color:var(--marrom);}
   .status.ok{background:#EAF6EF;border-color:#8CC9A5;color:#1D5433;}
   .status.erro{background:#FBEDEA;border-color:#E2A493;color:#8A2E17;}
+  /* r62 — unidade reservada: aviso azul (informação, não erro) */
+  .status.reservada{background:#EAF2FA;border-color:#BBD5EC;border-left:4px solid #1F6FB2;color:#1F4E79;}
   .resumo{background:var(--fundo);border:1px dashed var(--borda);border-radius:8px;padding:16px;font-size:13px;color:var(--texto-suave);line-height:1.6;}
   .copia{font-size:12px;color:var(--texto-suave);margin-top:6px;}
   @media(max-width:640px){.linha{grid-template-columns:1fr;}header h1{font-size:15px;}}
@@ -107,6 +109,8 @@
         <div class="campo"><label>Valor de Compra e Venda</label><input type="text" id="valorVendaDisp" readonly></div>
         <div class="campo"><label>Valor de Avaliação</label><input type="text" id="valorAvalDisp" readonly></div>
       </div>
+      <!-- r62 — aparece quando a unidade escolhida está RESERVADA -->
+      <div id="avisoReservaSim" class="status reservada" style="display:none;margin:0 0 14px"></div>
       <div class="campo full">
         <label>Perfil do(s) proponente(s)</label>
         <div class="checks">
@@ -132,7 +136,9 @@
         <div class="campo"><label>Data de Nascimento<span class="obrig">*</span></label><input type="date" name="dataNascimento" required></div>
         <div class="campo"><label>Renda Individual (R$)<span class="obrig">*</span></label><input type="text" name="rendaIndividual" inputmode="numeric" placeholder="0,00" required></div>
       </div>
-      <div class="rodape"><span></span><button type="button" class="btn-primario" onclick="irPara(2)">Próximo</button></div>
+      <!-- r62 (item 2) — aviso do que falta no passo 1 -->
+      <div id="avisoPasso1" class="status erro" style="display:none"></div>
+      <div class="rodape"><span></span><button type="button" class="btn-primario" onclick="if(validarPasso1())irPara(2)">Próximo</button></div>
     </section>
 
     <section class="card etapa oculto" data-etapa="2">
@@ -248,6 +254,14 @@
           Li o aviso acima e estou ciente de que esta simulação é uma <b>estimativa</b>, sem garantia de aprovação pela CAIXA.
         </label>
       </div>
+      <!-- r62 — só aparece quando a unidade escolhida está RESERVADA -->
+      <div class="campo full" id="boxCienciaReservaSim" style="margin-top:8px;display:none">
+        <label class="check" style="font-weight:400;color:#1F4E79;">
+          <input type="checkbox" id="cienciaReservaSim">
+          Estou ciente de que a <b>unidade <span id="unCienciaReservaSim"></span> está reservada</b> e de que uma
+          proposta para ela <b>só será analisada caso haja desistência</b> da reserva atual.
+        </label>
+      </div>
       <div class="rodape">
         <button type="button" class="btn-secundario" onclick="irPara(2)">Voltar</button>
         <button type="submit" class="btn-primario">Enviar solicitação</button>
@@ -340,11 +354,59 @@
       var v=Number(u.valorVenda)||0;
       return '<option value="'+u.unidade+'">Unidade '+u.unidade+(u.decorado?' (Decorado)':'')+
              ' — T'+(u.tipo||'—')+(v?' · R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'')+
+             (ehReservada(u)?' · RESERVADA':'')+
              '</option>';
     }).join('');
     aoTrocarUnidade();
   }
-  function aoTrocarUnidade(){var u=unidadeAtual();if(!u)return;
+  /* r62 — mesma regra do mapa: VENDIDA = SIM; RESERVADA = reservado ou
+     VENDIDA "RESERVADA" no Notion. */
+  function ehReservada(u){
+    if(!u) return false;
+    var cru=String(u.vendidaCru||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
+    if(u.vendido===true || cru==='SIM') return false;
+    return u.reservado===true || cru==='RESERVADA' || cru==='RESERVADO';
+  }
+  function avisarReservaSim(){
+    var u=unidadeAtual(), res=ehReservada(u);
+    var av=document.getElementById('avisoReservaSim');
+    if(av){
+      av.style.display = res ? 'block' : 'none';
+      av.innerHTML = res ? '<b>A unidade '+u.unidade+' está RESERVADA.</b><br>A simulação sai normalmente, '+
+        'mas uma proposta para esta unidade <b>só será analisada caso haja desistência</b> da reserva atual.' : '';
+    }
+    var box=document.getElementById('boxCienciaReservaSim');
+    if(box){
+      box.style.display = res ? '' : 'none';
+      if(!res) document.getElementById('cienciaReservaSim').checked=false;
+      document.getElementById('unCienciaReservaSim').textContent = res ? u.unidade : '';
+    }
+  }
+  /* r62 (item 2) — igual ao SIOP: marcou "já beneficiado", a data é
+     obrigatória; marcou "relacionamento com a CAIXA", uma das duas opções de
+     baixo é obrigatória. Retorna a mensagem do que falta, ou ''. */
+  function faltaPerfilCaixa(f){
+    if(f.jaBeneficiado.checked && !f.dataConcessaoBeneficio.value)
+      return {msg:'Você marcou <b>já beneficiado com subsídio FGTS/União</b>: informe a <b>data da concessão do benefício</b>.',
+              campo:f.dataConcessaoBeneficio};
+    if(f.relacionamentoCaixa.checked && !f.servidorPublico.checked && !f.creditoSalarioCaixa.checked)
+      return {msg:'Você marcou <b>relacionamento com a CAIXA</b>: marque pelo menos uma das opções abaixo dele '+
+                  '(servidor público ou crédito salário/Previdência).', campo:f.servidorPublico};
+    return null;
+  }
+  function validarPasso1(){
+    var f=document.getElementById('formSimulacao');
+    var av=document.getElementById('avisoPasso1');
+    var falta=faltaPerfilCaixa(f);
+    if(falta){
+      av.style.display='block'; av.innerHTML=falta.msg;
+      try{ falta.campo.scrollIntoView({block:'center',behavior:'smooth'}); falta.campo.focus({preventScroll:true}); }catch(e){}
+      return false;
+    }
+    av.style.display='none';
+    return true;
+  }
+  function aoTrocarUnidade(){var u=unidadeAtual();avisarReservaSim();if(!u)return;
     document.getElementById('valorVendaDisp').value='R$ '+fmt(u.valorVenda);
     document.getElementById('valorAvalDisp').value='R$ '+fmt(u.avaliacao);atualizarComissao();}
   function atualizarComissao(){var u=unidadeAtual();if(!u)return;
@@ -400,6 +462,8 @@
     document.getElementById('boxRelacionamento').style.display = rel ? '' : 'none';
     if(!ben) f.dataConcessaoBeneficio.value='';
     if(!rel){ f.servidorPublico.checked=false; f.creditoSalarioCaixa.checked=false; }
+    var av1=document.getElementById('avisoPasso1');
+    if(av1 && av1.style.display==='block' && !faltaPerfilCaixa(f)) av1.style.display='none';
   }
 
   function irPara(n){
@@ -553,6 +617,14 @@
   document.getElementById('formSimulacao').addEventListener('submit',async function(e){
     e.preventDefault();
     var u=unidadeAtual();if(!u){mostrarStatus('erro','Selecione a unidade.');return;}
+    /* r62 (item 2) — o passo 1 pode ter sido pulado pelo indicador de passos */
+    var faltaCx=faltaPerfilCaixa(e.target);
+    if(faltaCx){ irPara(1); validarPasso1(); return; }
+    if(ehReservada(u) && !document.getElementById('cienciaReservaSim').checked){
+      mostrarStatus('erro','A unidade '+u.unidade+' está <b>reservada</b>: marque a declaração de que uma proposta '+
+                    'para ela só será analisada caso haja desistência.');
+      return;
+    }
     if(!produtosSelecionados.length){mostrarStatus('erro','Selecione ao menos uma linha de financiamento (passo 2).');return;}
     if(parseMoeda(e.target.valorEntrada.value)<10000){
       mostrarStatus('erro','O <b>valor para entrada</b> precisa ser de pelo menos R$ 10.000,00 (passo 2).');return;
@@ -595,7 +667,9 @@
       produtos:produtosSelecionados,
       corretor:padrao(f.corretor.value), imobiliaria:padrao(f.imobiliaria.value),
       nomeCliente:padrao(f.nomeCliente.value), cpfCliente:padraoCpf(f.cpfCliente.value),
-      emailDestino:padraoEmail(f.emailDestino.value), emailCopia:EMAIL_COPIA });
+      emailDestino:padraoEmail(f.emailDestino.value), emailCopia:EMAIL_COPIA,
+      /* r62 — a unidade estava reservada no envio (o servidor confere) */
+      unidadeReservada:ehReservada(u) });
     botao.disabled=true; mostrarStatus('processando','Enviando sua solicitação...');
     try{
       var r=await enviarComRetentativas(dados,3);

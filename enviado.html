@@ -148,24 +148,43 @@
   /* uma leitura só: um F5 depois não reaproveita texto velho de outro envio */
   try{ sessionStorage.removeItem('envioConcluido'); }catch(e){}
 
+  function listaResultados(s){
+    var html = '';
+    (s.resultados || []).forEach(function(rr){
+      html += '<div class="bloco"><b>' + esc(rr.linha || 'Linha') + '</b><ul>';
+      (rr.valores || []).forEach(function(v){ html += '<li>' + esc(v) + '</li>'; });
+      html += '</ul></div>';
+    });
+    return html;
+  }
+
   function acompanhar(id){
-    var tentativas = 0;
+    var tentativas = 0, viuOffline = false;
     var timer = setInterval(function(){
       tentativas++;
-      if(tentativas > 180){ clearInterval(timer); return; }   // ~15 min
+      /* r64 — com a preliminar (offline) na tela, continua acompanhando por
+         até 2 h, esperando a definitiva; senão, ~15 min como antes. */
+      if(tentativas > (viuOffline ? 1440 : 180)){ clearInterval(timer); return; }
       fetch(APPS_SCRIPT_URL + '?' + new URLSearchParams({acao:'status', id:id}))
         .then(function(r){ return r.json(); })
         .then(function(s){
-          if(s.status === 'concluido'){
+          if(s.status === 'offline'){
+            /* r64 — SIOP fora do ar: saiu a PRELIMINAR (base offline) */
+            viuOffline = true;
+            var temPrelim = (s.resultados || []).length > 0;
+            estado('processando', temPrelim ? 'Simulação PRELIMINAR enviada' : 'Aguardando o sistema da CAIXA',
+              temPrelim ? 'O sistema da CAIXA está fora do ar: os valores abaixo são <b>aproximados</b> (base offline). ' +
+                          'A simulação <b>definitiva</b> é feita sozinha quando a CAIXA voltar e chega por e-mail.'
+                        : 'O sistema da CAIXA está fora do ar e este perfil não está na base offline. ' +
+                          'A simulação é feita sozinha quando a CAIXA voltar e chega por e-mail.');
+            $('corpo').innerHTML = '<div class="bloco info"><b>PRELIMINAR — valores aproximados.</b> ' +
+              esc(s.mensagem || '') + '</div>' + listaResultados(s);
+          } else if(s.status === 'concluido'){
             clearInterval(timer);
-            estado('ok', 'Simulação concluída',
+            estado('ok', viuOffline ? 'Simulação DEFINITIVA concluída' : 'Simulação concluída',
               s.email_enviado ? 'O resultado foi enviado por e-mail.' : 'O e-mail com o resultado sai em instantes.');
-            var html = '';
-            (s.resultados || []).forEach(function(rr){
-              html += '<div class="bloco"><b>' + esc(rr.linha || 'Linha') + '</b><ul>';
-              (rr.valores || []).forEach(function(v){ html += '<li>' + esc(v) + '</li>'; });
-              html += '</ul></div>';
-            });
+            var html = listaResultados(s);
+            if(viuOffline) html = '<div class="bloco ok"><b>Definitiva, feita no sistema da CAIXA.</b> Substitui a preliminar.</div>' + html;
             $('corpo').innerHTML = html || '<div class="bloco ok">Simulação concluída.</div>';
           } else if(s.status === 'erro'){
             clearInterval(timer);

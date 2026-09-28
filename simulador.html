@@ -197,6 +197,19 @@
           <span class="ajuda">Em branco = hoje. Serve para conferir como o fluxo se reorganiza depois de 20/11/2026.</span>
         </div>
       </div>
+      <!-- r64 — TESTE da contingência "SIOP fora do ar" -->
+      <div class="linha">
+        <div class="campo">
+          <label>Sistema da CAIXA (teste)</label>
+          <select name="modoSiop">
+            <option value="">AUTOMÁTICO — SIOP; se estiver fora, base offline</option>
+            <option value="ONLINE">USAR ONLINE — só o SIOP</option>
+            <option value="OFFLINE">USAR OFFLINE — finge SIOP fora (preliminar + definitiva depois)</option>
+          </select>
+          <span class="ajuda">Deixe em <b>AUTOMÁTICO</b> no uso normal. USAR OFFLINE manda a simulação
+          <b>preliminar</b> pela base offline e, alguns minutos depois, a <b>definitiva</b> pelo SIOP.</span>
+        </div>
+      </div>
 
 
       <div class="campo full">
@@ -664,6 +677,7 @@
       valorEntradaInformado:parseMoeda(f.valorEntrada.value),
       valorEntradaSinais:Math.min(10000, parseMoeda(f.valorEntrada.value)),
       dataSimulacao:(f.dataSimulacao.value||''),
+      modoSiop:(f.modoSiop ? f.modoSiop.value : ''),   /* r64 — teste ONLINE/OFFLINE */
       produtos:produtosSelecionados,
       corretor:padrao(f.corretor.value), imobiliaria:padrao(f.imobiliaria.value),
       nomeCliente:padrao(f.nomeCliente.value), cpfCliente:padraoCpf(f.cpfCliente.value),

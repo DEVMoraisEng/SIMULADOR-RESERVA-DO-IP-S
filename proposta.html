@@ -324,6 +324,14 @@
       <div class="campo"><label>Data de referência</label>
         <input type="date" name="dataRef" onchange="montarFluxo()">
         <span class="ajuda">Em branco = hoje.</span></div>
+      <!-- r64 — TESTE da contingência "SIOP fora do ar" -->
+      <div class="campo"><label>Sistema da CAIXA (teste)</label>
+        <select name="modoSiop">
+            <option value="">AUTOMÁTICO — SIOP; se estiver fora, base offline</option>
+            <option value="ONLINE">USAR ONLINE — só o SIOP</option>
+            <option value="OFFLINE">USAR OFFLINE — finge SIOP fora (preliminar + definitiva depois)</option>
+          </select>
+        <span class="ajuda">Só vale quando a proposta simula na CAIXA. Deixe em <b>AUTOMÁTICO</b> no uso normal.</span></div>
     </div>
 
     <div class="secao" id="secaoSiop">Dados para a simulação da CAIXA</div>
@@ -1586,6 +1594,7 @@
       saldoFgts:moeda(f.saldoFgts.value), subsidio:moeda(f.subsidio.value),
       valorEntrada:moeda(f.valorEntrada.value), creditoAprovado:moeda(f.creditoAprovado.value),
       banco:padrao(f.banco.value), prazo:f.prazo.value, dataRef:f.dataRef.value,
+      modoSiop:(f.modoSiop ? f.modoSiop.value : ''),   /* r64 — teste ONLINE/OFFLINE */
       sistemaAmortizacao:f.sistemaAmortizacao.value,
       /* ITEM 12 — só é perguntado sem crédito aprovado */
       possuiImovel:!!f.possuiImovelCidade.checked,   /* r46 — vem do bloco da CAIXA */

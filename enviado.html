@@ -168,6 +168,9 @@
       fetch(APPS_SCRIPT_URL + '?' + new URLSearchParams({acao:'status', id:id}))
         .then(function(r){ return r.json(); })
         .then(function(s){
+          /* r64 — as opções do Notion estão em MAIÚSCULAS (CONCLUIDO, ERRO...):
+             compara sem caixa, senão a tela nunca saía de "processando". */
+          s.status = String(s.status || '').toLowerCase();
           if(s.status === 'offline'){
             /* r64 — SIOP fora do ar: saiu a PRELIMINAR (base offline) */
             viuOffline = true;

@@ -9,8 +9,8 @@
     "decorado": true,
     "disponivel": false,
     "reservado": false,
-    "vendido": true,
-    "vendidaCru": "SIM"
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "2",
@@ -21,9 +21,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "reservado": false,
-    "vendido": true,
-    "vendidaCru": "SIM"
+    "reservado": true,
+    "vendido": false,
+    "vendidaCru": "RESERVADA"
   },
   {
     "unidade": "3",

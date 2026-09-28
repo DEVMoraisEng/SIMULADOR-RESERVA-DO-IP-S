@@ -197,17 +197,17 @@
           <span class="ajuda">Em branco = hoje. Serve para conferir como o fluxo se reorganiza depois de 20/11/2026.</span>
         </div>
       </div>
-      <!-- r64 — TESTE da contingência "SIOP fora do ar" -->
+      <!-- r64 — TESTE do sistema offline -->
       <div class="linha">
         <div class="campo">
-          <label>Sistema da CAIXA (teste)</label>
+          <label>Sistema de simulação (teste)</label>
           <select name="modoSiop">
-            <option value="">AUTOMÁTICO — SIOP; se estiver fora, base offline</option>
-            <option value="ONLINE">USAR ONLINE — só o SIOP</option>
-            <option value="OFFLINE">USAR OFFLINE — finge SIOP fora (preliminar + definitiva depois)</option>
+            <option value="">AUTOMÁTICO — online; se indisponível, sistema offline</option>
+            <option value="ONLINE">USAR ONLINE — só o sistema online</option>
+            <option value="OFFLINE">USAR OFFLINE — sistema offline (preliminar + definitiva depois)</option>
           </select>
           <span class="ajuda">Deixe em <b>AUTOMÁTICO</b> no uso normal. USAR OFFLINE manda a simulação
-          <b>preliminar</b> pela base offline e, alguns minutos depois, a <b>definitiva</b> pelo SIOP.</span>
+          <b>preliminar</b> pelo sistema offline e, alguns minutos depois, a <b>definitiva</b> pelo sistema online.</span>
         </div>
       </div>
 

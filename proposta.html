@@ -324,12 +324,12 @@
       <div class="campo"><label>Data de referência</label>
         <input type="date" name="dataRef" onchange="montarFluxo()">
         <span class="ajuda">Em branco = hoje.</span></div>
-      <!-- r64 — TESTE da contingência "SIOP fora do ar" -->
-      <div class="campo"><label>Sistema da CAIXA (teste)</label>
+      <!-- r64 — TESTE do sistema offline -->
+      <div class="campo"><label>Sistema de simulação (teste)</label>
         <select name="modoSiop">
-            <option value="">AUTOMÁTICO — SIOP; se estiver fora, base offline</option>
-            <option value="ONLINE">USAR ONLINE — só o SIOP</option>
-            <option value="OFFLINE">USAR OFFLINE — finge SIOP fora (preliminar + definitiva depois)</option>
+            <option value="">AUTOMÁTICO — online; se indisponível, sistema offline</option>
+            <option value="ONLINE">USAR ONLINE — só o sistema online</option>
+            <option value="OFFLINE">USAR OFFLINE — sistema offline (preliminar + definitiva depois)</option>
           </select>
         <span class="ajuda">Só vale quando a proposta simula na CAIXA. Deixe em <b>AUTOMÁTICO</b> no uso normal.</span></div>
     </div>
@@ -337,7 +337,7 @@
     <div class="secao" id="secaoSiop">Dados para a simulação da CAIXA</div>
     <div id="boxSiop">
       <p class="ajuda" style="margin:0 0 10px">
-        Quando o crédito bate no teto de 80%, o sistema roda a simulação no SIOP
+        Quando o crédito bate no teto de 80%, o sistema roda a simulação
         automaticamente. Ele precisa exatamente destes campos — são os mesmos do
         simulador. Sem eles a parcela sairia de um perfil padrão, que raramente é
         o do cliente.

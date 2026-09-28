@@ -175,11 +175,11 @@
             /* r64 — SIOP fora do ar: saiu a PRELIMINAR (base offline) */
             viuOffline = true;
             var temPrelim = (s.resultados || []).length > 0;
-            estado('processando', temPrelim ? 'Simulação PRELIMINAR enviada' : 'Aguardando o sistema da CAIXA',
-              temPrelim ? 'O sistema da CAIXA está fora do ar: os valores abaixo são <b>aproximados</b> (base offline). ' +
-                          'A simulação <b>definitiva</b> é feita sozinha quando a CAIXA voltar e chega por e-mail.'
-                        : 'O sistema da CAIXA está fora do ar e este perfil não está na base offline. ' +
-                          'A simulação é feita sozinha quando a CAIXA voltar e chega por e-mail.');
+            estado('processando', temPrelim ? 'Simulação PRELIMINAR enviada' : 'Aguardando o sistema online',
+              temPrelim ? 'Simulação feita no <b>sistema offline</b>: os valores abaixo são <b>aproximados</b>. ' +
+                          'A simulação <b>definitiva</b> é feita sozinha quando o sistema online voltar e chega por e-mail.'
+                        : 'O sistema online está indisponível e este perfil não está no sistema offline. ' +
+                          'A simulação é feita sozinha quando o sistema online voltar e chega por e-mail.');
             $('corpo').innerHTML = '<div class="bloco info"><b>PRELIMINAR — valores aproximados.</b> ' +
               esc(s.mensagem || '') + '</div>' + listaResultados(s);
           } else if(s.status === 'concluido'){
@@ -187,7 +187,7 @@
             estado('ok', viuOffline ? 'Simulação DEFINITIVA concluída' : 'Simulação concluída',
               s.email_enviado ? 'O resultado foi enviado por e-mail.' : 'O e-mail com o resultado sai em instantes.');
             var html = listaResultados(s);
-            if(viuOffline) html = '<div class="bloco ok"><b>Definitiva, feita no sistema da CAIXA.</b> Substitui a preliminar.</div>' + html;
+            if(viuOffline) html = '<div class="bloco ok"><b>Definitiva, feita no sistema online.</b> Substitui a preliminar.</div>' + html;
             $('corpo').innerHTML = html || '<div class="bloco ok">Simulação concluída.</div>';
           } else if(s.status === 'erro'){
             clearInterval(timer);

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulação Offline – Reserva do Ipês</title>
+<style>
+  :root{
+    --marrom:#7A4A16; --marrom2:#A86018; --amarelo:#EFB700; --amarelo2:#D8A818;
+    --texto:#2A2118; --texto-suave:#6B5A45; --borda:#E7DCC7; --fundo:#FBF7EE;
+    --branco:#FFFFFF; --erro:#B0431F; --ok:#2E6B3A;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:var(--fundo);color:var(--texto);}
+  header{background:linear-gradient(135deg,var(--marrom),var(--marrom2));color:#fff;padding:16px 28px;display:flex;align-items:center;gap:18px;}
+  header .logos{display:flex;align-items:center;gap:12px;}
+  header .logos img{height:48px;width:auto;background:#fff;border-radius:8px;padding:4px;}
+  header h1{font-size:17px;font-weight:700;margin:0;}
+  header span{font-size:12px;color:var(--amarelo);font-weight:600;}
+  main{max-width:800px;margin:28px auto 80px;padding:0 20px;}
+  .card{background:var(--branco);border:1px solid var(--borda);border-radius:10px;padding:26px;margin-bottom:18px;}
+  .card h2{margin-top:0;font-size:16px;color:var(--marrom);border-bottom:2px solid var(--amarelo);padding-bottom:12px;margin-bottom:20px;}
+  .linha{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+  .campo{display:flex;flex-direction:column;gap:6px;}
+  .campo.full{grid-column:1 / -1;}
+  label{font-size:13px;font-weight:600;color:var(--texto-suave);}
+  input,select{padding:10px 12px;border:1px solid var(--borda);border-radius:6px;font-size:14px;color:var(--texto);background:var(--branco);width:100%;}
+  input:focus,select:focus{outline:none;border-color:var(--marrom2);box-shadow:0 0 0 3px rgba(168,96,24,.15);}
+  input[readonly]{background:#FBEEC8;color:var(--marrom);font-weight:700;}
+  .ajuda{font-size:12px;color:var(--texto-suave);}
+  .perfis{display:flex;gap:10px;}
+  .perfil{flex:1;border:1px solid var(--borda);border-radius:8px;padding:12px;cursor:pointer;font-size:13px;font-weight:600;color:var(--marrom);}
+  .perfil:has(input:checked){border-color:var(--marrom2);background:#FBEEC8;}
+  .perfil input{display:none;}
+  .perfil small{display:block;color:var(--texto-suave);font-weight:400;margin-top:4px;}
+  button{padding:11px 22px;border-radius:6px;border:none;font-size:14px;font-weight:700;cursor:pointer;}
+  .btn-primario{background:var(--amarelo);color:var(--marrom);}
+  .btn-primario:hover{background:var(--amarelo2);}
+  .btn-secundario{background:var(--branco);color:var(--marrom);border:1px solid var(--borda);}
+  .status{padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:14px;}
+  .status.ok{background:#EAF3EC;border:1px solid #BFD9C5;color:var(--ok);}
+  .status.aviso{background:#FBEEC8;border:1px solid var(--amarelo);color:var(--marrom);}
+  .status.erro{background:#FBEDEA;border:1px solid #E2A493;color:#8A2E17;}
+  .grid-res{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .res{border:1px solid var(--borda);border-radius:8px;padding:12px 14px;}
+  .res small{display:block;font-size:12px;color:var(--texto-suave);}
+  .res b{display:block;font-size:22px;color:var(--marrom);margin-top:2px;}
+  .res.destaque{background:#FBEEC8;border-color:var(--amarelo);}
+  .res b.menor{font-size:16px;}
+  .rodape{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:10px;flex-wrap:wrap;}
+  .oculto{display:none;}
+  .disc{font-size:12px;color:var(--texto-suave);border-top:1px dashed var(--borda);padding-top:12px;margin-top:16px;line-height:1.5;}
+  @media (max-width:600px){.linha,.grid-res{grid-template-columns:1fr;}.perfis{flex-direction:column;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logos">
+    <img src="assets/logo-ipes.jpg" alt="Reserva do Ipês" onerror="this.style.display='none'">
+    <img src="assets/logo-morais.png" alt="Morais Engenharia" onerror="this.style.display='none'">
+  </div>
+  <div>
+    <h1>Simulação Offline – Reserva do Ipês</h1>
+    <span>Sistema offline — valores aproximados (para quando o sistema online estiver indisponível)</span>
+  </div>
+</header>
+
+<main>
+  <div id="statusBase" class="status aviso">Carregando a base…</div>
+
+  <section class="card">
+    <h2>Perfil e renda do proponente</h2>
+    <div class="campo full" style="margin-bottom:16px">
+      <label>Perfil</label>
+      <div class="perfis">
+        <label class="perfil"><input type="radio" name="perfil" value="FGTS" checked>Possui 3 anos de FGTS<small>Sem imóvel · linha NPMCMV</small></label>
+        <label class="perfil"><input type="radio" name="perfil" value="CASA">Possui imóvel<small>Linha SBPE</small></label>
+      </div>
+    </div>
+    <div class="linha">
+      <div class="campo"><label>Data de nascimento</label><input type="date" id="nasc"></div>
+      <div class="campo"><label>ou idade (anos)</label><input type="number" id="idade" min="18" max="80" placeholder="18 a 50"></div>
+    </div>
+    <div class="linha">
+      <div class="campo"><label>Renda bruta (R$)</label><input type="text" id="renda" inputmode="numeric" placeholder="0,00"></div>
+      <div class="campo"><label>Unidade (opcional, para a entrada)</label><select id="unidade"><option value="">— só o crédito —</option></select></div>
+    </div>
+    <div class="linha">
+      <div class="campo"><label>Sistema de amortização</label>
+        <select id="sistema"><option value="PRICE">PRICE (parcelas iguais)</option><option value="SAC">SAC (parcela decrescente)</option></select>
+      </div>
+      <div class="campo"><label>&nbsp;</label><span class="ajuda" id="ajudaSistema">No SAC a 1ª parcela é a maior; ela cai todo mês.</span></div>
+    </div>
+    <div class="rodape">
+      <span class="ajuda">Base: valor do imóvel R$ <span id="valorImovel">306.000,00</span>, até <span id="prazoBase">420</span> meses, 1 proponente.</span>
+      <button class="btn-primario" id="btnConsultar">Consultar</button>
+    </div>
+  </section>
+
+  <section class="card oculto" id="cardResultado">
+    <h2>Resultado</h2>
+    <div id="avisoRef" class="status aviso oculto"></div>
+    <div class="grid-res">
+      <div class="res destaque"><small>Crédito (valor financiado)</small><b id="rFin">–</b></div>
+      <div class="res destaque"><small id="lblParc">1ª prestação</small><b id="rParc">–</b></div>
+      <div class="res"><small>Prazo</small><b class="menor" id="rPrazo">–</b></div>
+      <div class="res"><small>Comprometimento da renda</small><b class="menor" id="rComp">–</b></div>
+      <div class="res"><small>Linha de financiamento</small><b class="menor" id="rProd">–</b></div>
+      <div class="res"><small>Sistema de amortização</small><b class="menor" id="rSis">–</b></div>
+      <div class="res"><small>Juros</small><b class="menor" id="rJuros">–</b></div>
+      <div class="res oculto" id="boxEntrada"><small>Entrada estimada (valor de venda − crédito)</small><b class="menor" id="rEntrada">–</b></div>
+      <div class="res oculto" id="boxVenda"><small>Valor de venda da unidade</small><b class="menor" id="rVenda">–</b></div>
+    </div>
+    <div class="disc">
+      Valores do sistema offline (referência de <b id="rData">–</b>) para o ponto indicado acima — são aproximados.
+      É apenas uma estimativa: não vale como proposta, não reflete o contrato e o crédito real depende da análise e aprovação da CAIXA.
+      Na entrada não estão descontados FGTS e subsídio nem aplicada a regra dos sinais (R$ 10.000).
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Base de dados</h2>
+    <div class="linha">
+      <div class="campo"><label>Gerada em</label><input type="text" id="bGerado" readonly></div>
+      <div class="campo"><label>Cobertura</label><input type="text" id="bCobertura" readonly></div>
+    </div>
+    <div class="campo full">
+      <label>Se o site não carregar a base, escolha o arquivo <code>base_offline.json</code> do PC do worker</label>
+      <input type="file" id="arquivo" accept=".json,application/json">
+    </div>
+  </section>
+</main>
+
+<script>
+  var BASE=null, IDX={}, UNIDADES=[];
+
+  function fmt(v){return (v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function parseMoeda(s){if(s==null)return 0;s=String(s).replace(/\./g,'').replace(',','.').replace(/[^0-9.]/g,'');return parseFloat(s)||0;}
+  function status(cls,msg){var e=document.getElementById('statusBase');e.className='status '+cls;e.innerHTML=msg;}
+
+  // ---------- carga da base ----------
+  function indexar(base){
+    BASE=base; IDX={};
+    var c=base.colunas, R=base.registros;
+    var iP=c.indexOf('perfil'),iI=c.indexOf('idade'),iR=c.indexOf('renda'),iS=c.indexOf('status'),iSis=c.indexOf('sistema');
+    var ok=0, porSis={};
+    R.forEach(function(r){
+      if(r[iS]!=='ok')return; ok++;
+      var sis=iSis>=0?r[iSis]:'PRICE';          // base antiga (sem SAC) = tudo PRICE
+      porSis[sis]=(porSis[sis]||0)+1;
+      var p=r[iP]+'|'+sis; if(!IDX[p])IDX[p]={};
+      if(!IDX[p][r[iI]])IDX[p][r[iI]]={};
+      IDX[p][r[iI]][r[iR]]=r;
+    });
+    document.getElementById('valorImovel').textContent=fmt(base.valorImovel);
+    document.getElementById('prazoBase').textContent=base.prazoMeses||420;
+    document.getElementById('bGerado').value=base.geradoEm||'?';
+    var tot=(base.totais||{}).grade||0;
+    document.getElementById('bCobertura').value=ok+' pontos'+(tot?' de '+tot+' ('+Math.round(100*ok/tot)+'%)':'')
+      +' · '+Object.keys(porSis).sort().map(function(k){return k+' '+porSis[k];}).join(' · ');
+    var selS=document.getElementById('sistema');
+    Array.prototype.forEach.call(selS.options,function(o){o.disabled=!porSis[o.value];o.textContent=o.textContent.replace(/ — sem dados$/,'')+(porSis[o.value]?'':' — sem dados');});
+    if(!porSis[selS.value])selS.value='PRICE';
+    status('ok','Base carregada: <b>'+ok+'</b> simulações válidas (gerada em '+(base.geradoEm||'?')+').');
+  }
+  function carregarBase(){
+    return fetch('base_offline.json',{cache:'no-cache'})
+      .then(function(r){if(!r.ok)throw new Error(r.status);return r.json();})
+      .then(indexar)
+      .catch(function(){status('erro','Não consegui carregar <b>base_offline.json</b> pelo site. Use o seletor de arquivo abaixo (o JSON fica na raiz do repositório, gerado pelo PC do worker).');});
+  }
+  document.getElementById('arquivo').addEventListener('change',function(e){
+    var f=e.target.files[0]; if(!f)return;
+    var rd=new FileReader();
+    rd.onload=function(){try{indexar(JSON.parse(rd.result));}catch(err){status('erro','Arquivo inválido: '+err.message);}};
+    rd.readAsText(f,'utf-8');
+  });
+  function carregarUnidades(){
+    return fetch('unidades.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():[];}).catch(function(){return [];})
+      .then(function(u){
+        UNIDADES=Array.isArray(u)?u:[];
+        var sel=document.getElementById('unidade');
+        UNIDADES.slice().sort(function(a,b){return Number(a.unidade)-Number(b.unidade);}).forEach(function(x){
+          var o=document.createElement('option');o.value=x.unidade;
+          o.textContent='Unidade '+x.unidade+(x.tipo?' · Tipo '+x.tipo:'')+' · R$ '+fmt(x.valorVenda)+(x.vendido?' (vendida)':x.reservado?' (reservada)':'');
+          sel.appendChild(o);
+        });
+      });
+  }
+
+  // ---------- consulta ----------
+  function idadeDe(nasc){
+    var d=new Date(nasc+'T00:00:00'); if(isNaN(d))return null;
+    var h=new Date(), a=h.getFullYear()-d.getFullYear();
+    if(h.getMonth()<d.getMonth()||(h.getMonth()===d.getMonth()&&h.getDate()<d.getDate()))a--;
+    return a;
+  }
+  function buscar(perfil,idade,renda){
+    var tab=IDX[perfil]||{};
+    var idades=Object.keys(tab).map(Number).sort(function(a,b){return a-b;});
+    if(!idades.length)return null;
+    // referência conservadora: idade igual ou ACIMA, renda igual ou ABAIXO
+    var candI=idades.filter(function(i){return i>=idade;}); if(!candI.length)candI=[idades[idades.length-1]];
+    var melhor=null;
+    candI.forEach(function(i){
+      var rendas=Object.keys(tab[i]).map(Number).sort(function(a,b){return a-b;});
+      var abaixo=rendas.filter(function(r){return r<=renda;});
+      var r=abaixo.length?abaixo[abaixo.length-1]:null; if(r==null)return;
+      var custo=(i-idade)*1000+(renda-r);      // idade pesa mais que renda
+      if(!melhor||custo<melhor.custo)melhor={custo:custo,idade:i,renda:r,reg:tab[i][r]};
+    });
+    return melhor;
+  }
+  function col(reg,nome){var i=BASE.colunas.indexOf(nome);return i>=0?reg[i]:undefined;}
+
+  document.getElementById('btnConsultar').addEventListener('click',function(){
+    if(!BASE){status('erro','Base não carregada.');return;}
+    var sistema=document.getElementById('sistema').value;
+    var perfil=document.querySelector('[name="perfil"]:checked').value+'|'+sistema;
+    var idade=Number(document.getElementById('idade').value)||null;
+    var nasc=document.getElementById('nasc').value;
+    if(nasc)idade=idadeDe(nasc);
+    var renda=parseMoeda(document.getElementById('renda').value);
+    if(!idade||!renda){status('erro','Informe idade (ou data de nascimento) e renda.');return;}
+    var g=BASE.grade||{};
+    var m=buscar(perfil,idade,renda);
+    var card=document.getElementById('cardResultado');
+    var av=document.getElementById('avisoRef');
+    if(!m){card.classList.remove('oculto');av.className='status erro';av.textContent='Nenhum ponto da base atende (renda abaixo de R$ '+fmt(g.rendaMin||5750)+' ou perfil sem simulações).';
+      ['rFin','rParc','rPrazo','rComp','rProd','rJuros'].forEach(function(id){document.getElementById(id).textContent='–';});return;}
+    var r=m.reg;
+    document.getElementById('rFin').textContent='R$ '+fmt(col(r,'financiamento'));
+    document.getElementById('rParc').textContent='R$ '+fmt(col(r,'prestacao'));
+    document.getElementById('rPrazo').textContent=(col(r,'prazo')||'–')+' meses';
+    document.getElementById('rComp').textContent=col(r,'comprometimento')!=null?fmt(col(r,'comprometimento'))+'%':'–';
+    document.getElementById('rProd').textContent=col(r,'produto')||'–';
+    document.getElementById('rSis').textContent=sistema;
+    document.getElementById('lblParc').textContent=sistema==='SAC'?'1ª prestação (a maior — cai todo mês)':'1ª prestação';
+    document.getElementById('rJuros').textContent=col(r,'jurosNominais')||'–';
+    document.getElementById('rData').textContent=col(r,'dataSimulacao')||BASE.geradoEm||'–';
+    var avisos=[];
+    if(m.idade!==idade||m.renda!==renda)avisos.push('Ponto de referência usado: <b>idade '+m.idade+'</b>, <b>renda R$ '+fmt(m.renda)+'</b> (o mais próximo com idade igual ou maior e renda igual ou menor — estimativa conservadora).');
+    if(idade>(g.idadeMax||50))avisos.push('Idade acima de '+(g.idadeMax||50)+' anos: a base foi calculada até '+(g.idadeMax||50)+'; prazo e parcela reais tendem a ser piores.');
+    if(renda>(g.rendaMax||12000))avisos.push('Renda acima de R$ '+fmt(g.rendaMax||12000)+': usado o teto da base.');
+    av.className='status aviso'+(avisos.length?'':' oculto');av.innerHTML=avisos.join('<br>');
+    var un=UNIDADES.find(function(u){return String(u.unidade)===document.getElementById('unidade').value;});
+    document.getElementById('boxEntrada').classList.toggle('oculto',!un);
+    document.getElementById('boxVenda').classList.toggle('oculto',!un);
+    if(un){
+      document.getElementById('rVenda').textContent='R$ '+fmt(un.valorVenda);
+      document.getElementById('rEntrada').textContent='R$ '+fmt(Math.max(0,(un.valorVenda||0)-(col(r,'financiamento')||0)));
+    }
+    card.classList.remove('oculto');card.scrollIntoView({behavior:'smooth'});
+  });
+
+  document.getElementById('renda').addEventListener('blur',function(){var v=parseMoeda(this.value);if(v)this.value=fmt(v);});
+  document.getElementById('nasc').addEventListener('change',function(){var a=idadeDe(this.value);if(a!=null)document.getElementById('idade').value=a;});
+
+  carregarBase(); carregarUnidades();
+</script>
+</body>
+</html>

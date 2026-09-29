@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Completar informações para venda · Reserva do Ipês</title>
+<style>
+  :root{
+    --marrom:#7A4A16; --amarelo:#EFB700; --fundo:#FBF7EF; --borda:#E7DCC7;
+    --texto:#2A2118; --texto-suave:#6B5A45; --verde:#1D5433; --vermelho:#8A2E17;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fundo);color:var(--texto);
+       font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;font-size:15px;line-height:1.5}
+  header{background:linear-gradient(90deg,#5A3410,#7A4A16);color:#fff;padding:14px 18px}
+  header h1{margin:0;font-size:17px}
+  header span{font-size:12px;color:#F3DFB8}
+  main{max-width:860px;margin:0 auto;padding:18px 14px 60px}
+  .card{background:#fff;border:1px solid var(--borda);border-radius:12px;padding:18px;margin-bottom:14px}
+  h2{font-size:15px;color:var(--marrom);margin:0 0 4px}
+  .sub{font-size:13px;color:var(--texto-suave);margin:0 0 14px}
+  .grade{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:680px){.grade{grid-template-columns:1fr}}
+  label{display:block;font-size:12px;font-weight:700;color:var(--texto-suave);margin-bottom:3px}
+  input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--borda);border-radius:7px;
+    font:inherit;font-size:14px;background:#fff;color:var(--texto)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--amarelo);
+    box-shadow:0 0 0 3px rgba(239,183,0,.18)}
+  .falta input,.falta select{border-color:#E2A493;background:#FFFBFA}
+  input.lido{border-color:#8CC9A5 !important;background:#F3FAF6}
+  .marca{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;background:#FBEDEA;
+    color:var(--vermelho);font-size:10px;font-weight:800;vertical-align:middle}
+  .ok-marca{background:#EAF6EF;color:var(--verde)}
+  .marca.opc{background:#F1ECE2;color:var(--texto-suave)}
+  .doc{padding:12px 0;border-bottom:1px solid var(--borda)}
+  .doc:last-child{border-bottom:none}
+  .doc.pedido{background:#FFFBEF;border-left:3px solid var(--amarelo);padding-left:8px}
+  .doc > label{font-size:13.5px;color:var(--texto);font-weight:600;margin-bottom:6px}
+  .doc small{display:block;font-weight:400;font-size:11.5px;color:var(--texto-suave)}
+  .doc input[type=file]{border:none;padding:0;font-size:12px;background:transparent}
+  .doc .sel{max-width:260px;margin-bottom:8px}
+  .doc .subs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:680px){.doc .subs{grid-template-columns:1fr}}
+  .lst{font-size:12.5px;margin-top:4px}
+  .lst.ok{color:var(--verde);font-weight:700} .lst.err{color:var(--vermelho);font-weight:700} .lst.lendo{color:var(--texto-suave)}
+  button{border:none;border-radius:8px;padding:11px 20px;font-weight:800;font-size:14px;cursor:pointer}
+  .primario{background:var(--amarelo);color:var(--marrom)}
+  .primario:disabled{opacity:.6;cursor:default}
+  .aviso{padding:12px 14px;border-radius:8px;font-size:13.5px;margin-bottom:14px}
+  .aviso.erro{background:#FDECEA;border:1px solid #E2A493;color:var(--vermelho)}
+  .aviso.ok{background:#EAF6EF;border:1px solid #8CC9A5;color:var(--verde)}
+  .aviso.info{background:#FBEEC8;border:1px solid var(--amarelo);color:var(--marrom)}
+  .legal{font-size:11px;color:var(--texto-suave);line-height:1.5;border:1px solid var(--borda);
+    border-left:4px solid var(--marrom);border-radius:6px;padding:11px 13px;background:#FFFDF7}
+  .resumo{background:#FBEEC8;border:1px solid var(--amarelo);border-radius:8px;padding:11px 13px;
+    font-size:13.5px;color:var(--marrom);margin-bottom:14px}
+  .trava{padding:13px 15px;border-radius:10px;font-size:14px;margin-bottom:14px;line-height:1.5}
+  .trava.pend{background:#FDECEA;border:1px solid #E2A493;border-left:5px solid #C0392B;color:var(--vermelho)}
+  .trava.ok{background:#EAF6EF;border:1px solid #8CC9A5;border-left:5px solid #1D7A45;color:var(--verde)}
+  .trava ul{margin:6px 0 0 18px;padding:0}
+  .dica{font-size:12px;color:var(--texto-suave);margin:0 0 10px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Completar informações para venda</h1>
+  <span>Condomínio Reserva dos Ipês · Morais Engenharia e Construção</span>
+</header>
+
+<main>
+  <div id="estado" class="aviso info">Carregando o cadastro da venda…</div>
+  <div id="conteudo" style="display:none">
+
+    <div class="resumo" id="resumo"></div>
+    <div class="trava pend" id="trava"></div>
+
+    <div id="grupos"></div>
+
+    <div class="card" id="cardOutros">
+      <h2>Outros documentos <span class="marca opc">opcional</span></h2>
+      <p class="sub">Comprovante de estado civil, comprovantes de renda e qualquer outro arquivo que a Morais tenha pedido.</p>
+      <div id="docsOutros"></div>
+      <div id="resumoAnexos" class="sub" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <div class="legal">
+        <b>Aviso.</b> Os dados e documentos enviados aqui entram direto no cadastro desta venda e são usados
+        para a elaboração do contrato e o processo junto à CAIXA. Os documentos anexados são lidos automaticamente
+        apenas para preencher os campos — confira sempre o que foi preenchido. Se a leitura não for possível,
+        preencha manualmente. Dados pessoais tratados conforme a LGPD (Lei nº 13.709/2018).
+      </div>
+      <div id="avisoEnvio" class="aviso" style="display:none;margin-top:12px"></div>
+      <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="primario" id="btEnviar" onclick="enviar()">Enviar para a Morais</button>
+        <span class="sub" style="margin:0">Você pode enviar em partes: cada envio atualiza o cadastro.</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+/* =====================================================================
+ * COMPLETAR INFORMAÇÕES PARA VENDA (r66)
+ * ---------------------------------------------------------------------
+ * Aberta pelo link que o portal gera: ?p=<id da proposta>&t=<token>.
+ * Mostra o que já está no BANCO DE DADOS VENDAS CONDOMÍNIO, deixa
+ * completar o que falta e anexar os documentos. Os documentos (RG/CPF,
+ * CNH, comprovante de endereço) são lidos para preencher os campos; se
+ * a leitura falhar, a pessoa preenche à mão. Nada trava o envio.
+ * =================================================================== */
+var APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbzwUIApU5nKXi1vG3cEs_V2DWCdkLDwY_vo0zBxO59ZBLbEihIxuOqbHdNLm-8pVVwVJQ/exec';
+var LIMITE=20*1024*1024;
+var P=new URLSearchParams(location.search), ID=P.get('p')||'', TOKEN=P.get('t')||'';
+var DADOS=null;
+var ARQ={};            // chave do documento -> {sub: [File]}
+
+var TITULO_GRUPO={
+  prop:'Proponente', conjuge:'Cônjuge', comprador1:'Comprador 1', comprador2:'Comprador 2',
+  fiador1:'Fiador 1', fiador2:'Fiador 2', contato:'Contato', endereco:'Endereço',
+  pagamento:'Dia de pagamento das parcelas'
+};
+var ORDEM_GRUPO=['prop','conjuge','comprador1','comprador2','fiador1','fiador2','contato','endereco','pagamento'];
+/* documento -> campos que a leitura preenche */
+var MAPA_LEITURA={
+  docProponente:{nome:'proponente', cpf:'cpfProponente', rg:'rgProponente'},
+  docConjuge:{nome:'conjuge', cpf:'cpfConjuge', rg:'rgConjuge'},
+  docComprador1:{nome:'comprador1', cpf:'cpfComprador1', rg:'rgComprador1'},
+  docComprador2:{nome:'comprador2', cpf:'cpfComprador2', rg:'rgComprador2'},
+  docFiador1:{nome:'fiador1', cpf:'cpfFiador1', rg:'rgFiador1'},
+  docFiador2:{nome:'fiador2', cpf:'cpfFiador2', rg:'rgFiador2'},
+  compEndereco:{cep:'cep', logradouro:'endereco', numero:'numero', bairro:'setor', cidade:'cidade'}
+};
+var DOC_PESSOA=['docProponente','docConjuge','docComprador1','docComprador2','docFiador1','docFiador2'];
+var DICA_DOC={
+  docProponente:'CNH (frente e verso) ou RG + CPF. O documento é lido e preenche os dados acima.',
+  docConjuge:'CNH (frente e verso) ou RG + CPF do cônjuge.',
+  compEndereco:'Conta de água, luz ou telefone dos últimos 3 meses. É lida para preencher o endereço.',
+  certidoes:'Certidão de nascimento, de casamento ou averbação de divórcio.',
+  rendaDocs:'Contracheques, imposto de renda, extratos — o que a análise pediu.',
+  outrosDocs:'Qualquer outro arquivo pedido pela Morais.'
+};
+
+function esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function dig(v){ return String(v||'').replace(/\D/g,''); }
+function brl(v){ return 'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function estado(tipo,msg){ var e=document.getElementById('estado'); e.className='aviso '+tipo; e.innerHTML=msg; e.style.display='block'; }
+function fmtCpf(v){ var d=dig(v).slice(0,11); if(d.length<=3) return d; if(d.length<=6) return d.slice(0,3)+'.'+d.slice(3);
+  if(d.length<=9) return d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6); return d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6,9)+'-'+d.slice(9); }
+function fmtCep(v){ var d=dig(v).slice(0,8); return d.length>5 ? d.slice(0,5)+'-'+d.slice(5) : d; }
+function fmtTel(v){ var d=dig(v).slice(0,11); if(d.length<=2) return d; if(d.length<=6) return '('+d.slice(0,2)+') '+d.slice(2);
+  if(d.length<=10) return '('+d.slice(0,2)+') '+d.slice(2,6)+'-'+d.slice(6); return '('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7); }
+function nomeCompleto(v){ return String(v||'').trim().split(/\s+/).filter(function(p){ return p.replace(/[^A-Za-zÀ-ÿ]/g,'').length>=2; }).length>=2; }
+function cpfValido(v){
+  var c=dig(v); if(c.length!==11 || /^(\d)\1{10}$/.test(c)) return false;
+  for(var t=9;t<11;t++){ var s=0; for(var i=0;i<t;i++) s+=parseInt(c.charAt(i),10)*((t+1)-i);
+    var d=(s*10)%11; if(d===10) d=0; if(d!==parseInt(c.charAt(t),10)) return false; }
+  return true;
+}
+function apiPost(p){
+  return fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)})
+    .then(function(r){ return r.json(); });
+}
+function lerBase64(f){
+  return new Promise(function(ok,err){
+    var r=new FileReader();
+    r.onload=function(){ ok(String(r.result).split(',')[1]||''); };
+    r.onerror=function(){ err(new Error('falhou')); };
+    r.readAsDataURL(f);
+  });
+}
+
+/* ---------------- carga ---------------- */
+function carregar(){
+  if(!ID || !TOKEN){ estado('erro','<b>Link incompleto.</b> Peça um novo link para a Morais.'); return; }
+  fetch(APPS_SCRIPT_URL+'?acao=vendaCompletar&p='+encodeURIComponent(ID)+'&t='+encodeURIComponent(TOKEN))
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if(!j || !j.ok){
+        estado('erro', j && j.erro==='LINK_INVALIDO'
+          ? '<b>Este link expirou ou não vale mais.</b> Peça um novo para a Morais.'
+          : '<b>Não consegui abrir o cadastro da venda.</b> '+esc((j&&j.erro)||''));
+        return;
+      }
+      DADOS=j; ARQ={}; pintar();
+    })
+    .catch(function(){ estado('erro','<b>Sem conexão com o servidor.</b> Tente de novo em instantes.'); });
+}
+
+function htmlCampo(c){
+  var vazio=!String(c.valor||'').trim();
+  if(c.tipo==='dia'){
+    var ops='<option value="">Escolha o dia…</option>';
+    for(var i=1;i<=31;i++) ops+='<option value="'+i+'"'+(String(c.valor)===String(i)?' selected':'')+'>Dia '+i+'</option>';
+    return '<div class="campo'+(vazio&&c.obrig?' falta':'')+'" data-obrig="'+(c.obrig?1:0)+'">'+
+      '<label>'+esc(c.rotulo)+(c.obrig ? (vazio?'<span class="marca">falta</span>':'<span class="marca ok-marca">ok</span>')
+                                       : '<span class="marca opc">opcional</span>')+'</label>'+
+      '<select id="f-'+c.id+'" data-tipo="dia">'+ops+'</select></div>';
+  }
+  var t = c.tipo==='data' ? 'date' : (c.tipo==='email' ? 'email' : 'text');
+  var extra = (c.tipo==='cpf'||c.tipo==='tel'||c.tipo==='cep') ? ' inputmode="numeric"' : '';
+  var maxl = c.tipo==='cpf' ? ' maxlength="14"' : (c.tipo==='cep' ? ' maxlength="9"' : (c.tipo==='tel' ? ' maxlength="15"' : ''));
+  var v=c.valor;
+  if(c.tipo==='cpf') v=fmtCpf(v); else if(c.tipo==='cep') v=fmtCep(v); else if(c.tipo==='tel') v=fmtTel(v);
+  var full = (c.id==='endereco') ? ' style="grid-column:1/-1"' : '';
+  return '<div class="campo'+(vazio&&c.obrig?' falta':'')+'"'+full+' data-obrig="'+(c.obrig?1:0)+'">'+
+    '<label>'+esc(c.rotulo)+(c.obrig ? (vazio?'<span class="marca">falta</span>':'<span class="marca ok-marca">ok</span>')
+                                     : '<span class="marca opc">opcional</span>')+'</label>'+
+    '<input id="f-'+c.id+'" type="'+t+'" value="'+esc(v)+'" data-tipo="'+c.tipo+'"'+extra+maxl+'></div>';
+}
+
+function htmlDoc(d){
+  var marca = d.temArquivo ? '<span class="marca ok-marca">já enviado</span>'
+            : (d.exigido ? '<span class="marca">falta</span>' : '<span class="marca opc">opcional</span>');
+  var cab='<div class="doc'+(d.exigido&&!d.temArquivo?' pedido':'')+'" id="doc-'+d.chave+'" data-chave="'+d.chave+'"'+
+    ' data-exigido="'+(d.exigido?1:0)+'" data-enviado="'+(d.temArquivo?1:0)+'" data-nome="'+esc(d.rotulo)+'">'+
+    '<label>'+esc(d.rotulo)+marca+'<small>'+esc(DICA_DOC[d.chave]||'')+'</small></label>';
+  if(DOC_PESSOA.indexOf(d.chave)>=0){
+    return cab+'<select class="sel" id="tipo-'+d.chave+'" onchange="montarSubs(\''+d.chave+'\')">'+
+      '<option value="">Escolha o documento…</option><option value="CNH">CNH (já tem tudo)</option>'+
+      '<option value="RGCPF">RG + CPF</option></select><div id="subs-'+d.chave+'"></div></div>';
+  }
+  var leitura = d.chave==='compEndereco' ? 'COMPROVANTE_ENDERECO' : '';
+  return cab+'<input type="file" accept="image/*,application/pdf" multiple id="a-'+d.chave+'-x" '+
+    'onchange="aoArquivo(\''+d.chave+'\',\'x\',\''+leitura+'\',this)"><div class="lst" id="lst-'+d.chave+'-x"></div></div>';
+}
+
+function montarSubs(chave){
+  var tipo=document.getElementById('tipo-'+chave).value;
+  var cx=document.getElementById('subs-'+chave);
+  ARQ[chave]={};
+  if(!tipo){ cx.innerHTML=''; resumoAnexos(); return; }
+  var itens = tipo==='CNH' ? [['cnh','CNH (frente e verso)','CNH']] : [['rg','RG (frente e verso)','RG'],['cpf','CPF','CPF']];
+  cx.innerHTML='<div class="subs">'+itens.map(function(t){
+    return '<div><label>'+t[1]+'</label><input type="file" accept="image/*,application/pdf" multiple id="a-'+chave+'-'+t[0]+'" '+
+      'onchange="aoArquivo(\''+chave+'\',\''+t[0]+'\',\''+t[2]+'\',this)"><div class="lst" id="lst-'+chave+'-'+t[0]+'"></div></div>';
+  }).join('')+'</div>';
+  resumoAnexos();
+}
+
+function pintar(){
+  document.getElementById('estado').style.display='none';
+  document.getElementById('conteudo').style.display='';
+  document.getElementById('resumo').innerHTML=
+    '<b>Proposta '+esc(DADOS.proposta)+'</b> · Unidade '+esc(DADOS.unidade)+' · '+brl(DADOS.preco)+'<br>'+
+    'Corretor: '+esc(DADOS.corretor||'—')+(DADOS.imobiliaria?' · '+esc(DADOS.imobiliaria):'');
+
+  var porGrupo={}, docsGrupo={}, outros=[];
+  DADOS.campos.forEach(function(c){ (porGrupo[c.grupo]=porGrupo[c.grupo]||[]).push(c); });
+  DADOS.documentos.forEach(function(d){
+    if(d.chave==='certidoes'||d.chave==='rendaDocs'||d.chave==='outrosDocs'){ outros.push(d); return; }
+    var g = d.chave==='compEndereco' ? 'endereco'
+          : (d.chave==='docProponente' ? 'prop' : d.chave==='docConjuge' ? 'conjuge'
+          : d.chave.replace('doc','').replace(/^./,function(x){return x.toLowerCase();}));
+    (docsGrupo[g]=docsGrupo[g]||[]).push(d);
+  });
+
+  var html='';
+  ORDEM_GRUPO.forEach(function(g){
+    if(!porGrupo[g]) return;
+    var opc = /^(comprador|fiador)/.test(g) ? ' <span class="marca opc">opcional</span>' : '';
+    html+='<div class="card" id="g-'+g+'"><h2>'+TITULO_GRUPO[g]+opc+'</h2>';
+    if(g==='prop') html+='<p class="sub">O que já está preenchido veio da proposta — corrija se estiver errado. Campos marcados com <b>falta</b> são obrigatórios.</p>';
+    if(g==='pagamento') html+='<p class="sub">Escolha o dia do mês em que é melhor para você pagar os boletos. Eles vencem sempre neste dia, '+
+      'a partir do mês seguinte à assinatura do contrato. <b>As parcelas e os valores do fluxo podem sofrer alteração de acordo com a data de assinatura do contrato.</b></p>';
+    if(g==='endereco' && DADOS.enderecoProposta)
+      html+='<p class="dica">Endereço informado na proposta: <b>'+esc(DADOS.enderecoProposta)+'</b></p>';
+    html+=(docsGrupo[g]||[]).map(htmlDoc).join('');
+    html+='<div class="grade" style="margin-top:10px">'+porGrupo[g].map(htmlCampo).join('')+'</div></div>';
+  });
+  document.getElementById('grupos').innerHTML=html;
+  document.getElementById('docsOutros').innerHTML=outros.map(htmlDoc).join('');
+  document.querySelectorAll('#conteudo select[data-tipo="dia"]').forEach(function(el){ el.addEventListener('change', atualizarTrava); });
+  document.querySelectorAll('#conteudo input[type=text],#conteudo input[type=email],#conteudo input[type=date]').forEach(function(el){
+    el.addEventListener('input', function(){ mascarar(el); atualizarTrava(); });
+  });
+  resumoAnexos();
+}
+function mascarar(el){
+  var t=el.dataset.tipo;
+  if(t==='cpf') el.value=fmtCpf(el.value); else if(t==='cep') el.value=fmtCep(el.value); else if(t==='tel') el.value=fmtTel(el.value);
+}
+
+/* ---------------- leitura de documentos ---------------- */
+function prepararLeitura(file){
+  return new Promise(function(ok){
+    var t=file.type||'';
+    if(t==='application/pdf'){
+      if(file.size>6*1024*1024) return ok(null);
+      return lerBase64(file).then(function(b){ ok({nome:file.name, tipo:t, base64:b}); }).catch(function(){ ok(null); });
+    }
+    if(t.indexOf('image/')!==0) return ok(null);
+    var img=new Image(), url=URL.createObjectURL(file);
+    img.onload=function(){
+      var s=Math.min(1, 1800/Math.max(img.width,img.height));
+      var c=document.createElement('canvas'); c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(url);
+      ok({nome:file.name.replace(/\.[^.]+$/,'')+'.jpg', tipo:'image/jpeg', base64:c.toDataURL('image/jpeg',0.85).split(',')[1]});
+    };
+    img.onerror=function(){ URL.revokeObjectURL(url); ok(null); };
+    img.src=url;
+  });
+}
+function preencher(chave, campos){
+  var mapa=MAPA_LEITURA[chave]||{}, n=0;
+  Object.keys(mapa).forEach(function(k){
+    var v=campos[k]; if(!v) return;
+    var el=document.getElementById('f-'+mapa[k]);
+    if(!el || String(el.value||'').trim()) return;          // só preenche o que está vazio
+    el.value=v; mascarar(el); el.classList.add('lido'); n++;
+  });
+  atualizarTrava();
+  return n;
+}
+function aoArquivo(chave, sub, tipoLeitura, input){
+  var arqs=Array.prototype.slice.call(input.files||[]);
+  (ARQ[chave]=ARQ[chave]||{})[sub]=arqs;
+  resumoAnexos();
+  var st=document.getElementById('lst-'+chave+'-'+sub);
+  if(!st) return;
+  if(!arqs.length){ st.className='lst'; st.textContent=''; return; }
+  if(!tipoLeitura){ st.className='lst ok'; st.textContent=arqs.length+' arquivo(s) escolhido(s).'; return; }
+  st.className='lst lendo'; st.textContent='Lendo o documento…';
+  prepararLeitura(arqs[0]).then(function(pre){
+    if(!pre) throw {sem:'Arquivo grande demais ou em formato que não dá para ler.'};
+    return apiPost({acao:'lerDocumento', tipo:tipoLeitura, quem:chave, arquivo:pre});
+  }).then(function(r){
+    if(r && r.ok && r.lido){
+      var n=preencher(chave, r.campos||{});
+      st.className='lst ok';
+      st.textContent = n ? '✓ Documento lido — '+n+' campo(s) preenchido(s). Confira.' : '✓ Documento lido — os campos já estavam preenchidos.';
+    } else {
+      st.className='lst err';
+      st.textContent='Não consegui identificar as informações do documento — preencha os dados manualmente.';
+    }
+  }).catch(function(e){
+    st.className='lst err';
+    st.textContent=(e && e.sem ? e.sem+' ' : 'Leitura indisponível agora. ')+'Preencha os dados manualmente.';
+  });
+}
+
+/* ---------------- pendências e resumo ---------------- */
+function arquivosDe(chave){
+  var out=[]; var g=ARQ[chave]||{};
+  Object.keys(g).forEach(function(k){ (g[k]||[]).forEach(function(f){ out.push(f); }); });
+  return out;
+}
+function todosArquivos(){
+  var out=[]; Object.keys(ARQ).forEach(function(ch){ arquivosDe(ch).forEach(function(f){ out.push({chave:ch, arquivo:f}); }); });
+  return out;
+}
+function resumoAnexos(){
+  var l=todosArquivos(), total=l.reduce(function(a,x){ return a+x.arquivo.size; },0);
+  document.getElementById('resumoAnexos').innerHTML = l.length
+    ? l.length+' arquivo(s) · '+(total/1048576).toFixed(1)+' MB'+(total>LIMITE?' <b style="color:#8A2E17">— acima do limite de 20 MB</b>':'')
+    : 'Nenhum arquivo escolhido ainda.';
+  atualizarTrava();
+}
+function atualizarTrava(){
+  var el=document.getElementById('trava'); if(!el || !DADOS) return;
+  var campos=[], docs=[];
+  document.querySelectorAll('.campo[data-obrig="1"]').forEach(function(cx){
+    var inp=cx.querySelector('input,select');
+    var vazio=!inp || !String(inp.value||'').trim();
+    cx.classList.toggle('falta', vazio);
+    var m=cx.querySelector('.marca');
+    if(m){ m.className='marca'+(vazio?'':' ok-marca'); m.textContent=vazio?'falta':'ok'; }
+    if(vazio) campos.push(cx.querySelector('label').childNodes[0].textContent);
+  });
+  document.querySelectorAll('.doc[data-exigido="1"]').forEach(function(d){
+    if(d.dataset.enviado!=='1' && !arquivosDe(d.dataset.chave).length) docs.push(d.dataset.nome);
+  });
+  if(!campos.length && !docs.length){
+    el.className='trava ok';
+    el.innerHTML='<b>Tudo pronto.</b> Os dados obrigatórios e os documentos exigidos estão preenchidos — '+
+      'é só clicar em <b>Enviar para a Morais</b> (se ainda não enviou).';
+  } else {
+    el.className='trava pend';
+    el.innerHTML='<b>Ainda falta para fechar o cadastro da venda:</b><ul>'+
+      (docs.length?'<li><b>Documentos ('+docs.length+'):</b> '+docs.map(esc).join(' · ')+'</li>':'')+
+      (campos.length?'<li><b>Dados ('+campos.length+'):</b> '+campos.map(esc).join(' · ')+'</li>':'')+'</ul>';
+  }
+}
+
+/* ---------------- envio ---------------- */
+function enviar(){
+  var av=document.getElementById('avisoEnvio'), bt=document.getElementById('btEnviar');
+  function erro(m, el){ av.style.display='block'; av.className='aviso erro'; av.innerHTML=m; if(el){ el.focus(); } }
+  var campos={}, problema=null;
+  DADOS.campos.forEach(function(c){
+    var el=document.getElementById('f-'+c.id); if(!el) return;
+    var v=String(el.value||'').trim(); if(!v) return;
+    if(!problema && /^(proponente|conjuge|comprador1|comprador2|fiador1|fiador2)$/.test(c.id) && !nomeCompleto(v))
+      problema=['Informe o <b>nome completo</b> (nome e sobrenome): '+esc(c.rotulo)+'.', el];
+    if(!problema && c.tipo==='cpf' && !cpfValido(v)) problema=['<b>CPF inválido</b>: '+esc(c.rotulo)+'. Confira os números.', el];
+    campos[c.id]=v;
+  });
+  if(problema) return erro(problema[0], problema[1]);
+  var lista=todosArquivos();
+  var total=lista.reduce(function(a,x){ return a+x.arquivo.size; },0);
+  if(total>LIMITE) return erro('Os arquivos somam mais de 20 MB. Envie em duas vezes — o link continua valendo.');
+
+  bt.disabled=true;
+  av.style.display='block'; av.className='aviso info'; av.innerHTML='<b>Enviando os dados…</b> não feche a página.';
+  var falhas=[], enviados=0, gravados=0;
+
+  apiPost({acao:'completarVenda', pageId:ID, token:TOKEN, campos:campos}).then(function(j){
+    if(!j || !j.ok) throw new Error((j&&j.erro)||'erro desconhecido');
+    gravados=(j.gravados||[]).length;
+    var chaves=Object.keys(ARQ).filter(function(ch){ return arquivosDe(ch).length; });
+    var i=0;
+    function proximo(){
+      if(i>=chaves.length) return Promise.resolve();
+      var ch=chaves[i++];
+      var nome=(document.getElementById('doc-'+ch)||{dataset:{}}).dataset.nome||ch;
+      av.innerHTML='<b>Enviando documentos '+i+' de '+chaves.length+':</b> '+esc(nome)+'… não feche a página.';
+      return Promise.all(arquivosDe(ch).map(function(f){
+        return lerBase64(f).then(function(b64){ return {nome:f.name, tipo:f.type||'application/octet-stream', base64:b64}; });
+      })).then(function(anexos){
+        return apiPost({acao:'anexarVenda', pageId:ID, token:TOKEN, chave:ch, anexos:anexos});
+      }).then(function(x){
+        if(x && x.ok){ enviados+=(x.enviados||0); (x.falhas||[]).forEach(function(f){ falhas.push(f); }); }
+        else falhas.push(nome+': '+((x&&x.erro)||'falhou'));
+      }).catch(function(){ falhas.push(nome+': sem resposta'); }).then(proximo);
+    }
+    return proximo();
+  }).then(function(){
+    bt.disabled=false;
+    av.className='aviso ok';
+    av.innerHTML='<b>Enviado.</b> '+(gravados?gravados+' campo(s) atualizados. ':'')+(enviados?enviados+' documento(s) anexados.':'')+
+      (falhas.length?'<br><b style="color:#8A2E17">Não subiram:</b> '+falhas.map(esc).join(' · '):'')+
+      '<br>A Morais já foi avisada. Confira o quadro no topo: se ainda faltar algo, é só voltar neste link.';
+    carregar();
+  }).catch(function(e){
+    bt.disabled=false;
+    av.className='aviso erro';
+    av.innerHTML='Não consegui gravar: '+esc((e&&e.message)||'a resposta não chegou. Confira com a Morais antes de enviar de novo.');
+  });
+}
+
+carregar();
+</script>
+</body>
+</html>

@@ -148,6 +148,19 @@
     color:var(--marrom);font-size:10px;font-weight:800;vertical-align:middle;}
   .anexo label{flex:1;font-size:13px;color:var(--texto);font-weight:600;margin:0;}
   .anexo input[type=file]{font-size:12px;max-width:290px;}
+  /* r66 — leitura de documentos, prazo/comissão e CRECI */
+  .prazo-opts{display:flex;gap:10px;flex-wrap:wrap;}
+  .prazo-opt{flex:1;min-width:120px;border:1px solid var(--borda);border-radius:8px;padding:12px;text-align:center;cursor:pointer;background:#fff;}
+  .prazo-opt:has(input:checked){border-color:var(--marrom);background:#FBEEC8;}
+  .prazo-opt input{display:none;}
+  .prazo-opt b{display:block;font-size:16px;color:var(--marrom);}
+  .prazo-opt small{color:var(--texto-suave);}
+  .leitor{background:#FFFDF7;border:1px dashed var(--borda);border-radius:8px;padding:12px 14px;margin-bottom:14px;}
+  .lst{font-size:12.5px;margin-top:4px;}
+  .lst.ok{color:#1D5433;font-weight:700;} .lst.err{color:#8A2E17;font-weight:700;} .lst.lendo{color:#6B5A45;}
+  input.lido{border-color:#8CC9A5 !important;background:#F3FAF6;}
+  .p1ok{font-size:12px;color:#1D5433;font-weight:700;margin-top:3px;}
+  .anexo.creci{background:#FFFBEF;border-left:3px solid var(--amarelo);padding-left:8px;}
 </style>
 </head>
 <body>
@@ -216,6 +229,20 @@
       <span>Memorial de Incorporação registrado sob R-3 da matrícula nº 64.602, Registro de Imóveis de Senador Canedo/GO.</span>
     </div>
 
+    <div class="secao">Documento do proponente <span class="ajuda" style="font-weight:400;text-transform:none">(opcional — não trava nada)</span></div>
+    <div class="leitor">
+      <div class="linha">
+        <div class="campo"><label>Qual documento vai anexar?</label>
+          <select id="tipoDoc-proponente" onchange="montarLeitor('proponente')">
+            <option value="">Não anexar agora</option>
+            <option value="CNH">CNH (já tem tudo)</option>
+            <option value="RGCPF">RG + CPF</option>
+          </select></div>
+      </div>
+      <div class="linha" id="campos-proponente"></div>
+      <span class="ajuda">O documento é lido para preencher os campos abaixo — confira sempre. Se não for possível ler, aparece o aviso para preencher manualmente. Nada é gravado antes de você enviar a proposta.</span>
+    </div>
+
     <div class="secao">Dados do proponente</div>
     <div class="linha">
       <div class="campo full"><label>Nome completo<span class="obrig">*</span></label>
@@ -243,6 +270,20 @@
 
     <div id="boxConjuge" style="display:none">
       <div class="secao">Cônjuge</div>
+      <div class="secao">Documento do cônjuge <span class="ajuda" style="font-weight:400;text-transform:none">(opcional — não trava nada)</span></div>
+      <div class="leitor">
+        <div class="linha">
+          <div class="campo"><label>Qual documento vai anexar?</label>
+            <select id="tipoDoc-conjuge" onchange="montarLeitor('conjuge')">
+              <option value="">Não anexar agora</option>
+              <option value="CNH">CNH (já tem tudo)</option>
+              <option value="RGCPF">RG + CPF</option>
+            </select></div>
+        </div>
+        <div class="linha" id="campos-conjuge"></div>
+        <span class="ajuda">O documento é lido para preencher os campos abaixo — confira sempre. Se não for possível ler, aparece o aviso para preencher manualmente. Nada é gravado antes de você enviar a proposta.</span>
+      </div>
+
       <div class="linha">
         <div class="campo"><label>Nome do cônjuge</label><input type="text" name="conjuge" data-pad="1"></div>
         <div class="campo"><label>CPF do cônjuge</label>
@@ -385,6 +426,19 @@
       </div>
     </div>
 
+    <div class="secao">Prazo da entrada e comissão</div>
+    <div class="linha">
+      <div class="campo full" style="margin-bottom:16px;">
+        <label>Prazo total da entrada<span class="obrig">*</span></label>
+        <div class="prazo-opts" id="prazoOpts">
+          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="24" onchange="atualizarComissao()"><b>24 meses</b><small>comissão 5,00%</small></label>
+          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="36" onchange="atualizarComissao()"><b>36 meses</b><small>comissão 4,75%</small></label>
+          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="48" onchange="atualizarComissao()"><b>48 meses</b><small>comissão 4,50%</small></label>
+        </div>
+        <div class="comissao-box"><span>Comissão do corretor</span><b id="comissaoTxt">Escolha o prazo</b></div>
+      </div>
+    </div>
+
     <!-- ITEM 15 — resumo da entrada e o quadro dos sinais sempre à vista; o
          fluxo completo fica recolhido (é o mesmo que vai no e-mail). -->
     <div id="resumoEntrada"></div>
@@ -395,7 +449,7 @@
       <b>⚠ Fluxo estimado — não é garantido.</b> Estes valores são uma simulação feita com os dados
       informados. A <b>aprovação do financiamento não é garantida</b> e é responsabilidade do comprador junto
       à CAIXA; se o crédito aprovado for menor, a entrada aumenta. O sinal é de no mínimo R$ 10.000,00 e pode
-      ser maior. O fluxo definitivo só existe <b>após a assinatura do contrato com a CAIXA</b>.
+      ser maior. <b>As parcelas e os valores do fluxo podem sofrer alteração de acordo com a data de assinatura do contrato.</b> O fluxo definitivo só existe <b>após a assinatura do contrato com a CAIXA</b>.
     </div>
 
     <div class="rodape">
@@ -460,6 +514,7 @@
       por e-mail em qualquer decisão.
     </div>
 
+    <div class="lst" id="lst-creci-p5" style="display:none;margin-bottom:10px"></div>
     <div class="linha">
       <div class="campo"><label>Corretor<span class="obrig">*</span></label>
         <input type="text" name="vendedor" data-pad="1" required></div>
@@ -1086,6 +1141,7 @@
     /* r46 (item 9) — divorciado */
     ['divorcio','Comprovante de divórcio','Averbação do divórcio na certidão de casamento ou sentença.',
       null,'divorcio'],
+    ['docCreci','CRECI do corretor','Frente e verso. O documento é lido e já preenche os dados do corretor no passo 5.',null],
     ['outros','Outros documentos','Qualquer outro documento pedido pela análise.',null]
   ];
 
@@ -1205,14 +1261,17 @@
       var quem = porOrigem ? origens.filter(function(o){ return o && d[3].indexOf(o)>=0; }).join(' / ')
                : (d[4]==='fgts' ? 'FGTS' : (d[4]==='dependente' ? 'DEPENDENTE / 2º COMPRADOR'
                : (d[4]==='divorcio' ? 'DIVORCIADO' : 'ANÁLISE DE CRÉDITO')));
-      var html='<div class="anexo'+(pedido?' pedido':'')+'">'+
+      var ehCreci = d[0]==='docCreci';
+      var html='<div class="anexo'+(pedido?' pedido':'')+(ehCreci?' creci':'')+'">'+
              '<label for="ax-'+d[0]+'">'+d[1]+
              (pedido?'<span class="tag-doc">pedido para '+quem+'</span>':'')+
-             '<small>'+d[2]+'</small></label>'+
-             '<input type="file" id="ax-'+d[0]+'" data-rotulo="'+d[1]+'" multiple onchange="resumoAnexos()"></div>';
+             (ehCreci?'<span class="tag-doc">para o corretor · opcional</span>':'')+
+             '<small>'+d[2]+'</small>'+p1Marca(d[0])+'</label>'+
+             '<input type="file" id="ax-'+d[0]+'" data-rotulo="'+d[1]+'" multiple onchange="resumoAnexos()'+(ehCreci?';lerCreci(this)':'')+'">'+
+             (ehCreci?'<div class="lst" id="lst-creci" style="display:none"></div>':'')+'</div>';
       /* r47 (item 4) — o que não é pedido para ESTE cliente fica escondido
          atrás do "ver os demais documentos". */
-      if(!pedido){ extrasHtml.push(html); return ''; }
+      if(!pedido && !ehCreci){ extrasHtml.push(html); return ''; }
       return html;
     }).join('') +
     (extrasHtml.length
@@ -1228,9 +1287,17 @@
       el.files=dt.files;
     });
     resumoAnexos();
+    pintarCreci();
   }
   function arquivosAnexados(){
     var out=[];
+    /* r66 — o que foi anexado na página 1 (proponente / cônjuge) entra junto */
+    ['proponente','conjuge'].forEach(function(q){
+      if(q==='conjuge' && document.getElementById('boxConjuge').style.display==='none') return;
+      Object.keys(P1[q]).forEach(function(k){
+        (P1[q][k]||[]).forEach(function(a){ out.push({rotulo:P1_ROTULO[q], arquivo:a}); });
+      });
+    });
     document.querySelectorAll('#anexos input[type=file]').forEach(function(el){
       for(var i=0;i<el.files.length;i++) out.push({rotulo:el.dataset.rotulo, arquivo:el.files[i]});
     });
@@ -1255,6 +1322,162 @@
     });
   }
 
+  /* =====================================================================
+     r66 — DOCUMENTOS NA PÁGINA 1, CRECI NA PÁGINA 4 E PRAZO/COMISSÃO
+     ---------------------------------------------------------------------
+     • O proponente (e o cônjuge, se houver) pode anexar CNH ou RG + CPF já
+       na primeira página. O documento é LIDO e preenche os campos vazios;
+       se não der para ler, aparece o aviso de preencher à mão.
+     • Anexar aqui é opcional e não trava nada. O passo 4 mostra o ✓.
+     • O CRECI é anexado no passo 4; a leitura preenche o corretor no passo 5.
+     • A leitura só devolve dados; nada é gravado antes do envio.
+     ===================================================================== */
+  var P1={proponente:{}, conjuge:{}};
+  var P1_ROTULO={proponente:'RG e CPF do proponente', conjuge:'RG e CPF do cônjuge'};
+  var P1_ID={proponente:'docProponente', conjuge:'docConjuge'};
+  var P1_TIPOS={
+    CNH:[['cnh','CNH (frente e verso)','CNH']],
+    RGCPF:[['rg','RG (frente e verso)','RG'],['cpf','CPF','CPF']]
+  };
+  var MAPA_LEITURA={
+    proponente:{nome:'cliente', cpf:'cpf', rg:'identidade', dataNascimento:'dataNascimento'},
+    conjuge:{nome:'conjuge', cpf:'cpfConjuge'}
+  };
+  function p1Qtd(idInput){
+    var id=String(idInput||'').replace(/^ax-/,'');
+    var q = id==='docProponente' ? 'proponente' : (id==='docConjuge' ? 'conjuge' : '');
+    if(!q) return 0;
+    var n=0; Object.keys(P1[q]).forEach(function(k){ n+=(P1[q][k]||[]).length; });
+    return n;
+  }
+  function p1Marca(id){
+    var q = id==='docProponente' ? 'proponente' : (id==='docConjuge' ? 'conjuge' : '');
+    if(!q) return '';
+    var nomes=[]; Object.keys(P1[q]).forEach(function(k){ (P1[q][k]||[]).forEach(function(a){ nomes.push(a.name); }); });
+    return nomes.length ? '<div class="p1ok">✓ Anexado na página 1: '+nomes.map(esc_).join(', ')+'</div>' : '';
+  }
+  function montarLeitor(quem){
+    var tipo=document.getElementById('tipoDoc-'+quem).value;
+    var cx=document.getElementById('campos-'+quem);
+    P1[quem]={};                       // trocou o tipo: os arquivos de antes saem
+    if(!tipo){ cx.innerHTML=''; montarAnexos(); return; }
+    cx.innerHTML=P1_TIPOS[tipo].map(function(t){
+      return '<div class="campo"><label>'+t[1]+'</label>'+
+        '<input type="file" accept="image/*,application/pdf" multiple id="p1-'+quem+'-'+t[0]+'" '+
+        'onchange="aoAnexarP1(\''+quem+'\',\''+t[0]+'\',\''+t[2]+'\',this)">'+
+        '<div class="lst" id="lst-'+quem+'-'+t[0]+'"></div></div>';
+    }).join('');
+    montarAnexos();
+  }
+  /* Reduz a foto antes de mandar para leitura (o anexo original segue inteiro). */
+  function prepararLeitura(file){
+    return new Promise(function(ok){
+      var t=file.type||'';
+      if(t==='application/pdf'){
+        if(file.size>6*1024*1024) return ok(null);
+        return lerBase64(file).then(function(b){ ok({nome:file.name, tipo:t, base64:b}); }).catch(function(){ ok(null); });
+      }
+      if(t.indexOf('image/')!==0) return ok(null);
+      var img=new Image(), url=URL.createObjectURL(file);
+      img.onload=function(){
+        var s=Math.min(1, 1800/Math.max(img.width,img.height));
+        var c=document.createElement('canvas'); c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        URL.revokeObjectURL(url);
+        ok({nome:file.name.replace(/\.[^.]+$/,'')+'.jpg', tipo:'image/jpeg', base64:c.toDataURL('image/jpeg',0.85).split(',')[1]});
+      };
+      img.onerror=function(){ URL.revokeObjectURL(url); ok(null); };   // HEIC e afins
+      img.src=url;
+    });
+  }
+  function preencherDoDocumento(quem, c){
+    var f=F(), n=0, mapa=MAPA_LEITURA[quem];
+    Object.keys(mapa).forEach(function(k){
+      var v=c[k]; if(!v) return;
+      var el=f[mapa[k]]; if(!el || String(el.value||'').trim()) return;   // só preenche o que está vazio
+      if(k==='cpf') v=fmtCpf(v);
+      el.value = (el.dataset.pad==='1') ? padrao(v) : v;
+      el.classList.add('lido');
+      el.dispatchEvent(new Event('input',{bubbles:true}));
+      n++;
+    });
+    return n;
+  }
+  function aoAnexarP1(quem, chave, tipoDoc, input){
+    var arqs=Array.prototype.slice.call(input.files||[]);
+    P1[quem][chave]=arqs;
+    var st=document.getElementById('lst-'+quem+'-'+chave);
+    montarAnexos();
+    if(!arqs.length){ st.className='lst'; st.textContent=''; return; }
+    st.className='lst lendo'; st.textContent='Lendo o documento…';
+    prepararLeitura(arqs[0]).then(function(pre){
+      if(!pre) throw {semLeitura:'Arquivo grande demais ou em formato que não dá para ler.'};
+      return apiPost({acao:'lerDocumento', tipo:tipoDoc, quem:quem, arquivo:pre});
+    }).then(function(r){
+      if(r && r.ok && r.lido){
+        var n=preencherDoDocumento(quem, r.campos||{});
+        st.className='lst ok';
+        st.textContent = n ? '✓ Documento lido — '+n+' campo(s) preenchido(s). Confira.'
+                           : '✓ Documento lido — os campos já estavam preenchidos.';
+      } else {
+        st.className='lst err';
+        st.textContent='Não consegui identificar as informações do documento — preencha os dados manualmente.';
+      }
+    }).catch(function(e){
+      st.className='lst err';
+      st.textContent=(e && e.semLeitura ? e.semLeitura+' ' : 'Leitura indisponível agora. ')+'Preencha os dados manualmente.';
+    });
+  }
+
+  /* ---------- CRECI (passo 4) -> corretor (passo 5) ---------- */
+  var ESTADO_CRECI={msg:'', cls:''};
+  function pintarCreci(){
+    ['lst-creci','lst-creci-p5'].forEach(function(id){
+      var el=document.getElementById(id); if(!el) return;
+      el.className='lst '+ESTADO_CRECI.cls; el.textContent=ESTADO_CRECI.msg;
+      el.style.display = ESTADO_CRECI.msg ? 'block' : 'none';
+    });
+  }
+  function lerCreci(input){
+    var arq=input.files && input.files[0];
+    if(!arq){ ESTADO_CRECI={msg:'',cls:''}; pintarCreci(); return; }
+    ESTADO_CRECI={msg:'Lendo o CRECI…', cls:'lendo'}; pintarCreci();
+    prepararLeitura(arq).then(function(pre){
+      if(!pre) throw {semLeitura:'Arquivo grande demais ou em formato que não dá para ler.'};
+      return apiPost({acao:'lerDocumento', tipo:'CRECI', quem:'corretor', arquivo:pre});
+    }).then(function(r){
+      if(r && r.ok && r.lido){
+        var f=F(), n=0, c=r.campos||{};
+        [['nome','vendedor'],['creci','creci'],['imobiliaria','imobiliaria']].forEach(function(p){
+          var v=c[p[0]], el=f[p[1]];
+          if(!v || !el || String(el.value||'').trim()) return;
+          el.value=padrao(v); el.classList.add('lido'); n++;
+        });
+        ESTADO_CRECI={msg:'✓ CRECI lido — '+(n ? n+' campo(s) preenchido(s) no passo 5. Confira.' : 'os campos do corretor no passo 5 já estavam preenchidos.'), cls:'ok'};
+      } else {
+        ESTADO_CRECI={msg:'Não consegui identificar as informações do CRECI — preencha os dados do corretor manualmente no passo 5.', cls:'err'};
+      }
+      pintarCreci();
+    }).catch(function(e){
+      ESTADO_CRECI={msg:(e && e.semLeitura ? e.semLeitura+' ' : 'Leitura indisponível agora. ')+'Preencha os dados do corretor manualmente no passo 5.', cls:'err'};
+      pintarCreci();
+    });
+  }
+
+  /* ---------- prazo da entrada -> comissão ---------- */
+  var COMISSAO={'24':0.05,'36':0.0475,'48':0.045};
+  function prazoEscolhido(){
+    var els=document.querySelectorAll('#formProposta input[name="prazoEntrada"]');
+    for(var i=0;i<els.length;i++){ if(els[i].checked) return els[i].value; }
+    return '';
+  }
+  function atualizarComissao(){
+    var u=unidadeAtual(), p=prazoEscolhido(), el=document.getElementById('comissaoTxt');
+    if(!el) return;
+    if(!p || !u){ el.textContent='Escolha o prazo'; return; }
+    el.textContent=(COMISSAO[p]*100).toLocaleString('pt-BR',{minimumFractionDigits:2})+'%  ·  '+brl(u.valorVenda*COMISSAO[p]);
+  }
+
   /* ---------- navegação entre os passos ---------- */
   function irPara(n){
     if(n>PASSO && !validarPasso(PASSO)) return;
@@ -1270,8 +1493,9 @@
       p.classList.toggle('ativo', i===n);
       p.classList.toggle('concluido', i<n);
     });
-    if(n===2) montarFluxo();
+    if(n===2){ montarFluxo(); atualizarComissao(); }
     if(n===4) resumoAnexos();
+    if(n===5) pintarCreci();
     window.scrollTo({top:0,behavior:'smooth'});
   }
   /* r60 (item 1) — nome completo: pelo menos DUAS palavras de 2+ letras.
@@ -1345,6 +1569,8 @@
       if(document.getElementById('boxConjuge').style.display!=='none' &&
          moeda(f.rendaAprovadaConjuge.value) && !f.origemRendaConjuge.value.trim())
         return erro('Escolha a <b>origem da renda do cônjuge</b>.', f.origemRendaConjuge);
+      if(!prazoEscolhido())
+        return erro('Escolha o <b>prazo total da entrada</b> — é ele que define a comissão do corretor.', document.getElementById('prazoOpts'));
       /* ITEM 15 — valor para entrada: mínimo de R$ 10.000 (são os sinais). */
       if(moeda(f.valorEntrada.value) < VALOR_ENTRADA_MIN)
         return erro('O <b>valor para entrada</b> precisa ser de pelo menos <b>R$ 10.000,00</b> — '+
@@ -1359,7 +1585,7 @@
          que faltar é juntado depois na página do Notion. */
       var faltam=[];
       document.querySelectorAll('#anexos .anexo.pedido input[type=file]').forEach(function(cx){
-        if(!cx.files.length) faltam.push(cx.dataset.rotulo);
+        if(!cx.files.length && !p1Qtd(cx.id)) faltam.push(cx.dataset.rotulo);
       });
       var cxAviso=document.getElementById('avisoDocs');
       var marcado=document.getElementById('semTodosDocs');
@@ -1601,6 +1827,9 @@
       vendedor:padrao(f.vendedor.value), creci:padrao(f.creci.value),
       imobiliaria:padrao(f.imobiliaria.value), email:String(f.email.value).trim().toLowerCase(),
       observacoes:padrao(f.observacoes.value),
+      prazoEntrada:Number(prazoEscolhido())||0,
+      comissaoPct:COMISSAO[prazoEscolhido()]||0,
+      comissaoValor:Math.round((Number(u.valorVenda)||0)*(COMISSAO[prazoEscolhido()]||0)*100)/100,
       fiador1:padrao(f.fiador1.value), cpfFiador1:dig(f.cpfFiador1.value),
       emailFiador1:String(f.emailFiador1.value||'').trim().toLowerCase(),
       enderecoFiador1:padrao(f.enderecoFiador1.value),

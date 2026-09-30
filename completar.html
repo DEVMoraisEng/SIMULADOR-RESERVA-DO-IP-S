@@ -271,17 +271,24 @@ var SEMPRE_FORA=['referencia1','telRef1','referencia2','telRef2'];
 var OBRIG_PADRAO=['cliente','cpf','identidade','dataNascimento','estadoCivil','profissao','celular',
                   'emailProponente','endereco','origemRenda','rendaAprovada','vendedor','creci','email'];
 function ehObrig(c){ return (c.obrig===undefined) ? OBRIG_PADRAO.indexOf(c.id)>=0 : !!c.obrig; }
+/* 30/09: o valor gravado vem sem acento (AUTONOMO) e a opção tem acento (AUTÔNOMO):
+   comparando sem acento, a origem da renda já escolhida não aparece mais como "falta"
+   — e a lista de documentos, que depende dela, sai certa. */
+function mesmaOpcao(a,b){
+  var n=function(x){ return String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/\s+/g,' ').trim(); };
+  return n(a)===n(b);
+}
 function htmlCampo(c){
   var vazio=!String(c.valor||'').trim();
   var campo;
   if(c.id==='origemRenda'||c.id==='origemRendaConjuge'){
     campo='<select id="c-'+c.id+'" onchange="montarDocs()">'+
       '<option value="">Selecione…</option>'+
-      ORIGENS.map(function(o){ return '<option'+(c.valor===o?' selected':'')+'>'+o+'</option>'; }).join('')+
+      ORIGENS.map(function(o){ return '<option'+(mesmaOpcao(c.valor,o)?' selected':'')+'>'+o+'</option>'; }).join('')+
       '</select>';
   } else if(c.id==='estadoCivil'){
     campo='<select id="c-'+c.id+'" onchange="verConjuge()"><option value="">Selecione…</option>'+
-      ESTADOS.map(function(o){ return '<option'+(c.valor===o?' selected':'')+'>'+o+'</option>'; }).join('')+
+      ESTADOS.map(function(o){ return '<option'+(mesmaOpcao(c.valor,o)?' selected':'')+'>'+o+'</option>'; }).join('')+
       '</select>';
   } else if(c.id==='observacoes'){
     campo='<textarea id="c-'+c.id+'" rows="2">'+esc(c.valor)+'</textarea>';

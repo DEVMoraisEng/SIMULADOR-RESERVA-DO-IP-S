@@ -21,7 +21,8 @@
   header span{font-size:12px;color:var(--amarelo);font-weight:600;}
   main{max-width:800px;margin:28px auto 80px;padding:0 20px;}
   .passos{display:flex;gap:6px;margin-bottom:24px;}
-  .passo{flex:1;text-align:center;padding:10px 6px;font-size:13px;font-weight:600;color:var(--texto-suave);background:var(--branco);border:1px solid var(--borda);border-radius:6px;}
+  .passo{flex:1;text-align:center;padding:10px 6px;font-size:13px;font-weight:600;color:var(--texto-suave);background:var(--branco);border:1px solid var(--borda);border-radius:6px;cursor:pointer;}
+  .passo:hover{border-color:var(--marrom);}
   .passo.ativo{background:var(--marrom);border-color:var(--marrom);color:#fff;}
   .passo.concluido{background:#FBEEC8;border-color:var(--amarelo);color:var(--marrom);}
   .card{background:var(--branco);border:1px solid var(--borda);border-radius:10px;padding:26px;}
@@ -186,11 +187,11 @@
 
 <main>
   <div class="passos">
-    <div class="passo ativo" data-p="1">1. Unidade e proponente</div>
-    <div class="passo" data-p="2">2. Renda e financiamento</div>
-    <div class="passo" data-p="3">3. Fiadores</div>
-    <div class="passo" data-p="4">4. Anexos</div>
-    <div class="passo" data-p="5">5. Enviar</div>
+    <div class="passo ativo" data-p="1" onclick="irPara(1)" title="Ir para este passo">1. Unidade e proponente</div>
+    <div class="passo" data-p="2" onclick="irPara(2)" title="Ir para este passo">2. Renda e financiamento</div>
+    <div class="passo" data-p="3" onclick="irPara(3)" title="Ir para este passo">3. Fiadores</div>
+    <div class="passo" data-p="4" onclick="irPara(4)" title="Ir para este passo">4. Anexos</div>
+    <div class="passo" data-p="5" onclick="irPara(5)" title="Ir para este passo">5. Enviar</div>
   </div>
 
   <form id="formProposta" autocomplete="off">
@@ -243,6 +244,19 @@
       <span class="ajuda">O documento é lido para preencher os campos abaixo — confira sempre. Se não for possível ler, aparece o aviso para preencher manualmente. Nada é gravado antes de você enviar a proposta.</span>
     </div>
 
+    <div class="secao">Comprovante de endereço e CRECI <span class="ajuda" style="font-weight:400;text-transform:none">(opcional — lidos na hora)</span></div>
+    <div class="leitor">
+      <div class="linha">
+        <div class="campo"><label>Comprovante de endereço do proponente</label>
+          <input type="file" accept="image/*,application/pdf" multiple id="p1-endereco-comp" onchange="aoAnexarP1Extra('endereco',this)">
+          <div class="lst" id="lst-endereco-comp"></div></div>
+        <div class="campo"><label>Carteira do CRECI (corretor)</label>
+          <input type="file" accept="image/*,application/pdf" multiple id="p1-creci-doc" onchange="aoAnexarP1Extra('creci',this)">
+          <div class="lst" id="lst-creci-doc"></div></div>
+      </div>
+      <span class="ajuda">O comprovante preenche CEP, endereço, número, setor e cidade abaixo; o CRECI preenche os dados do corretor no passo 5. Os dois seguem como anexos da proposta.</span>
+    </div>
+
     <div class="secao">Dados do proponente</div>
     <div class="linha">
       <div class="campo full"><label>Nome completo<span class="obrig">*</span></label>
@@ -259,7 +273,12 @@
       <div class="campo"><label>Profissão</label><input type="text" name="profissao" data-pad="1"></div>
       <div class="campo"><label>Data de nascimento</label><input type="date" name="dataNascimento"></div>
       <div class="campo"><label>E-mail do proponente</label><input type="email" name="emailProponente"></div>
-      <div class="campo full"><label>Endereço</label><input type="text" name="endereco" data-pad="1"></div>
+      <!-- 30/09: endereço separado, igual ao banco de vendas (o comprovante de endereço lido preenche) -->
+      <div class="campo"><label>CEP</label><input type="text" name="cep" inputmode="numeric" maxlength="9" placeholder="00000-000"></div>
+      <div class="campo full"><label>Endereço (rua, avenida ou quadra)</label><input type="text" name="endereco" data-pad="1"></div>
+      <div class="campo"><label>Número ou lote</label><input type="text" name="numero" data-pad="1"></div>
+      <div class="campo"><label>Setor ou bairro</label><input type="text" name="setor" data-pad="1"></div>
+      <div class="campo"><label>Cidade</label><input type="text" name="cidade" data-pad="1"></div>
       <div class="campo"><label>Telefone</label>
         <input type="text" name="telefone" inputmode="numeric" maxlength="15" placeholder="(00) 0000-0000"></div>
       <div class="campo"><label>Celular<span class="obrig">*</span></label>
@@ -1158,14 +1177,26 @@
     var atuais=pessoasExtras();
     var html='';
     for(var i=0;i<n;i++){
-      var p=atuais[i]||{nome:'',cpf:'',tipo:'DEPENDENTE'};
-      html+='<div class="dep" style="display:grid;grid-template-columns:1fr 150px 160px;gap:8px;margin-bottom:8px">'+
+      var p=atuais[i]||{nome:'',cpf:'',tipo:'DEPENDENTE',profissao:'',nacionalidade:''};
+      var comp=p.tipo==='COMPRADOR';
+      html+='<div class="dep" data-i="'+i+'" style="margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed var(--borda)">'+
+        '<div style="display:grid;grid-template-columns:1fr 150px 160px;gap:8px">'+
         '<input type="text" class="dep-nome" placeholder="Nome completo" value="'+esc_(p.nome)+'" oninput="montarAnexos()">'+
         '<input type="text" class="dep-cpf" inputmode="numeric" maxlength="14" placeholder="CPF" value="'+esc_(p.cpf)+'">'+
-        '<select class="dep-tipo" onchange="montarAnexos()">'+
-          '<option'+(p.tipo==='DEPENDENTE'?' selected':'')+'>DEPENDENTE</option>'+
-          '<option'+(p.tipo==='COMPRADOR'?' selected':'')+'>COMPRADOR</option>'+
-        '</select></div>';
+        '<select class="dep-tipo" onchange="montarDependentes()">'+
+          '<option'+(!comp?' selected':'')+'>DEPENDENTE</option>'+
+          '<option'+(comp?' selected':'')+'>COMPRADOR</option>'+
+        '</select></div>'+
+        /* 30/09: comprador entra no contrato — profissão, nacionalidade e documento (lido na hora) */
+        (comp ? '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">'+
+          '<input type="text" class="dep-prof" placeholder="Profissão" value="'+esc_(p.profissao||'')+'">'+
+          '<input type="text" class="dep-nac" placeholder="Nacionalidade" value="'+esc_(p.nacionalidade||'BR')+'">'+
+          '</div>'+
+          '<div style="margin-top:8px"><label style="font-size:12px;font-weight:700;color:var(--marrom)">Documento do comprador (CNH ou RG + CPF)</label>'+
+          '<input type="file" accept="image/*,application/pdf" multiple class="dep-doc" onchange="aoAnexarDep('+i+',this)">'+
+          '<div class="lst" id="lst-dep-'+i+'">'+(PDEP[i]&&PDEP[i].length?PDEP[i].length+' arquivo(s) anexado(s).':'')+'</div></div>'
+        : '')+
+        '</div>';
     }
     document.getElementById('listaDependentes').innerHTML=html;
     document.querySelectorAll('.dep-cpf').forEach(function(c){
@@ -1177,12 +1208,42 @@
     });
     montarAnexos();
   }
+  /* 30/09 — documento do comprador anexado no próprio bloco (lido: preenche nome e CPF) */
+  var PDEP={};
+  function aoAnexarDep(i, input){
+    var arqs=Array.prototype.slice.call(input.files||[]);
+    PDEP[i]=arqs;
+    var st=document.getElementById('lst-dep-'+i); resumoAnexos();
+    if(!arqs.length){ if(st){ st.className='lst'; st.textContent=''; } return; }
+    var dep=input.closest('.dep');
+    st.className='lst lendo'; st.textContent='Lendo o documento…';
+    prepararLeitura(arqs[0]).then(function(pre){
+      if(!pre) throw {semLeitura:'Arquivo grande demais ou em formato que não dá para ler.'};
+      return apiPost({acao:'lerDocumento', tipo:'CNH', quem:'comprador'+(i+1), arquivo:pre}).then(function(r){
+        if(r && r.ok && r.lido) return r;
+        return apiPost({acao:'lerDocumento', tipo:'RG', quem:'comprador'+(i+1), arquivo:pre});
+      });
+    }).then(function(r){
+      if(r && r.ok && r.lido){
+        var c=r.campos||{}, n=0;
+        [['nome','.dep-nome'],['cpf','.dep-cpf'],['nacionalidade','.dep-nac']].forEach(function(p){
+          var v=c[p[0]], el=dep.querySelector(p[1]); if(!v||!el||String(el.value||'').trim()&&p[0]!=='nacionalidade') return;
+          if(p[0]==='nacionalidade' && String(el.value||'').trim() && String(el.value).trim()!=='BR') return;
+          el.value = p[0]==='cpf' ? fmtCpf(v) : padrao(v); el.classList.add('lido'); n++;
+        });
+        st.className='lst ok'; st.textContent = n ? '✓ Documento lido — '+n+' campo(s) preenchido(s). Confira.' : '✓ Documento lido — os campos já estavam preenchidos.';
+        montarAnexos();
+      } else { st.className='lst err'; st.textContent='Não consegui ler o documento — preencha nome e CPF manualmente.'; }
+    }).catch(function(e){ st.className='lst err'; st.textContent=(e&&e.semLeitura?e.semLeitura+' ':'Leitura indisponível agora. ')+'Preencha manualmente.'; });
+  }
   function pessoasExtras(){
     var out=[];
     document.querySelectorAll('#listaDependentes .dep').forEach(function(d){
+      var pf=d.querySelector('.dep-prof'), nc=d.querySelector('.dep-nac');
       out.push({nome:(d.querySelector('.dep-nome').value||'').toUpperCase().trim(),
                 cpf:dig(d.querySelector('.dep-cpf').value),
-                tipo:d.querySelector('.dep-tipo').value});
+                tipo:d.querySelector('.dep-tipo').value,
+                profissao:pf?padrao(pf.value):'', nacionalidade:nc?padrao(nc.value):''});
     });
     return out;
   }
@@ -1271,13 +1332,10 @@
              (ehCreci?'<div class="lst" id="lst-creci" style="display:none"></div>':'')+'</div>';
       /* r47 (item 4) — o que não é pedido para ESTE cliente fica escondido
          atrás do "ver os demais documentos". */
-      if(!pedido && !ehCreci){ extrasHtml.push(html); return ''; }
+      /* 30/09: só o que a análise pede para ESTE cliente (+ CRECI e "Outros") — sem lista escondida */
+      if(!pedido && !ehCreci && d[0]!=='outros') return '';
       return html;
-    }).join('') +
-    (extrasHtml.length
-      ? '<details class="outros-docs"><summary>Ver os demais documentos ('+extrasHtml.length+')</summary>'+
-        extrasHtml.join('')+'</details>'
-      : '');
+    }).join('');
     /* mantém os arquivos já escolhidos quando a lista é redesenhada */
     Object.keys(guardados).forEach(function(id){
       var el=document.getElementById(id);
@@ -1292,7 +1350,7 @@
   function arquivosAnexados(){
     var out=[];
     /* r66 — o que foi anexado na página 1 (proponente / cônjuge) entra junto */
-    ['proponente','conjuge'].forEach(function(q){
+    ['proponente','conjuge','endereco','creci'].forEach(function(q){
       if(q==='conjuge' && document.getElementById('boxConjuge').style.display==='none') return;
       Object.keys(P1[q]).forEach(function(k){
         (P1[q][k]||[]).forEach(function(a){ out.push({rotulo:P1_ROTULO[q], arquivo:a}); });
@@ -1301,6 +1359,14 @@
     document.querySelectorAll('#anexos input[type=file]').forEach(function(el){
       for(var i=0;i<el.files.length;i++) out.push({rotulo:el.dataset.rotulo, arquivo:el.files[i]});
     });
+    /* 30/09 — documentos dos compradores anexados no bloco "mais de um comprador" */
+    if(F().maisDeUmComprador.checked){
+      var extras=pessoasExtras();
+      Object.keys(PDEP).forEach(function(i){
+        var p=extras[Number(i)]; if(!p) return;
+        (PDEP[i]||[]).forEach(function(a){ out.push({rotulo:'Documentos de '+(p.nome||('comprador '+(Number(i)+1))), arquivo:a}); });
+      });
+    }
     return out;
   }
   function resumoAnexos(){
@@ -1332,9 +1398,41 @@
      • O CRECI é anexado no passo 4; a leitura preenche o corretor no passo 5.
      • A leitura só devolve dados; nada é gravado antes do envio.
      ===================================================================== */
-  var P1={proponente:{}, conjuge:{}};
-  var P1_ROTULO={proponente:'RG e CPF do proponente', conjuge:'RG e CPF do cônjuge'};
-  var P1_ID={proponente:'docProponente', conjuge:'docConjuge'};
+  var P1={proponente:{}, conjuge:{}, endereco:{}, creci:{}};
+  var P1_ROTULO={proponente:'RG e CPF do proponente', conjuge:'RG e CPF do cônjuge', endereco:'Comprovante de endereço', creci:'CRECI do corretor'};
+  var P1_ID={proponente:'docProponente', conjuge:'docConjuge', endereco:'compEndereco', creci:'docCreci'};
+  var P1_QUEM={docProponente:'proponente', docConjuge:'conjuge', compEndereco:'endereco', docCreci:'creci'};
+  /* 30/09 — comprovante de endereço e CRECI anexados na página 1 */
+  function aoAnexarP1Extra(quem, input){
+    var arqs=Array.prototype.slice.call(input.files||[]);
+    P1[quem]={doc:arqs};
+    var st=document.getElementById(quem==='endereco'?'lst-endereco-comp':'lst-creci-doc');
+    montarAnexos();
+    if(!arqs.length){ st.className='lst'; st.textContent=''; return; }
+    if(quem==='creci'){ lerCreci(input); st.className='lst ok'; st.textContent=arqs.length+' arquivo(s) — lendo o CRECI…'; return; }
+    st.className='lst lendo'; st.textContent='Lendo o comprovante…';
+    prepararLeitura(arqs[0]).then(function(pre){
+      if(!pre) throw {semLeitura:'Arquivo grande demais ou em formato que não dá para ler.'};
+      return apiPost({acao:'lerDocumento', tipo:'COMPROVANTE_ENDERECO', quem:'proponente', arquivo:pre});
+    }).then(function(r){
+      if(r && r.ok && r.lido){
+        var f=F(), c=r.campos||{}, n=0;
+        [['cep','cep'],['logradouro','endereco'],['numero','numero'],['bairro','setor'],['cidade','cidade']].forEach(function(p){
+          var v=c[p[0]], el=f[p[1]]; if(!v||!el||String(el.value||'').trim()) return;
+          el.value = p[0]==='cep' ? String(v).replace(/^(\d{5})(\d{3})$/,'$1-$2') : padrao(v);
+          el.classList.add('lido'); n++;
+        });
+        st.className='lst ok';
+        st.textContent = n ? '✓ Comprovante lido — '+n+' campo(s) do endereço preenchido(s). Confira.' : '✓ Comprovante lido — o endereço já estava preenchido.';
+      } else { st.className='lst err'; st.textContent='Não consegui ler o comprovante — preencha o endereço manualmente.'; }
+    }).catch(function(e){ st.className='lst err'; st.textContent=(e&&e.semLeitura?e.semLeitura+' ':'Leitura indisponível agora. ')+'Preencha o endereço manualmente.'; });
+  }
+  function enderecoCompleto(){
+    var f=F();
+    var partes=[padrao(f.endereco.value), padrao(f.numero.value), padrao(f.setor.value), padrao(f.cidade.value)].filter(Boolean);
+    var cep=dig(f.cep.value);
+    return partes.join(', ')+(cep?' - CEP '+cep.replace(/^(\d{5})(\d{3})$/,'$1-$2'):'');
+  }
   var P1_TIPOS={
     CNH:[['cnh','CNH (frente e verso)','CNH']],
     RGCPF:[['rg','RG (frente e verso)','RG'],['cpf','CPF','CPF']]
@@ -1345,13 +1443,13 @@
   };
   function p1Qtd(idInput){
     var id=String(idInput||'').replace(/^ax-/,'');
-    var q = id==='docProponente' ? 'proponente' : (id==='docConjuge' ? 'conjuge' : '');
+    var q = P1_QUEM[id]||'';
     if(!q) return 0;
     var n=0; Object.keys(P1[q]).forEach(function(k){ n+=(P1[q][k]||[]).length; });
     return n;
   }
   function p1Marca(id){
-    var q = id==='docProponente' ? 'proponente' : (id==='docConjuge' ? 'conjuge' : '');
+    var q = P1_QUEM[id]||'';
     if(!q) return '';
     var nomes=[]; Object.keys(P1[q]).forEach(function(k){ (P1[q][k]||[]).forEach(function(a){ nomes.push(a.name); }); });
     return nomes.length ? '<div class="p1ok">✓ Anexado na página 1: '+nomes.map(esc_).join(', ')+'</div>' : '';
@@ -1480,7 +1578,11 @@
 
   /* ---------- navegação entre os passos ---------- */
   function irPara(n){
-    if(n>PASSO && !validarPasso(PASSO)) return;
+    /* 30/09: clicando nos cartões dá para pular vários passos — para a frente,
+       cada passo do caminho é conferido; para trás é livre */
+    for(var p=PASSO; p<n; p++){
+      if(!validarPasso(p)){ if(p!==PASSO){ PASSO=p; irPara(p); } return; }
+    }
     /* O aviso vermelho ficava na tela mesmo depois de o campo ser
        preenchido, dando a impressao de que o erro continuava. */
     limparAviso();
@@ -1805,7 +1907,8 @@
       identidade:padrao(f.identidade.value), estadoCivil:f.estadoCivil.value,
       conjuge:padrao(f.conjuge.value), cpfConjuge:dig(f.cpfConjuge.value),
       nacionalidade:padrao(f.nacionalidade.value), profissao:padrao(f.profissao.value),
-      dataNascimento:f.dataNascimento.value, endereco:padrao(f.endereco.value),
+      dataNascimento:f.dataNascimento.value, endereco:enderecoCompleto(),
+      cep:dig(f.cep.value), logradouro:padrao(f.endereco.value), numero:padrao(f.numero.value), setor:padrao(f.setor.value), cidade:padrao(f.cidade.value),
       telefone:dig(f.telefone.value), celular:dig(f.celular.value),
       emailProponente:String(f.emailProponente.value||'').trim().toLowerCase(),
 

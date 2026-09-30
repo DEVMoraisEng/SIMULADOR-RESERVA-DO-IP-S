@@ -124,12 +124,13 @@ var TITULO_GRUPO={
 var ORDEM_GRUPO=['prop','conjuge','comprador1','comprador2','fiador1','fiador2','contato','endereco','pagamento'];
 /* documento -> campos que a leitura preenche */
 var MAPA_LEITURA={
-  docProponente:{nome:'proponente', cpf:'cpfProponente', rg:'rgProponente'},
-  docConjuge:{nome:'conjuge', cpf:'cpfConjuge', rg:'rgConjuge'},
-  docComprador1:{nome:'comprador1', cpf:'cpfComprador1', rg:'rgComprador1'},
-  docComprador2:{nome:'comprador2', cpf:'cpfComprador2', rg:'rgComprador2'},
-  docFiador1:{nome:'fiador1', cpf:'cpfFiador1', rg:'rgFiador1'},
-  docFiador2:{nome:'fiador2', cpf:'cpfFiador2', rg:'rgFiador2'},
+  /* 30/09: a leitura também traz a NACIONALIDADE (e o RG já vem com o órgão emissor, ex.: 1234567 SSP/GO) */
+  docProponente:{nome:'proponente', cpf:'cpfProponente', rg:'rgProponente', nacionalidade:'nacionalidadeProponente'},
+  docConjuge:{nome:'conjuge', cpf:'cpfConjuge', rg:'rgConjuge', nacionalidade:'nacionalidadeConjuge'},
+  docComprador1:{nome:'comprador1', cpf:'cpfComprador1', rg:'rgComprador1', nacionalidade:'nacionalidadeComprador1'},
+  docComprador2:{nome:'comprador2', cpf:'cpfComprador2', rg:'rgComprador2', nacionalidade:'nacionalidadeComprador2'},
+  docFiador1:{nome:'fiador1', cpf:'cpfFiador1', rg:'rgFiador1', nacionalidade:'nacionalidadeFiador1'},
+  docFiador2:{nome:'fiador2', cpf:'cpfFiador2', rg:'rgFiador2', nacionalidade:'nacionalidadeFiador2'},
   compEndereco:{cep:'cep', logradouro:'endereco', numero:'numero', bairro:'setor', cidade:'cidade'}
 };
 var DOC_PESSOA=['docProponente','docConjuge','docComprador1','docComprador2','docFiador1','docFiador2'];

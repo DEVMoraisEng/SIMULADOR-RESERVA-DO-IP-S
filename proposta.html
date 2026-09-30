@@ -244,17 +244,14 @@
       <span class="ajuda">O documento é lido para preencher os campos abaixo — confira sempre. Se não for possível ler, aparece o aviso para preencher manualmente. Nada é gravado antes de você enviar a proposta.</span>
     </div>
 
-    <div class="secao">Comprovante de endereço e CRECI <span class="ajuda" style="font-weight:400;text-transform:none">(opcional — lidos na hora)</span></div>
+    <div class="secao">Comprovante de endereço <span class="ajuda" style="font-weight:400;text-transform:none">(opcional — lido na hora)</span></div>
     <div class="leitor">
       <div class="linha">
-        <div class="campo"><label>Comprovante de endereço do proponente</label>
+        <div class="campo full"><label>Comprovante de endereço do proponente</label>
           <input type="file" accept="image/*,application/pdf" multiple id="p1-endereco-comp" onchange="aoAnexarP1Extra('endereco',this)">
           <div class="lst" id="lst-endereco-comp"></div></div>
-        <div class="campo"><label>Carteira do CRECI (corretor)</label>
-          <input type="file" accept="image/*,application/pdf" multiple id="p1-creci-doc" onchange="aoAnexarP1Extra('creci',this)">
-          <div class="lst" id="lst-creci-doc"></div></div>
       </div>
-      <span class="ajuda">O comprovante preenche CEP, endereço, número, setor e cidade abaixo; o CRECI preenche os dados do corretor no passo 5. Os dois seguem como anexos da proposta.</span>
+      <span class="ajuda">O comprovante preenche CEP, endereço, número, setor e cidade abaixo e segue como anexo da proposta. A carteira do CRECI do corretor é anexada no passo 4.</span>
     </div>
 
     <div class="secao">Dados do proponente</div>
@@ -487,6 +484,9 @@
         <input type="text" name="cpfFiador1" inputmode="numeric" maxlength="14" placeholder="000.000.000-00"></div>
       <div class="campo"><label>E-mail</label><input type="email" name="emailFiador1"></div>
       <div class="campo full"><label>Endereço</label><input type="text" name="enderecoFiador1" data-pad="1"></div>
+      <div class="campo full"><label>Documento do fiador 1 (CNH ou RG + CPF)</label>
+        <input type="file" accept="image/*,application/pdf" multiple id="fiador1-doc" onchange="aoAnexarFiador(1,this)">
+        <div class="lst" id="lst-fiador-1"></div></div>
     </div>
 
     <div class="secao">Fiador 2</div>
@@ -496,6 +496,9 @@
         <input type="text" name="cpfFiador2" inputmode="numeric" maxlength="14" placeholder="000.000.000-00"></div>
       <div class="campo"><label>E-mail</label><input type="email" name="emailFiador2"></div>
       <div class="campo full"><label>Endereço</label><input type="text" name="enderecoFiador2" data-pad="1"></div>
+      <div class="campo full"><label>Documento do fiador 2 (CNH ou RG + CPF)</label>
+        <input type="file" accept="image/*,application/pdf" multiple id="fiador2-doc" onchange="aoAnexarFiador(2,this)">
+        <div class="lst" id="lst-fiador-2"></div></div>
     </div>
 
     <div class="rodape">
@@ -533,6 +536,12 @@
       por e-mail em qualquer decisão.
     </div>
 
+    <!-- CRECI: se não foi anexado no passo 4, a opção aparece de novo aqui -->
+    <div class="campo full" id="boxCreciP5" style="display:none;margin-bottom:10px;padding:10px 12px;border-radius:8px;background:#FFFBEF;border-left:3px solid var(--amarelo)">
+      <label>Carteira do CRECI (corretor) <span class="tag-doc">opcional</span></label>
+      <input type="file" accept="image/*,application/pdf" multiple id="ax5-creci" onchange="aoCreciP5(this)">
+      <span class="ajuda">Não anexou no passo 4? Anexe aqui — o CRECI é lido e preenche corretor, CRECI e imobiliária logo abaixo.</span>
+    </div>
     <div class="lst" id="lst-creci-p5" style="display:none;margin-bottom:10px"></div>
     <div class="linha">
       <div class="campo"><label>Corretor<span class="obrig">*</span></label>
@@ -1194,7 +1203,10 @@
           '</div>'+
           '<div style="margin-top:8px"><label style="font-size:12px;font-weight:700;color:var(--marrom)">Documento do comprador (CNH ou RG + CPF)</label>'+
           '<input type="file" accept="image/*,application/pdf" multiple class="dep-doc" onchange="aoAnexarDep('+i+',this)">'+
-          '<div class="lst" id="lst-dep-'+i+'">'+(PDEP[i]&&PDEP[i].length?PDEP[i].length+' arquivo(s) anexado(s).':'')+'</div></div>'
+          '<div class="lst" id="lst-dep-'+i+'">'+(PDEP[i]&&PDEP[i].length?PDEP[i].length+' arquivo(s) anexado(s).':'')+'</div></div>'+
+          '<div style="margin-top:8px"><label style="font-size:12px;font-weight:700;color:var(--marrom)">Comprovante de endereço do comprador</label>'+
+          '<input type="file" accept="image/*,application/pdf" multiple class="dep-end" onchange="aoAnexarDepEnd('+i+',this)">'+
+          '<div class="lst" id="lst-depend-'+i+'">'+(PDEND[i]&&PDEND[i].length?PDEND[i].length+' arquivo(s) anexado(s).':'')+'</div></div>'
         : '')+
         '</div>';
     }
@@ -1210,6 +1222,40 @@
   }
   /* 30/09 — documento do comprador anexado no próprio bloco (lido: preenche nome e CPF) */
   var PDEP={};
+  var PDEND={};      // comprovante de endereço do 2º comprador
+  var PFIA={1:[],2:[]};   // documento dos fiadores
+  function aoAnexarDepEnd(i, input){
+    var arqs=Array.prototype.slice.call(input.files||[]);
+    PDEND[i]=arqs; resumoAnexos();
+    var st=document.getElementById('lst-depend-'+i); if(!st) return;
+    st.className = arqs.length ? 'lst ok' : 'lst';
+    st.textContent = arqs.length ? arqs.length+' arquivo(s) escolhido(s).' : '';
+  }
+  /* documento do fiador: anexa e, se der, lê nome e CPF (só preenche o que está vazio) */
+  function aoAnexarFiador(n, input){
+    var arqs=Array.prototype.slice.call(input.files||[]);
+    PFIA[n]=arqs; resumoAnexos();
+    var st=document.getElementById('lst-fiador-'+n);
+    if(!arqs.length){ st.className='lst'; st.textContent=''; return; }
+    st.className='lst lendo'; st.textContent='Lendo o documento…';
+    prepararLeitura(arqs[0]).then(function(pre){
+      if(!pre) throw {semLeitura:'Arquivo grande demais ou em formato que não dá para ler.'};
+      return apiPost({acao:'lerDocumento', tipo:'CNH', quem:'fiador'+n, arquivo:pre}).then(function(r){
+        if(r && r.ok && r.lido) return r;
+        return apiPost({acao:'lerDocumento', tipo:'RG', quem:'fiador'+n, arquivo:pre});
+      });
+    }).then(function(r){
+      if(r && r.ok && r.lido){
+        var f=F(), c=r.campos||{}, k=0;
+        [['nome','fiador'+n],['cpf','cpfFiador'+n]].forEach(function(p){
+          var v=c[p[0]], el=f[p[1]];
+          if(!v||!el||String(el.value||'').trim()) return;
+          el.value = p[0]==='cpf' ? fmtCpf(v) : padrao(v); el.classList.add('lido'); k++;
+        });
+        st.className='lst ok'; st.textContent = k ? '✓ Documento lido — '+k+' campo(s) preenchido(s). Confira.' : '✓ Documento anexado — nome e CPF já estavam preenchidos.';
+      } else { st.className='lst ok'; st.textContent='Documento anexado. Não consegui ler — preencha nome e CPF manualmente.'; }
+    }).catch(function(e){ st.className='lst ok'; st.textContent='Documento anexado. '+(e&&e.semLeitura?e.semLeitura+' ':'Leitura indisponível agora. ')+'Preencha nome e CPF manualmente.'; });
+  }
   function aoAnexarDep(i, input){
     var arqs=Array.prototype.slice.call(input.files||[]);
     PDEP[i]=arqs;
@@ -1294,7 +1340,7 @@
         var quem=p.nome ? (p.nome) : ((p.tipo==='COMPRADOR'?'2º comprador ':'dependente ')+(i+1));
         lista.push(['dep'+i, 'Documentos de '+quem,
           p.tipo==='COMPRADOR'
-            ? 'Documento pessoal, comprovante de estado civil e comprovação de renda.'
+            ? 'Documento pessoal, comprovante de endereço, comprovante de estado civil e comprovação de renda.'
             : 'Criança: certidão de nascimento ou identidade. Maior de idade: documento pessoal + comprovante de estado civil.',
           null, 'dependente']);
       });
@@ -1326,9 +1372,9 @@
       var html='<div class="anexo'+(pedido?' pedido':'')+(ehCreci?' creci':'')+'">'+
              '<label for="ax-'+d[0]+'">'+d[1]+
              (pedido?'<span class="tag-doc">pedido para '+quem+'</span>':'')+
-             (ehCreci?'<span class="tag-doc">para o corretor · opcional</span>':'')+
+             (ehCreci?'<span class="tag-doc">para o corretor · opcional — se ficar sem, o passo 5 pede de novo</span>':'')+
              '<small>'+d[2]+'</small>'+p1Marca(d[0])+'</label>'+
-             '<input type="file" id="ax-'+d[0]+'" data-rotulo="'+d[1]+'" multiple onchange="resumoAnexos()'+(ehCreci?';lerCreci(this)':'')+'">'+
+             '<input type="file" id="ax-'+d[0]+'" data-rotulo="'+d[1]+'" multiple onchange="resumoAnexos()'+(ehCreci?';lerCreci(this);atualizarCreciP5()':'')+'">'+
              (ehCreci?'<div class="lst" id="lst-creci" style="display:none"></div>':'')+'</div>';
       /* r47 (item 4) — o que não é pedido para ESTE cliente fica escondido
          atrás do "ver os demais documentos". */
@@ -1346,11 +1392,12 @@
     });
     resumoAnexos();
     pintarCreci();
+    atualizarCreciP5();
   }
   function arquivosAnexados(){
     var out=[];
     /* r66 — o que foi anexado na página 1 (proponente / cônjuge) entra junto */
-    ['proponente','conjuge','endereco','creci'].forEach(function(q){
+    ['proponente','conjuge','endereco'].forEach(function(q){
       if(q==='conjuge' && document.getElementById('boxConjuge').style.display==='none') return;
       Object.keys(P1[q]).forEach(function(k){
         (P1[q][k]||[]).forEach(function(a){ out.push({rotulo:P1_ROTULO[q], arquivo:a}); });
@@ -1359,12 +1406,22 @@
     document.querySelectorAll('#anexos input[type=file]').forEach(function(el){
       for(var i=0;i<el.files.length;i++) out.push({rotulo:el.dataset.rotulo, arquivo:el.files[i]});
     });
+    /* CRECI anexado só no passo 5 (quando o passo 4 ficou sem) */
+    var c4=document.getElementById('ax-docCreci'), c5=document.getElementById('ax5-creci');
+    if(c5 && !(c4 && c4.files.length)){
+      for(var ic=0;ic<c5.files.length;ic++) out.push({rotulo:'CRECI do corretor', arquivo:c5.files[ic]});
+    }
+    /* documento dos fiadores */
+    [1,2].forEach(function(n){
+      (PFIA[n]||[]).forEach(function(a){ out.push({rotulo:'Documento do fiador '+n, arquivo:a}); });
+    });
     /* 30/09 — documentos dos compradores anexados no bloco "mais de um comprador" */
     if(F().maisDeUmComprador.checked){
       var extras=pessoasExtras();
       Object.keys(PDEP).forEach(function(i){
         var p=extras[Number(i)]; if(!p) return;
         (PDEP[i]||[]).forEach(function(a){ out.push({rotulo:'Documentos de '+(p.nome||('comprador '+(Number(i)+1))), arquivo:a}); });
+        if(p.tipo==='COMPRADOR') (PDEND[i]||[]).forEach(function(a){ out.push({rotulo:'Comprovante de endereço de '+(p.nome||('comprador '+(Number(i)+1))), arquivo:a}); });
       });
     }
     return out;
@@ -1398,18 +1455,17 @@
      • O CRECI é anexado no passo 4; a leitura preenche o corretor no passo 5.
      • A leitura só devolve dados; nada é gravado antes do envio.
      ===================================================================== */
-  var P1={proponente:{}, conjuge:{}, endereco:{}, creci:{}};
-  var P1_ROTULO={proponente:'RG e CPF do proponente', conjuge:'RG e CPF do cônjuge', endereco:'Comprovante de endereço', creci:'CRECI do corretor'};
-  var P1_ID={proponente:'docProponente', conjuge:'docConjuge', endereco:'compEndereco', creci:'docCreci'};
-  var P1_QUEM={docProponente:'proponente', docConjuge:'conjuge', compEndereco:'endereco', docCreci:'creci'};
+  var P1={proponente:{}, conjuge:{}, endereco:{}};
+  var P1_ROTULO={proponente:'RG e CPF do proponente', conjuge:'RG e CPF do cônjuge', endereco:'Comprovante de endereço'};
+  var P1_ID={proponente:'docProponente', conjuge:'docConjuge', endereco:'compEndereco'};
+  var P1_QUEM={docProponente:'proponente', docConjuge:'conjuge', compEndereco:'endereco'};
   /* 30/09 — comprovante de endereço e CRECI anexados na página 1 */
   function aoAnexarP1Extra(quem, input){
     var arqs=Array.prototype.slice.call(input.files||[]);
     P1[quem]={doc:arqs};
-    var st=document.getElementById(quem==='endereco'?'lst-endereco-comp':'lst-creci-doc');
+    var st=document.getElementById('lst-endereco-comp');
     montarAnexos();
     if(!arqs.length){ st.className='lst'; st.textContent=''; return; }
-    if(quem==='creci'){ lerCreci(input); st.className='lst ok'; st.textContent=arqs.length+' arquivo(s) — lendo o CRECI…'; return; }
     st.className='lst lendo'; st.textContent='Lendo o comprovante…';
     prepararLeitura(arqs[0]).then(function(pre){
       if(!pre) throw {semLeitura:'Arquivo grande demais ou em formato que não dá para ler.'};
@@ -1536,6 +1592,15 @@
       el.style.display = ESTADO_CRECI.msg ? 'block' : 'none';
     });
   }
+  /* CRECI: aparece de novo no passo 5 só se o passo 4 ficou sem */
+  function atualizarCreciP5(){
+    var c4=document.getElementById('ax-docCreci'), box=document.getElementById('boxCreciP5');
+    if(!box) return;
+    var tem4 = !!(c4 && c4.files.length);
+    box.style.display = tem4 ? 'none' : '';
+    if(tem4){ var c5=document.getElementById('ax5-creci'); if(c5) c5.value=''; }
+  }
+  function aoCreciP5(input){ resumoAnexos(); lerCreci(input); }
   function lerCreci(input){
     var arq=input.files && input.files[0];
     if(!arq){ ESTADO_CRECI={msg:'',cls:''}; pintarCreci(); return; }
@@ -1597,7 +1662,7 @@
     });
     if(n===2){ montarFluxo(); atualizarComissao(); }
     if(n===4) resumoAnexos();
-    if(n===5) pintarCreci();
+    if(n===5){ atualizarCreciP5(); pintarCreci(); }
     window.scrollTo({top:0,behavior:'smooth'});
   }
   /* r60 (item 1) — nome completo: pelo menos DUAS palavras de 2+ letras.

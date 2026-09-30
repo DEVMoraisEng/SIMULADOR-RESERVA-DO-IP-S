@@ -94,7 +94,7 @@
       <div id="avisoEnvio" class="aviso" style="display:none;margin-top:12px"></div>
       <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <button class="primario" id="btEnviar" onclick="enviar()">Enviar para a Morais</button>
-        <span class="sub" style="margin:0">Você pode enviar em partes: cada envio atualiza o cadastro.</span>
+        <span class="sub" style="margin:0">Envie quando tudo estiver preenchido. Depois do envio o botão fica bloqueado.</span>
       </div>
     </div>
   </div>
@@ -115,6 +115,10 @@ var LIMITE=20*1024*1024;
 var P=new URLSearchParams(location.search), ID=P.get('p')||'', TOKEN=P.get('t')||'';
 var DADOS=null;
 var ARQ={};            // chave do documento -> {sub: [File]}
+var DIA_MIN=5;         // dia de pagamento: a partir do dia 5
+var COND_GRUPOS=/^(comprador|fiador)[12]$/;   // grupos que só valem se alguém for informado
+var SINT={};           // documentos criados aqui (o servidor não listou) -> vão como "outros" com o nome identificado
+var TRAVADO=false, ENVIANDO=false;
 
 var TITULO_GRUPO={
   prop:'Proponente', conjuge:'Cônjuge', comprador1:'Comprador 1', comprador2:'Comprador 2',
@@ -138,6 +142,10 @@ var DICA_DOC={
   docProponente:'CNH (frente e verso) ou RG + CPF. O documento é lido e preenche os dados acima.',
   docConjuge:'CNH (frente e verso) ou RG + CPF do cônjuge.',
   compEndereco:'Conta de água, luz ou telefone dos últimos 3 meses. É lida para preencher o endereço.',
+  endComprador1:'Conta de água, luz ou telefone dos últimos 3 meses.', endComprador2:'Conta de água, luz ou telefone dos últimos 3 meses.',
+  endFiador1:'Conta de água, luz ou telefone dos últimos 3 meses.', endFiador2:'Conta de água, luz ou telefone dos últimos 3 meses.',
+  docComprador1:'CNH (frente e verso) ou RG + CPF.', docComprador2:'CNH (frente e verso) ou RG + CPF.',
+  docFiador1:'CNH (frente e verso) ou RG + CPF.', docFiador2:'CNH (frente e verso) ou RG + CPF.',
   certidoes:'Certidão de nascimento, de casamento ou averbação de divórcio.',
   rendaDocs:'Contracheques, imposto de renda, extratos — o que a análise pediu.',
   outrosDocs:'Qualquer outro arquivo pedido pela Morais.'
@@ -193,8 +201,8 @@ function htmlCampo(c){
   var vazio=!String(c.valor||'').trim();
   if(c.tipo==='dia'){
     var ops='<option value="">Escolha o dia…</option>';
-    for(var i=1;i<=31;i++) ops+='<option value="'+i+'"'+(String(c.valor)===String(i)?' selected':'')+'>Dia '+i+'</option>';
-    return '<div class="campo'+(vazio&&c.obrig?' falta':'')+'" data-obrig="'+(c.obrig?1:0)+'">'+
+    for(var i=DIA_MIN;i<=31;i++) ops+='<option value="'+i+'"'+(String(c.valor)===String(i)?' selected':'')+'>Dia '+i+'</option>';
+    return '<div class="campo'+(vazio&&c.obrig?' falta':'')+'" data-obrig="'+(c.obrig?1:0)+'" data-g="'+esc(c.grupo)+'">'+
       '<label>'+esc(c.rotulo)+(c.obrig ? (vazio?'<span class="marca">falta</span>':'<span class="marca ok-marca">ok</span>')
                                        : '<span class="marca opc">opcional</span>')+'</label>'+
       '<select id="f-'+c.id+'" data-tipo="dia">'+ops+'</select></div>';
@@ -205,17 +213,22 @@ function htmlCampo(c){
   var v=c.valor;
   if(c.tipo==='cpf') v=fmtCpf(v); else if(c.tipo==='cep') v=fmtCep(v); else if(c.tipo==='tel') v=fmtTel(v);
   var full = (c.id==='endereco') ? ' style="grid-column:1/-1"' : '';
-  return '<div class="campo'+(vazio&&c.obrig?' falta':'')+'"'+full+' data-obrig="'+(c.obrig?1:0)+'">'+
+  return '<div class="campo'+(vazio&&c.obrig?' falta':'')+'"'+full+' data-obrig="'+(c.obrig?1:0)+'" data-g="'+esc(c.grupo)+'">'+
     '<label>'+esc(c.rotulo)+(c.obrig ? (vazio?'<span class="marca">falta</span>':'<span class="marca ok-marca">ok</span>')
                                      : '<span class="marca opc">opcional</span>')+'</label>'+
     '<input id="f-'+c.id+'" type="'+t+'" value="'+esc(v)+'" data-tipo="'+c.tipo+'"'+extra+maxl+'></div>';
 }
 
+function grupoDeDoc(chave){
+  return chave==='compEndereco' ? 'endereco'
+    : (chave==='docProponente' ? 'prop' : chave==='docConjuge' ? 'conjuge'
+    : chave.replace(/^end/,'doc').replace('doc','').replace(/^./,function(x){return x.toLowerCase();}));
+}
 function htmlDoc(d){
   var marca = d.temArquivo ? '<span class="marca ok-marca">já enviado</span>'
             : (d.exigido ? '<span class="marca">falta</span>' : '<span class="marca opc">opcional</span>');
   var cab='<div class="doc'+(d.exigido&&!d.temArquivo?' pedido':'')+'" id="doc-'+d.chave+'" data-chave="'+d.chave+'"'+
-    ' data-exigido="'+(d.exigido?1:0)+'" data-enviado="'+(d.temArquivo?1:0)+'" data-nome="'+esc(d.rotulo)+'">'+
+    ' data-exigido="'+(d.exigido?1:0)+'" data-enviado="'+(d.temArquivo?1:0)+'" data-nome="'+esc(d.rotulo)+'" data-g="'+esc(grupoDeDoc(d.chave))+'">'+
     '<label>'+esc(d.rotulo)+marca+'<small>'+esc(DICA_DOC[d.chave]||'')+'</small></label>';
   if(DOC_PESSOA.indexOf(d.chave)>=0){
     return cab+'<select class="sel" id="tipo-'+d.chave+'" onchange="montarSubs(\''+d.chave+'\')">'+
@@ -251,17 +264,31 @@ function pintar(){
   DADOS.campos.forEach(function(c){ (porGrupo[c.grupo]=porGrupo[c.grupo]||[]).push(c); });
   DADOS.documentos.forEach(function(d){
     if(d.chave==='certidoes'||d.chave==='rendaDocs'||d.chave==='outrosDocs'){ outros.push(d); return; }
-    var g = d.chave==='compEndereco' ? 'endereco'
-          : (d.chave==='docProponente' ? 'prop' : d.chave==='docConjuge' ? 'conjuge'
-          : d.chave.replace('doc','').replace(/^./,function(x){return x.toLowerCase();}));
+    var g = grupoDeDoc(d.chave);
     (docsGrupo[g]=docsGrupo[g]||[]).push(d);
+  });
+  /* compradores e fiadores: documento pessoal + comprovante de endereço de cada um.
+     O que o servidor não listou é criado aqui e sobe como "outros documentos", com o nome identificado. */
+  SINT={};
+  ['comprador1','comprador2','fiador1','fiador2'].forEach(function(g){
+    if(!porGrupo[g]) return;
+    var num=g.slice(-1), quem=(g.indexOf('fiador')===0?'fiador ':'comprador ')+num;
+    var cap=g.replace(/^./,function(x){return x.toUpperCase();});
+    var lista=docsGrupo[g]=docsGrupo[g]||[];
+    if(!lista.some(function(d){ return d.chave==='doc'+cap; })){
+      lista.unshift({chave:'doc'+cap, rotulo:'Documento do '+quem, exigido:false, temArquivo:false});
+      SINT['doc'+cap]='DOC_'+g.toUpperCase();
+    }
+    lista.push({chave:'end'+cap, rotulo:'Comprovante de endereço do '+quem, exigido:false, temArquivo:false});
+    SINT['end'+cap]='COMPROVANTE_ENDERECO_'+g.toUpperCase();
   });
 
   var html='';
   ORDEM_GRUPO.forEach(function(g){
     if(!porGrupo[g]) return;
-    var opc = /^(comprador|fiador)/.test(g) ? ' <span class="marca opc">opcional</span>' : '';
+    var opc = COND_GRUPOS.test(g) ? ' <span class="marca opc" id="tag-g-'+g+'">só se houver</span>' : '';
     html+='<div class="card" id="g-'+g+'"><h2>'+TITULO_GRUPO[g]+opc+'</h2>';
+    if(COND_GRUPOS.test(g)) html+='<p class="sub">Se houver '+(g.indexOf('fiador')===0?'este fiador':'este comprador')+', preencha <b>tudo</b>: dados, documento e comprovante de endereço. Se não houver, deixe em branco.</p>';
     if(g==='prop') html+='<p class="sub">O que já está preenchido veio da proposta — corrija se estiver errado. Campos marcados com <b>falta</b> são obrigatórios.</p>';
     if(g==='pagamento') html+='<p class="sub">Escolha o dia do mês em que é melhor para você pagar os boletos. Eles vencem sempre neste dia, '+
       'a partir do mês seguinte à assinatura do contrato. <b>As parcelas e os valores do fluxo podem sofrer alteração de acordo com a data de assinatura do contrato.</b></p>';
@@ -359,24 +386,59 @@ function resumoAnexos(){
     : 'Nenhum arquivo escolhido ainda.';
   atualizarTrava();
 }
-function atualizarTrava(){
-  var el=document.getElementById('trava'); if(!el || !DADOS) return;
-  var campos=[], docs=[];
-  document.querySelectorAll('.campo[data-obrig="1"]').forEach(function(cx){
+function grupoAtivo(g){
+  var box=document.getElementById('g-'+g); if(!box) return false;
+  var ativo=false;
+  box.querySelectorAll('.grade input,.grade select').forEach(function(i){ if(String(i.value||'').trim()) ativo=true; });
+  box.querySelectorAll('.doc').forEach(function(d){ if(d.dataset.enviado==='1' || arquivosDe(d.dataset.chave).length) ativo=true; });
+  return ativo;
+}
+/* recalcula o que é obrigatório e devolve o que falta. Grupos de comprador/fiador: se alguém foi
+   informado (dado ou documento), TUDO dele é obrigatório. */
+function pendencias(){
+  var campos=[], docs=[], ativos={};
+  Object.keys(TITULO_GRUPO).forEach(function(g){
+    if(!COND_GRUPOS.test(g)) return;
+    ativos[g]=grupoAtivo(g);
+    var tag=document.getElementById('tag-g-'+g);
+    if(tag){ tag.className='marca'+(ativos[g]?'':' opc'); tag.textContent=ativos[g]?'obrigatório':'só se houver'; }
+  });
+  document.querySelectorAll('.campo').forEach(function(cx){
+    var g=cx.dataset.g||'', cond=COND_GRUPOS.test(g);
+    var req = cond ? !!ativos[g] : cx.dataset.obrig==='1';
     var inp=cx.querySelector('input,select');
     var vazio=!inp || !String(inp.value||'').trim();
-    cx.classList.toggle('falta', vazio);
+    cx.classList.toggle('falta', req && vazio);
     var m=cx.querySelector('.marca');
-    if(m){ m.className='marca'+(vazio?'':' ok-marca'); m.textContent=vazio?'falta':'ok'; }
-    if(vazio) campos.push(cx.querySelector('label').childNodes[0].textContent);
+    if(m){
+      if(req){ m.className='marca'+(vazio?'':' ok-marca'); m.textContent=vazio?'falta':'ok'; }
+      else { m.className='marca opc'; m.textContent='opcional'; }
+    }
+    if(req && vazio) campos.push((TITULO_GRUPO[g]&&g!=='pagamento'&&g!=='endereco'&&g!=='contato'?TITULO_GRUPO[g]+': ':'')+cx.querySelector('label').childNodes[0].textContent);
   });
-  document.querySelectorAll('.doc[data-exigido="1"]').forEach(function(d){
-    if(d.dataset.enviado!=='1' && !arquivosDe(d.dataset.chave).length) docs.push(d.dataset.nome);
+  document.querySelectorAll('.doc').forEach(function(d){
+    var g=d.dataset.g||'', cond=COND_GRUPOS.test(g);
+    var req = cond ? !!ativos[g] : d.dataset.exigido==='1';
+    var tem = d.dataset.enviado==='1' || arquivosDe(d.dataset.chave).length>0;
+    d.classList.toggle('pedido', req && !tem);
+    var m=d.querySelector('label .marca');
+    if(m){
+      if(d.dataset.enviado==='1'){ m.className='marca ok-marca'; m.textContent='já enviado'; }
+      else if(tem){ m.className='marca ok-marca'; m.textContent='escolhido'; }
+      else if(req){ m.className='marca'; m.textContent='falta'; }
+      else { m.className='marca opc'; m.textContent='opcional'; }
+    }
+    if(req && !tem) docs.push((TITULO_GRUPO[g]&&COND_GRUPOS.test(g)?'':'')+d.dataset.nome);
   });
+  return {campos:campos, docs:docs};
+}
+function atualizarTrava(){
+  var el=document.getElementById('trava'); if(!el || !DADOS) return;
+  var pd=pendencias(), campos=pd.campos, docs=pd.docs;
   if(!campos.length && !docs.length){
     el.className='trava ok';
     el.innerHTML='<b>Tudo pronto.</b> Os dados obrigatórios e os documentos exigidos estão preenchidos — '+
-      'é só clicar em <b>Enviar para a Morais</b> (se ainda não enviou).';
+      (TRAVADO ? 'o cadastro já foi enviado.' : 'é só clicar em <b>Enviar para a Morais</b>.');
   } else {
     el.className='trava pend';
     el.innerHTML='<b>Ainda falta para fechar o cadastro da venda:</b><ul>'+
@@ -388,6 +450,7 @@ function atualizarTrava(){
 /* ---------------- envio ---------------- */
 function enviar(){
   var av=document.getElementById('avisoEnvio'), bt=document.getElementById('btEnviar');
+  if(TRAVADO || ENVIANDO) return;          // um clique só: o botão fica bloqueado depois do envio
   function erro(m, el){ av.style.display='block'; av.className='aviso erro'; av.innerHTML=m; if(el){ el.focus(); } }
   var campos={}, problema=null;
   DADOS.campos.forEach(function(c){
@@ -401,9 +464,17 @@ function enviar(){
   if(problema) return erro(problema[0], problema[1]);
   var lista=todosArquivos();
   var total=lista.reduce(function(a,x){ return a+x.arquivo.size; },0);
-  if(total>LIMITE) return erro('Os arquivos somam mais de 20 MB. Envie em duas vezes — o link continua valendo.');
+  if(total>LIMITE) return erro('Os arquivos somam mais de 20 MB. Reduza ou comprima os arquivos e tente de novo.');
+  /* 30/09: nada é opcional na venda — só envia com tudo preenchido */
+  var pd=pendencias();
+  if(pd.campos.length || pd.docs.length){
+    atualizarTrava();
+    return erro('<b>Ainda falta preencher para enviar:</b><br>'+
+      (pd.docs.length?'Documentos: '+pd.docs.map(esc).join(' · ')+'<br>':'')+
+      (pd.campos.length?'Dados: '+pd.campos.map(esc).join(' · '):''));
+  }
 
-  bt.disabled=true;
+  ENVIANDO=true; bt.disabled=true; bt.textContent='Enviando…';
   av.style.display='block'; av.className='aviso info'; av.innerHTML='<b>Enviando os dados…</b> não feche a página.';
   var falhas=[], enviados=0, gravados=0;
 
@@ -418,9 +489,13 @@ function enviar(){
       var nome=(document.getElementById('doc-'+ch)||{dataset:{}}).dataset.nome||ch;
       av.innerHTML='<b>Enviando documentos '+i+' de '+chaves.length+':</b> '+esc(nome)+'… não feche a página.';
       return Promise.all(arquivosDe(ch).map(function(f){
-        return lerBase64(f).then(function(b64){ return {nome:f.name, tipo:f.type||'application/octet-stream', base64:b64}; });
+        return lerBase64(f).then(function(b64){
+          /* documento criado na tela: vai como "outros", com o nome dizendo de quem é */
+          var nm = SINT[ch] ? SINT[ch]+'_'+f.name : f.name;
+          return {nome:nm, tipo:f.type||'application/octet-stream', base64:b64};
+        });
       })).then(function(anexos){
-        return apiPost({acao:'anexarVenda', pageId:ID, token:TOKEN, chave:ch, anexos:anexos});
+        return apiPost({acao:'anexarVenda', pageId:ID, token:TOKEN, chave:(SINT[ch]?'outrosDocs':ch), anexos:anexos});
       }).then(function(x){
         if(x && x.ok){ enviados+=(x.enviados||0); (x.falhas||[]).forEach(function(f){ falhas.push(f); }); }
         else falhas.push(nome+': '+((x&&x.erro)||'falhou'));
@@ -428,14 +503,16 @@ function enviar(){
     }
     return proximo();
   }).then(function(){
-    bt.disabled=false;
+    ENVIANDO=false;
+    if(falhas.length){ bt.disabled=false; bt.textContent='Enviar para a Morais'; }          // algum arquivo não subiu: libera para tentar de novo
+    else { TRAVADO=true; bt.disabled=true; bt.textContent='Enviado ✓'; }                    // enviou: bloqueia
     av.className='aviso ok';
     av.innerHTML='<b>Enviado.</b> '+(gravados?gravados+' campo(s) atualizados. ':'')+(enviados?enviados+' documento(s) anexados.':'')+
       (falhas.length?'<br><b style="color:#8A2E17">Não subiram:</b> '+falhas.map(esc).join(' · '):'')+
-      '<br>A Morais já foi avisada. Confira o quadro no topo: se ainda faltar algo, é só voltar neste link.';
+      '<br>A Morais já foi avisada. Se precisar corrigir algo, abra o link de novo.';
     carregar();
   }).catch(function(e){
-    bt.disabled=false;
+    ENVIANDO=false; bt.disabled=false; bt.textContent='Enviar para a Morais';
     av.className='aviso erro';
     av.innerHTML='Não consegui gravar: '+esc((e&&e.message)||'a resposta não chegou. Confira com a Morais antes de enviar de novo.');
   });

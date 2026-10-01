@@ -64,6 +64,11 @@
   .trava.ok{background:#EAF6EF;border:1px solid #8CC9A5;border-left:5px solid #1D7A45;color:var(--verde)}
   .trava ul{margin:6px 0 0 18px;padding:0}
   .marca.opc{background:#F1ECE2;color:var(--texto-suave)}
+  input.lido{border-color:#8CC9A5 !important;background:#F3FAF6}
+  .lst{font-size:12px;margin-top:3px;font-weight:600}
+  .lst.ok{color:var(--verde)} .lst.err{color:var(--vermelho)} .lst.lendo{color:var(--texto-suave);font-weight:400}
+  .dono{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;background:#EFE6D3;color:var(--marrom);
+    font-size:10px;font-weight:800;vertical-align:middle}
   .secao{grid-column:1/-1;font-size:12.5px;font-weight:800;color:var(--marrom);text-transform:uppercase;
     letter-spacing:.4px;margin-top:6px;padding-top:10px;border-top:1px dashed var(--borda)}
 </style>
@@ -98,15 +103,16 @@
 
     <div class="card" id="cardFiador" style="display:none">
       <h2>Fiadores <span class="marca opc">opcional</span></h2>
-      <p class="sub">Preencha só se a proposta tiver fiador. Os documentos dos fiadores vão em
-        “RG e CPF dos demais participantes”.</p>
+      <p class="sub">Preencha só se a proposta tiver fiador. Se houver, preencha <b>tudo</b> dele — dados, documento e
+        comprovante de endereço (os dois são pedidos em “Documentos obrigatórios” e lidos automaticamente).</p>
       <div class="grade" id="camposFiador"></div>
     </div>
 
     <div class="card">
       <h2>Documentos obrigatórios</h2>
       <p class="sub"><b>A análise de crédito só segue depois que TODOS os documentos abaixo estiverem
-        anexados.</b> A lista depende da origem da renda e do estado civil. Limite de 20 MB por envio.</p>
+        anexados.</b> A lista depende da origem da renda e do estado civil. Limite de 20 MB por envio.
+        Documento pessoal e comprovante de endereço são <b>lidos automaticamente</b> e preenchem os campos vazios — confira sempre.</p>
       <div id="docs"></div>
       <div id="resumoAnexos" class="sub" style="margin-top:10px"></div>
     </div>
@@ -145,6 +151,22 @@ var DADOS=null;
 var ORIGENS=['CLT','SERVIDOR PÚBLICO','EMPRESÁRIO','AUTÔNOMO','MEI','MOTORISTA DE APLICATIVO',
              'APOSENTADO / PENSIONISTA','PROFISSIONAL LIBERAL','RURAL','OUTRO'];
 var ESTADOS=['SOLTEIRO','CASADO','UNIÃO ESTÁVEL','DIVORCIADO','VIÚVO'];
+/* 01/10 — regime de bens: mesma lista da proposta */
+var REGIMES=['COMUNHAO PARCIAL DE BENS','COMUNHAO UNIVERSAL DE BENS','SEPARACAO TOTAL DE BENS',
+             'SEPARACAO OBRIGATORIA DE BENS','PARTICIPACAO FINAL NOS AQUESTOS'];
+/* 01/10 — leitura automática: coluna do documento -> o que a leitura preenche */
+var LEITURA={
+  'DOC. PROP.':{tipo:'pessoa', quem:'proponente', mapa:{nome:'cliente', cpf:'cpf', rg:'identidade', dataNascimento:'dataNascimento', nacionalidade:'nacionalidade'}},
+  'DOC. CONJUGE':{tipo:'pessoa', quem:'conjuge', mapa:{nome:'conjuge', cpf:'cpfConjuge', rg:'rgConjuge', nacionalidade:'nacionalidadeConjuge'}},
+  'COMPROVANTE DE ENDERECO':{tipo:'endereco', quem:'proponente', mapa:{cep:'cep', logradouro:'logradouro', numero:'numero', bairro:'setor', cidade:'cidade'}, inteiro:'endereco'},
+  'DOC. FIADOR 1':{tipo:'pessoa', quem:'fiador1', mapa:{nome:'fiador1', cpf:'cpfFiador1', rg:'rgFiador1', nacionalidade:'nacionalidadeFiador1'}},
+  'DOC. FIADOR 2':{tipo:'pessoa', quem:'fiador2', mapa:{nome:'fiador2', cpf:'cpfFiador2', rg:'rgFiador2', nacionalidade:'nacionalidadeFiador2'}},
+  'COMP. END. FIADOR 1':{tipo:'endereco', quem:'fiador1', mapa:{cep:'cepFiador1', logradouro:'logradouroFiador1', numero:'numeroFiador1', bairro:'setorFiador1', cidade:'cidadeFiador1'}, inteiro:'enderecoFiador1'},
+  'COMP. END. FIADOR 2':{tipo:'endereco', quem:'fiador2', mapa:{cep:'cepFiador2', logradouro:'logradouroFiador2', numero:'numeroFiador2', bairro:'setorFiador2', cidade:'cidadeFiador2'}, inteiro:'enderecoFiador2'}
+};
+/* de quem é cada documento fixo (o selo aparece ao lado do nome) */
+var DONO_DOC={'DOC. PROP.':'proponente','DOC. CONJUGE':'cônjuge','COMPROVANTE DE ENDERECO':'proponente',
+  'DOC. FIADOR 1':'fiador 1','DOC. FIADOR 2':'fiador 2','COMP. END. FIADOR 1':'fiador 1','COMP. END. FIADOR 2':'fiador 2'};
 
 /* Mesma regra da proposta: o documento pedido depende da origem da renda
    e da situação do cliente. */
@@ -173,7 +195,11 @@ var DICA_DOC={
   'EXTRATO FGTS':'Extrato do app ou do site da CAIXA, com o saldo.',
   'DOC. DEPENDENTE':'Criança: certidão de nascimento. Maior de idade: documento pessoal + estado civil.',
   'COMPROVANTE DE DIVORCIO':'Averbação do divórcio ou sentença.',
-  'ANEXOS':'Qualquer outro documento pedido pela análise.'
+  'ANEXOS':'Qualquer outro documento pedido pela análise.',
+  'DOC. FIADOR 1':'CNH (frente e verso) ou RG + CPF do fiador 1. É lido e preenche os dados dele.',
+  'DOC. FIADOR 2':'CNH (frente e verso) ou RG + CPF do fiador 2. É lido e preenche os dados dele.',
+  'COMP. END. FIADOR 1':'Conta de água, luz ou telefone dos últimos 3 meses. É lido e preenche o endereço do fiador 1.',
+  'COMP. END. FIADOR 2':'Conta de água, luz ou telefone dos últimos 3 meses. É lido e preenche o endereço do fiador 2.'
 };
 var ROTULO_DOC={
   'DOC. PROP.':'RG e CPF do proponente','DOC. CONJUGE':'RG e CPF do cônjuge',
@@ -183,11 +209,17 @@ var ROTULO_DOC={
   'PRO LABORE':'Pró-labore','MOVIMENTACAO BANCARIA':'Movimentação bancária - 4 últimos meses',
   'EXTRATO PLATAFORMA':'Extrato da plataforma - 4 últimos meses','EXTRATO FGTS':'Extrato do FGTS',
   'DOC. DEPENDENTE':'Documentos do dependente ou 2º comprador',
-  'COMPROVANTE DE DIVORCIO':'Comprovante de divórcio','ANEXOS':'Outros documentos'
+  'COMPROVANTE DE DIVORCIO':'Comprovante de divórcio','ANEXOS':'Outros documentos',
+  'DOC. FIADOR 1':'Documento do fiador 1','DOC. FIADOR 2':'Documento do fiador 2',
+  'COMP. END. FIADOR 1':'Comprovante de endereço do fiador 1','COMP. END. FIADOR 2':'Comprovante de endereço do fiador 2'
 };
 
 function esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function dig(v){ return String(v||'').replace(/\D/g,''); }
+function fmtCep(v){ var d=dig(v).slice(0,8); return d.length>5 ? d.slice(0,5)+'-'+d.slice(5) : d; }
+function fmtCpf(v){ var d=dig(v).slice(0,11); if(d.length<=3) return d; if(d.length<=6) return d.slice(0,3)+'.'+d.slice(3);
+  if(d.length<=9) return d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6); return d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6,9)+'-'+d.slice(9); }
+function semAcento(v){ return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/\s+/g,' ').trim(); }
 function brl(v){ return 'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function estado(tipo, msg){
   var e=document.getElementById('estado');
@@ -212,7 +244,13 @@ function carregar(){
 
 /* r58 — cônjuge só aparece para casado ou união estável. Solteiro não pode
    ver "Nome do cônjuge · falta". */
-var CAMPOS_CONJUGE=['conjuge','cpfConjuge','profissaoConjuge','origemRendaConjuge','rendaAprovadaConjuge'];
+var CAMPOS_CONJUGE=['conjuge','cpfConjuge','profissaoConjuge','origemRendaConjuge','rendaAprovadaConjuge',
+                    'regimeBens','rgConjuge','nacionalidadeConjuge'];
+/* 01/10 — casado/união estável: estes do cônjuge passam a ser obrigatórios */
+var CONJ_OBRIG=['conjuge','cpfConjuge','rgConjuge','nacionalidadeConjuge','regimeBens'];
+/* com o endereço separado, o texto único (ENDERECO) é montado pelo servidor e não aparece */
+function temEnderecoSeparado(){ return DADOS && DADOS.campos.some(function(c){ return c.id==='logradouro'; }); }
+var ENDERECO_INTEIRO=['endereco','enderecoFiador1','enderecoFiador2'];
 function temConjuge(){
   var el=document.getElementById('c-estadoCivil');
   var v=(el ? el.value : (DADOS && (DADOS.campos.filter(function(c){return c.id==='estadoCivil';})[0]||{}).valor)) || '';
@@ -245,6 +283,7 @@ function pintar(){
   var htmlProp='', htmlCorr='', htmlFiad='', fiadorAtual='';
   DADOS.campos.forEach(function(c){
     if(SEMPRE_FORA.indexOf(c.id)>=0) return;           // referências: saíram
+    if(ENDERECO_INTEIRO.indexOf(c.id)>=0 && temEnderecoSeparado()) return;   // 01/10: vai separado
     var grupo = c.grupo || (CAMPOS_CONJUGE.indexOf(c.id)>=0 ? 'conjuge' : 'prop');
     var h = htmlCampo(c);
     if(grupo==='corretor') htmlCorr += h;
@@ -261,7 +300,11 @@ function pintar(){
   document.getElementById('camposFiador').innerHTML=htmlFiad;
   document.getElementById('cardFiador').style.display = htmlFiad ? '' : 'none';
   document.querySelectorAll('#conteudo input:not([type=file]),#conteudo select,#conteudo textarea')
-    .forEach(function(el){ el.addEventListener('input', atualizarTrava); el.addEventListener('change', atualizarTrava); });
+    .forEach(function(el){
+      el.addEventListener('input', function(){ mascarar(el); atualizarTrava(); });
+      el.addEventListener('change', atualizarTrava);
+      mascarar(el);
+    });
 
   verConjuge();
 }
@@ -270,7 +313,24 @@ function pintar(){
 var SEMPRE_FORA=['referencia1','telRef1','referencia2','telRef2'];
 var OBRIG_PADRAO=['cliente','cpf','identidade','dataNascimento','estadoCivil','profissao','celular',
                   'emailProponente','endereco','origemRenda','rendaAprovada','vendedor','creci','email'];
-function ehObrig(c){ return (c.obrig===undefined) ? OBRIG_PADRAO.indexOf(c.id)>=0 : !!c.obrig; }
+function ehObrig(c){ if(CONJ_OBRIG.indexOf(c.id)>=0) return true;      // só valem visíveis (casado)
+  return (c.obrig===undefined) ? OBRIG_PADRAO.indexOf(c.id)>=0 : !!c.obrig; }
+function mascarar(el){
+  var t=el.dataset.tipo;
+  if(t==='cep') el.value=fmtCep(el.value);
+  else if(t==='cpf'){ if(/^0+$/.test(dig(el.value))) el.value=''; else el.value=fmtCpf(el.value); }
+}
+/* fiador com qualquer dado preenchido: tudo dele vira obrigatório (menos e-mail) */
+function fiadorAtivo(n){
+  var at=false;
+  document.querySelectorAll('[data-fia="'+n+'"] input:not([type=file])').forEach(function(i){
+    if(!/^c-emailFiador/.test(i.id) && String(i.value||'').trim()) at=true;
+  });
+  document.querySelectorAll('.doc[data-fia="'+n+'"]').forEach(function(d){
+    var inp=d.querySelector('input[type=file]'); if(inp && inp.files.length) at=true;
+  });
+  return at;
+}
 /* 30/09: o valor gravado vem sem acento (AUTONOMO) e a opção tem acento (AUTÔNOMO):
    comparando sem acento, a origem da renda já escolhida não aparece mais como "falta"
    — e a lista de documentos, que depende dela, sai certa. */
@@ -290,18 +350,28 @@ function htmlCampo(c){
     campo='<select id="c-'+c.id+'" onchange="verConjuge()"><option value="">Selecione…</option>'+
       ESTADOS.map(function(o){ return '<option'+(mesmaOpcao(c.valor,o)?' selected':'')+'>'+o+'</option>'; }).join('')+
       '</select>';
+  } else if(c.id==='regimeBens'){
+    var atual=semAcento(c.valor), achou=false;
+    campo='<select id="c-'+c.id+'"><option value="">Selecione…</option>'+REGIMES.map(function(r){
+      var sel=atual && atual.indexOf(r.replace(' DE BENS',''))===0; if(sel) achou=true;
+      return '<option'+(sel?' selected':'')+'>'+r+'</option>'; }).join('')+
+      (atual && !achou ? '<option selected>'+esc(c.valor)+'</option>' : '')+'</select>';
   } else if(c.id==='observacoes'){
     campo='<textarea id="c-'+c.id+'" rows="2">'+esc(c.valor)+'</textarea>';
   } else {
     var t=(c.tipo==='data')?'date':(c.tipo==='email'?'email':'text');
     var v=c.valor;
     if(c.tipo==='numero' && v) v=Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-    campo='<input id="c-'+c.id+'" type="'+t+'" value="'+esc(v)+'"'+
-          (c.tipo==='numero'||c.tipo==='cpf'||c.tipo==='tel' ? ' inputmode="numeric"' : '')+'>';
+    if((c.tipo==='cpf'||c.tipo==='tel'||c.tipo==='cep') && /^0*$/.test(String(v||'').trim())) v='';   // "0" não é CPF
+    campo='<input id="c-'+c.id+'" type="'+t+'" value="'+esc(v)+'" data-tipo="'+esc(c.tipo||'')+'"'+
+          (c.tipo==='numero'||c.tipo==='cpf'||c.tipo==='tel'||c.tipo==='cep' ? ' inputmode="numeric"' : '')+
+          (c.tipo==='cep' ? ' maxlength="9"' : '')+'>';
   }
   var ob=ehObrig(c);
-  var full=(c.id==='observacoes'||c.id==='endereco'||/^enderecoFiador/.test(c.id)) ? ' style="grid-column:1/-1"' : '';
-  return '<div class="campo'+(vazio&&ob?' falta':'')+'"'+full+' data-obrig="'+(ob?1:0)+'"><label>'+esc(c.rotulo)+
+  var full=(c.id==='observacoes'||c.id==='endereco'||/^enderecoFiador/.test(c.id)||/^logradouro/.test(c.id)) ? ' style="grid-column:1/-1"' : '';
+  var fia=(c.grupo==='fiador') ? ' data-fia="'+(/2$/.test(c.id)?2:1)+'"' : '';
+  if(fia && !/^emailFiador/.test(c.id)) ob=true;           // vale só se o fiador existir (ver atualizarTrava)
+  return '<div class="campo'+(vazio&&ob&&!fia?' falta':'')+'"'+full+fia+' data-obrig="'+(ob?1:0)+'"><label>'+esc(c.rotulo)+
          (ob ? (vazio?'<span class="marca">falta</span>':'<span class="marca ok-marca">ok</span>') : '')+
          '</label>'+campo+'</div>';
 }
@@ -310,8 +380,13 @@ function htmlCampo(c){
 function atualizarTrava(){
   var el=document.getElementById('trava'); if(!el || !DADOS) return;
   var campos=[];
+  var fAt={1:fiadorAtivo(1), 2:fiadorAtivo(2)};
   document.querySelectorAll('.campo[data-obrig="1"]').forEach(function(cx){
     if(cx.style.display==='none') return;
+    if(cx.dataset.fia && !fAt[cx.dataset.fia]){                 // fiador em branco = não existe
+      cx.classList.remove('falta'); var mm=cx.querySelector('.marca'); if(mm){ mm.className='marca opc'; mm.textContent='se houver'; }
+      return;
+    }
     var inp=cx.querySelector('input,select,textarea');
     var vazio=!inp || !String(inp.value||'').trim();
     cx.classList.toggle('falta', vazio);
@@ -320,6 +395,13 @@ function atualizarTrava(){
     if(vazio) campos.push(cx.querySelector('label').childNodes[0].textContent);
   });
   var docs=[];
+  document.querySelectorAll('#docs .doc[data-fia]').forEach(function(d){
+    var at=fAt[d.dataset.fia];
+    d.dataset.exigido = at ? '1' : '0';
+    d.classList.toggle('pedido', at && d.dataset.enviado!=='1');
+    var mk=d.querySelector('label .marca');
+    if(mk && d.dataset.enviado!=='1'){ mk.className = at ? 'marca' : 'marca opc'; mk.textContent = at ? 'falta' : 'se houver fiador'; }
+  });
   document.querySelectorAll('#docs .doc[data-exigido="1"]').forEach(function(d){
     var inp=d.querySelector('input[type=file]');
     if(d.dataset.enviado!=='1' && !(inp && inp.files.length)) docs.push(d.dataset.nome);
@@ -352,18 +434,31 @@ function montarDocs(){
   var linhas=[];
   DADOS.documentos.forEach(function(d){
     var regra=REGRA_DOC[d.coluna];
+    var fiaN = (/FIADOR ([12])$/.exec(d.coluna)||[])[1];          // 01/10: documento e comprovante de cada fiador
     var exigido = DOC_SEMPRE.indexOf(d.coluna)>=0 ||
                   (regra && origens.some(function(o){ return o && regra.indexOf(o)>=0; })) ||
-                  (d.coluna==='COMPROVANTE DE DIVORCIO' && civil.indexOf('DIVORC')>=0);
-    if(!exigido) return;
+                  (d.coluna==='COMPROVANTE DE DIVORCIO' && civil.indexOf('DIVORC')>=0) ||
+                  (d.coluna==='DOC. CONJUGE' && temConjuge());
+    if(!exigido && !fiaN) return;
     var nome=ROTULO_DOC[d.coluna]||d.rotulo;
     var id='d-'+d.coluna.replace(/\W/g,'');
-    linhas.push('<div class="doc'+(d.temArquivo?'':' pedido')+'" data-exigido="1" data-enviado="'+(d.temArquivo?1:0)+'"'+
-      ' data-nome="'+esc(nome)+'">'+
-      '<label for="'+id+'">'+esc(nome)+
+    /* 01/10 — selo de quem é o documento: proponente, cônjuge, fiador… */
+    var dono=DONO_DOC[d.coluna]||'';
+    if(!dono && regra){
+      var ds=[];
+      if(origens[0] && regra.indexOf(origens[0])>=0) ds.push('proponente · '+origens[0]);
+      if(temConjuge() && origens[1] && regra.indexOf(origens[1])>=0) ds.push('cônjuge · '+origens[1]);
+      dono=ds.join(' + ');
+    }
+    if(!dono && (d.coluna==='CERTIDOES'||d.coluna==='COMPROVANTE DE DIVORCIO')) dono = temConjuge() ? 'proponente e cônjuge' : 'proponente';
+    var le=LEITURA[d.coluna];
+    linhas.push('<div class="doc'+(d.temArquivo||fiaN?'':' pedido')+'" data-exigido="'+(fiaN?0:1)+'" data-enviado="'+(d.temArquivo?1:0)+'"'+
+      (fiaN?' data-fia="'+fiaN+'"':'')+' data-nome="'+esc(nome)+'">'+
+      '<label for="'+id+'">'+esc(nome)+(dono?'<span class="dono">do '+esc(dono)+'</span>':'')+
       (d.temArquivo?'<span class="marca ok-marca">já enviado</span>':'<span class="marca">falta</span>')+
-      '<small>'+esc(DICA_DOC[d.coluna]||'')+'</small></label>'+
-      '<input type="file" id="'+id+'" data-rotulo="'+esc(d.rotulo)+'" multiple onchange="resumoAnexos()"></div>');
+      '<small>'+esc(DICA_DOC[d.coluna]||'')+(le?' É lido automaticamente.':'')+'</small>'+
+      (le?'<span class="lst" id="lst-'+id+'"></span>':'')+'</label>'+
+      '<input type="file" accept="image/*,application/pdf" id="'+id+'" data-rotulo="'+esc(d.rotulo)+'" data-col="'+esc(d.coluna)+'" multiple onchange="aoArquivo(this)"></div>');
   });
   document.getElementById('docs').innerHTML = linhas.join('') ||
     '<div class="sub">Escolha a <b>origem da renda</b> acima para ver os documentos exigidos.</div>';
@@ -375,6 +470,73 @@ function montarDocs(){
     el.files=dt.files;
   });
   resumoAnexos();
+}
+
+/* ---------------- leitura automática (01/10) ---------------- */
+function apiPost(p){
+  return fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)})
+    .then(function(r){ return r.json(); });
+}
+function prepararLeitura(file){
+  return new Promise(function(ok){
+    var t=file.type||'';
+    if(t==='application/pdf'){
+      if(file.size>6*1024*1024) return ok(null);
+      return lerBase64(file).then(function(b){ ok({nome:file.name, tipo:t, base64:b}); }).catch(function(){ ok(null); });
+    }
+    if(t.indexOf('image/')!==0) return ok(null);
+    var img=new Image(), url=URL.createObjectURL(file);
+    img.onload=function(){
+      var s=Math.min(1, 1800/Math.max(img.width,img.height));
+      var c=document.createElement('canvas'); c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(url);
+      ok({nome:file.name.replace(/\.[^.]+$/,'')+'.jpg', tipo:'image/jpeg', base64:c.toDataURL('image/jpeg',0.85).split(',')[1]});
+    };
+    img.onerror=function(){ URL.revokeObjectURL(url); ok(null); };
+    img.src=url;
+  });
+}
+function preencherCampo(id, v, chave){
+  var el=document.getElementById('c-'+id); if(!el || !v) return 0;
+  var atual=String(el.value||'').trim();
+  if(atual && !(chave==='nacionalidade' && /^(BR|BRASIL)$/i.test(atual))) return 0;   // só o que está vazio
+  if(chave==='cep') v=fmtCep(v); else if(chave==='cpf') v=fmtCpf(v);
+  else if(chave==='dataNascimento'){ var m=String(v).match(/^(\d{2})\/(\d{2})\/(\d{4})$/); if(m) v=m[3]+'-'+m[2]+'-'+m[1]; }
+  else if(el.type!=='date') v=semAcento(v);
+  el.value=v; el.classList.add('lido');
+  return 1;
+}
+function aoArquivo(input){
+  resumoAnexos();
+  var le=LEITURA[input.dataset.col], st=document.getElementById('lst-'+input.id);
+  if(!le || !st) return;
+  var arq=input.files && input.files[0];
+  if(!arq){ st.className='lst'; st.textContent=''; return; }
+  st.className='lst lendo'; st.textContent='Lendo o documento…';
+  prepararLeitura(arq).then(function(pre){
+    if(!pre) throw {sem:'Arquivo grande demais ou em formato que não dá para ler.'};
+    if(le.tipo==='endereco') return apiPost({acao:'lerDocumento', tipo:'COMPROVANTE_ENDERECO', quem:le.quem, arquivo:pre});
+    return apiPost({acao:'lerDocumento', tipo:'CNH', quem:le.quem, arquivo:pre}).then(function(r){
+      if(r && r.ok && r.lido) return r;
+      return apiPost({acao:'lerDocumento', tipo:'RG', quem:le.quem, arquivo:pre});
+    });
+  }).then(function(r){
+    if(!(r && r.ok && r.lido)){ st.className='lst err'; st.textContent='Não consegui ler — preencha os dados manualmente.'; return; }
+    var c=r.campos||{}, n=0;
+    Object.keys(le.mapa).forEach(function(k){ n+=preencherCampo(le.mapa[k], c[k], k); });
+    /* proposta antiga, só com o endereço em texto único */
+    if(le.tipo==='endereco' && !n && le.inteiro){
+      var partes=[c.logradouro, c.numero, c.bairro, c.cidade].filter(Boolean).join(', ');
+      if(partes) n+=preencherCampo(le.inteiro, partes+(c.cep?' - CEP '+fmtCep(c.cep):''), 'inteiro');
+    }
+    st.className='lst ok';
+    st.textContent = n ? '✓ Lido — '+n+' campo(s) preenchido(s). Confira.' : '✓ Lido — os campos já estavam preenchidos.';
+    atualizarTrava();
+  }).catch(function(e){
+    st.className='lst err';
+    st.textContent=(e&&e.sem?e.sem+' ':'Leitura indisponível agora. ')+'Preencha manualmente.';
+  });
 }
 
 function arquivos(){

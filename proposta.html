@@ -280,7 +280,7 @@
       <div class="campo"><label>Nacionalidade</label><input type="text" name="nacionalidade" value="BR" data-pad="1"></div>
       <div class="campo"><label>Profissão</label><input type="text" name="profissao" data-pad="1"></div>
       <div class="campo"><label>Data de nascimento</label><input type="date" name="dataNascimento"></div>
-      <div class="campo"><label>E-mail do proponente</label><input type="email" name="emailProponente"></div>
+      <div class="campo"><label>E-mail do proponente<span class="obrig">*</span></label><input type="email" name="emailProponente" required></div>
       <!-- 30/09: endereço separado, igual ao banco de vendas (o comprovante de endereço lido preenche) -->
       <div class="campo"><label>CEP</label><input type="text" name="cep" inputmode="numeric" maxlength="9" placeholder="00000-000"></div>
       <div class="campo full"><label>Endereço (rua, avenida ou quadra)</label><input type="text" name="endereco" data-pad="1"></div>
@@ -1506,13 +1506,22 @@
       var sempre = DOCS_SEMPRE.indexOf(d[0])>=0;
       var conjugeObrig = d[0]==='docConjuge' && document.getElementById('boxConjuge').style.display!=='none';
       var pedido = porOrigem || porSituacao || sempre || conjugeObrig;
-      var quem = porOrigem ? origens.filter(function(o){ return o && d[3].indexOf(o)>=0; }).join(' / ')
-               : (d[4]==='fgts' ? 'FGTS' : (d[4]==='dependente' ? 'DEPENDENTE / 2º COMPRADOR'
-               : (d[4]==='divorcio' ? 'DIVORCIADO' : 'ANÁLISE DE CRÉDITO')));
+      /* 01/10 — o selo diz DE QUEM é o documento (proponente, cônjuge…), não só o motivo */
+      var donos=[];
+      if(porOrigem){
+        if(origens[0] && d[3].indexOf(origens[0])>=0) donos.push('PROPONENTE · '+origens[0]);
+        if(conjugeAtivo() && origens[1] && d[3].indexOf(origens[1])>=0) donos.push('CÔNJUGE · '+origens[1]);
+      }
+      var DONO_FIXO={docProponente:'PROPONENTE', docConjuge:'CÔNJUGE', compEndereco:'PROPONENTE',
+        certidao:(conjugeAtivo()?'PROPONENTE E CÔNJUGE':'PROPONENTE'), divorcio:'PROPONENTE',
+        extratoFgts:(conjugeAtivo()?'PROPONENTE E CÔNJUGE':'PROPONENTE')};
+      var temDono = !!(donos.length || DONO_FIXO[d[0]]);
+      var quem = donos.length ? donos.join(' + ')
+               : (DONO_FIXO[d[0]] || (d[4]==='dependente' ? 'DEPENDENTE / 2º COMPRADOR' : 'ANÁLISE DE CRÉDITO'));
       var ehCreci = d[0]==='docCreci';
       var html='<div class="anexo'+(pedido?' pedido':'')+(ehCreci?' creci':'')+'">'+
              '<label for="ax-'+d[0]+'">'+d[1]+
-             (pedido?'<span class="tag-doc">pedido para '+quem+'</span>':'')+
+             (pedido?'<span class="tag-doc">'+(temDono?'do ':'pedido para ')+quem+'</span>':'')+
              (ehCreci?'<span class="tag-doc">para o corretor · opcional — se ficar sem, o passo 5 pede de novo</span>':'')+
              '<small>'+d[2]+'</small>'+p1Marca(d[0])+'</label>'+
              '<input type="file" id="ax-'+d[0]+'" data-rotulo="'+d[1]+'" multiple onchange="resumoAnexos()'+(ehCreci?';lerCreci(this);atualizarCreciP5()':'')+'">'+
@@ -1855,6 +1864,9 @@
         return erro('<b>CPF</b> inválido. Confira os números.', f.cpf);
       }
       if(!dig(f.celular.value)) return erro('Informe o <b>celular</b> do proponente — é por onde a Morais confirma a proposta.', f.celular);
+      /* 01/10 — e-mail do proponente obrigatório (vai para o cadastro da venda e para o contrato) */
+      if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(f.emailProponente.value||'').trim()))
+        return erro('Informe um <b>e-mail válido do proponente</b>.', f.emailProponente);
     }
     if(n===2){
       if(f.maisDeUmComprador && f.maisDeUmComprador.checked){

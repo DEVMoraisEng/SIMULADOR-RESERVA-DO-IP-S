@@ -118,6 +118,11 @@ var ARQ={};            // chave do documento -> {sub: [File]}
 var DIA_MIN=5;         // dia de pagamento: a partir do dia 5
 var COND_GRUPOS=/^(comprador|fiador)[12]$/;   // grupos que só valem se alguém for informado
 var SINT={};           // documentos criados aqui (o servidor não listou) -> vão como "outros" com o nome identificado
+/* 01/10 — regime de bens: lista fechada (igual à proposta) */
+var REGIMES=['COMUNHAO PARCIAL DE BENS','COMUNHAO UNIVERSAL DE BENS','SEPARACAO TOTAL DE BENS',
+             'SEPARACAO OBRIGATORIA DE BENS','PARTICIPACAO FINAL NOS AQUESTOS'];
+function ehRegime(c){ return /regime/i.test(c.id||'') || /regime/i.test(c.rotulo||''); }
+function semAcento(v){ return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim(); }
 var TRAVADO=false, ENVIANDO=false;
 
 var TITULO_GRUPO={
@@ -199,6 +204,18 @@ function carregar(){
 
 function htmlCampo(c){
   var vazio=!String(c.valor||'').trim();
+  if(ehRegime(c)){
+    var atual=semAcento(c.valor), achou=false;
+    var opsR='<option value="">Escolha o regime…</option>'+REGIMES.map(function(r){
+      var sel = atual && atual.indexOf(r.replace(' DE BENS',''))===0; if(sel) achou=true;
+      return '<option'+(sel?' selected':'')+'>'+r+'</option>';
+    }).join('');
+    if(atual && !achou) opsR+='<option selected>'+esc(c.valor)+'</option>';     // valor antigo digitado à mão
+    return '<div class="campo'+(vazio&&c.obrig?' falta':'')+'" data-obrig="'+(c.obrig?1:0)+'" data-g="'+esc(c.grupo)+'">'+
+      '<label>Regime de bens'+(c.obrig ? (vazio?'<span class="marca">falta</span>':'<span class="marca ok-marca">ok</span>')
+                                     : '<span class="marca opc">opcional</span>')+'</label>'+
+      '<select id="f-'+c.id+'" data-tipo="regime">'+opsR+'</select></div>';
+  }
   if(c.tipo==='dia'){
     var ops='<option value="">Escolha o dia…</option>';
     for(var i=DIA_MIN;i<=31;i++) ops+='<option value="'+i+'"'+(String(c.valor)===String(i)?' selected':'')+'>Dia '+i+'</option>';
@@ -225,7 +242,7 @@ function grupoDeDoc(chave){
     : chave.replace(/^end/,'doc').replace('doc','').replace(/^./,function(x){return x.toLowerCase();}));
 }
 function htmlDoc(d){
-  var marca = d.temArquivo ? '<span class="marca ok-marca">já enviado</span>'
+  var marca = d.temArquivo ? '<span class="marca ok-marca">'+(d.naProposta?'já enviado na proposta':'já enviado')+'</span>'
             : (d.exigido ? '<span class="marca">falta</span>' : '<span class="marca opc">opcional</span>');
   var cab='<div class="doc'+(d.exigido&&!d.temArquivo?' pedido':'')+'" id="doc-'+d.chave+'" data-chave="'+d.chave+'"'+
     ' data-exigido="'+(d.exigido?1:0)+'" data-enviado="'+(d.temArquivo?1:0)+'" data-nome="'+esc(d.rotulo)+'" data-g="'+esc(grupoDeDoc(d.chave))+'">'+
@@ -235,7 +252,7 @@ function htmlDoc(d){
       '<option value="">Escolha o documento…</option><option value="CNH">CNH (já tem tudo)</option>'+
       '<option value="RGCPF">RG + CPF</option></select><div id="subs-'+d.chave+'"></div></div>';
   }
-  var leitura = d.chave==='compEndereco' ? 'COMPROVANTE_ENDERECO' : '';
+  var leitura = (d.chave==='compEndereco' || /^end/.test(d.chave)) ? 'COMPROVANTE_ENDERECO' : '';
   return cab+'<input type="file" accept="image/*,application/pdf" multiple id="a-'+d.chave+'-x" '+
     'onchange="aoArquivo(\''+d.chave+'\',\'x\',\''+leitura+'\',this)"><div class="lst" id="lst-'+d.chave+'-x"></div></div>';
 }
@@ -261,7 +278,12 @@ function pintar(){
     'Corretor: '+esc(DADOS.corretor||'—')+(DADOS.imobiliaria?' · '+esc(DADOS.imobiliaria):'');
 
   var porGrupo={}, docsGrupo={}, outros=[];
-  DADOS.campos.forEach(function(c){ (porGrupo[c.grupo]=porGrupo[c.grupo]||[]).push(c); });
+  prepararCampos();
+  DADOS.campos.forEach(function(c){
+    if(c.sint==='endConj' || c.id==='conjugeMesmoEndereco') return;   // vão no quadro do endereço do cônjuge
+    var g = ehRegime(c) ? 'prop' : c.grupo;               // 01/10: regime de bens fica no proponente
+    (porGrupo[g]=porGrupo[g]||[]).push(c);
+  });
   DADOS.documentos.forEach(function(d){
     if(d.chave==='certidoes'||d.chave==='rendaDocs'||d.chave==='outrosDocs'){ outros.push(d); return; }
     var g = grupoDeDoc(d.chave);
@@ -279,9 +301,22 @@ function pintar(){
       lista.unshift({chave:'doc'+cap, rotulo:'Documento do '+quem, exigido:false, temArquivo:false});
       SINT['doc'+cap]='DOC_'+g.toUpperCase();
     }
-    lista.push({chave:'end'+cap, rotulo:'Comprovante de endereço do '+quem, exigido:false, temArquivo:false});
-    SINT['end'+cap]='COMPROVANTE_ENDERECO_'+g.toUpperCase();
+    if(!lista.some(function(d){ return d.chave==='end'+cap; })){
+      lista.push({chave:'end'+cap, rotulo:'Comprovante de endereço do '+quem, exigido:false, temArquivo:false});
+      SINT['end'+cap]='COMPROVANTE_ENDERECO_'+g.toUpperCase();
+    }
   });
+  /* 01/10 — cônjuge em outro endereço: comprovante próprio */
+  if(porGrupo.conjuge){
+    var lc=docsGrupo.conjuge=docsGrupo.conjuge||[];
+    lc.forEach(function(d){ if(d.chave==='endConjuge') d.exigido=true; });   // exigido só quando mora em outro endereço (o quadro some se morar junto)
+    if(!lc.some(function(d){ return d.chave==='endConjuge'; })){
+      lc.push({chave:'endConjuge', rotulo:'Comprovante de endereço do cônjuge', exigido:true, temArquivo:false});
+      SINT['endConjuge']='COMPROVANTE_ENDERECO_CONJUGE';
+    }
+  }
+  /* 01/10 — o que já veio anexado na proposta não é pedido de novo */
+  marcarJaEnviados(docsGrupo);
 
   var html='';
   ORDEM_GRUPO.forEach(function(g){
@@ -294,16 +329,84 @@ function pintar(){
       'a partir do mês seguinte à assinatura do contrato. <b>As parcelas e os valores do fluxo podem sofrer alteração de acordo com a data de assinatura do contrato.</b></p>';
     if(g==='endereco' && DADOS.enderecoProposta)
       html+='<p class="dica">Endereço informado na proposta: <b>'+esc(DADOS.enderecoProposta)+'</b></p>';
+    if(g==='conjuge'){
+      html+=(docsGrupo[g]||[]).filter(function(d){ return d.chave!=='endConjuge'; }).map(htmlDoc).join('');
+      html+='<div class="grade" style="margin-top:10px">'+porGrupo[g].map(htmlCampo).join('')+'</div>';
+      html+=htmlEnderecoConjuge((docsGrupo[g]||[]).filter(function(d){ return d.chave==='endConjuge'; })[0]);
+      html+='</div>';
+      return;
+    }
     html+=(docsGrupo[g]||[]).map(htmlDoc).join('');
     html+='<div class="grade" style="margin-top:10px">'+porGrupo[g].map(htmlCampo).join('')+'</div></div>';
   });
   document.getElementById('grupos').innerHTML=html;
   document.getElementById('docsOutros').innerHTML=outros.map(htmlDoc).join('');
-  document.querySelectorAll('#conteudo select[data-tipo="dia"]').forEach(function(el){ el.addEventListener('change', atualizarTrava); });
+  document.querySelectorAll('#conteudo select[data-tipo="dia"],#conteudo select[data-tipo="regime"]').forEach(function(el){ el.addEventListener('change', atualizarTrava); });
+  verEndConjuge();
   document.querySelectorAll('#conteudo input[type=text],#conteudo input[type=email],#conteudo input[type=date]').forEach(function(el){
     el.addEventListener('input', function(){ mascarar(el); atualizarTrava(); });
   });
   resumoAnexos();
+}
+/* 01/10 — ajustes nos campos que o servidor mandou:
+   • Fiador 2 aparece sempre que o Fiador 1 aparece (a venda pode ter os dois);
+   • cônjuge ganha "mora no mesmo endereço" + endereço próprio (CEP, endereço, número, setor, cidade). */
+function prepararCampos(){
+  var tem=function(id){ return DADOS.campos.some(function(c){ return c.id===id; }); };
+  var f1=DADOS.campos.filter(function(c){ return c.grupo==='fiador1'; });
+  if(f1.length && !DADOS.campos.some(function(c){ return c.grupo==='fiador2'; })){
+    f1.forEach(function(c){
+      DADOS.campos.push({id:String(c.id).replace(/1$/,'2'), grupo:'fiador2', tipo:c.tipo, obrig:c.obrig, valor:'',
+        rotulo:String(c.rotulo||'').replace(/fiador 1/g,'fiador 2').replace(/Fiador 1/g,'Fiador 2'), sint:'fiador2'});
+    });
+  }
+  if(DADOS.campos.some(function(c){ return c.grupo==='conjuge'; })){
+    [['cepConjuge','CEP do cônjuge','cep'],['enderecoConjuge','Endereço do cônjuge (rua, avenida ou quadra)','texto'],
+     ['numeroConjuge','Número ou lote','texto'],['setorConjuge','Setor ou bairro','texto'],['cidadeConjuge','Cidade','texto']]
+      .forEach(function(x){ if(!tem(x[0])) DADOS.campos.push({id:x[0], rotulo:x[1], tipo:x[2], grupo:'conjuge', obrig:x[0]!=='numeroConjuge'&&x[0]!=='setorConjuge', valor:'', sint:'endConj'}); });
+    /* o servidor (r69) manda esses campos como não obrigatórios: quem decide é a caixa "mora no mesmo endereço" */
+    DADOS.campos.forEach(function(c){ if(/^(cep|endereco|numero|setor|cidade)Conjuge$/.test(c.id)){ c.sint='endConj'; c.obrig=/^(cep|endereco|cidade)/.test(c.id); } });
+  }
+}
+function htmlEnderecoConjuge(doc){
+  var mesmo=DADOS.conjugeMesmoEndereco;
+  if(mesmo==null){
+    var c=DADOS.campos.filter(function(x){ return x.id==='conjugeMesmoEndereco'; })[0];
+    mesmo = c ? !/^(N|NAO|NÃO|FALSE)$/i.test(String(c.valor||'').trim()) : true;
+  }
+  var campos=DADOS.campos.filter(function(c){ return c.sint==='endConj'; });
+  return '<label style="display:flex;gap:8px;align-items:center;margin:14px 0 6px;font-size:13.5px;color:var(--texto);font-weight:600">'+
+    '<input type="checkbox" id="conjMesmoEnd" style="width:auto"'+(mesmo!==false?' checked':'')+' onchange="verEndConjuge()"> '+
+    'O cônjuge mora no mesmo endereço do proponente</label>'+
+    '<div id="boxEndConj" data-oculto="0">'+(doc?htmlDoc(doc):'')+
+    '<div class="grade" style="margin-top:10px">'+campos.map(htmlCampo).join('')+'</div></div>';
+}
+function verEndConjuge(){
+  var cb=document.getElementById('conjMesmoEnd'), box=document.getElementById('boxEndConj');
+  if(!cb || !box) return;
+  box.style.display = cb.checked ? 'none' : '';
+  box.dataset.oculto = cb.checked ? '1' : '0';
+  atualizarTrava();
+}
+/* documentos já anexados na proposta: o servidor manda a lista (anexosProposta) e o
+   documento correspondente fica como "já enviado" — não é pedido de novo */
+function marcarJaEnviados(docsGrupo){
+  var lst=(DADOS.anexosProposta||[]).map(function(a){ return semAcento(typeof a==='string'?a:(a.rotulo||a.nome||'')); });
+  if(!lst.length) return;
+  var chaveRot={docProponente:['RG E CPF DO PROPONENTE'], docConjuge:['RG E CPF DO CONJUGE'], compEndereco:['COMPROVANTE DE ENDERECO'],
+    endConjuge:['COMPROVANTE DE ENDERECO DO CONJUGE'],
+    docFiador1:['DOCUMENTO DO FIADOR 1'], docFiador2:['DOCUMENTO DO FIADOR 2'],
+    endFiador1:['COMPROVANTE DE ENDERECO DO FIADOR 1'], endFiador2:['COMPROVANTE DE ENDERECO DO FIADOR 2']};
+  var c1=semAcento((DADOS.campos.filter(function(c){ return c.id==='comprador1'; })[0]||{}).valor);
+  var c2=semAcento((DADOS.campos.filter(function(c){ return c.id==='comprador2'; })[0]||{}).valor);
+  if(c1){ chaveRot.docComprador1=['DOCUMENTOS DE '+c1]; chaveRot.endComprador1=['COMPROVANTE DE ENDERECO DE '+c1]; }
+  if(c2){ chaveRot.docComprador2=['DOCUMENTOS DE '+c2]; chaveRot.endComprador2=['COMPROVANTE DE ENDERECO DE '+c2]; }
+  Object.keys(docsGrupo).forEach(function(g){
+    docsGrupo[g].forEach(function(d){
+      var rots=chaveRot[d.chave]; if(!rots || d.temArquivo) return;
+      if(lst.some(function(r){ return rots.indexOf(r)>=0; })){ d.temArquivo=true; d.naProposta=true; }
+    });
+  });
 }
 function mascarar(el){
   var t=el.dataset.tipo;
@@ -332,13 +435,23 @@ function prepararLeitura(file){
   });
 }
 function preencher(chave, campos){
-  var mapa=MAPA_LEITURA[chave]||{}, n=0;
+  var mapa=MAPA_LEITURA[chave]||mapaEndereco(chave), n=0;
   Object.keys(mapa).forEach(function(k){
     var v=campos[k]; if(!v) return;
     var el=document.getElementById('f-'+mapa[k]);
-    if(!el || String(el.value||'').trim()) return;          // só preenche o que está vazio
+    if(!el) return;
+    var atual=String(el.value||'').trim();
+    if(atual && !(k==='nacionalidade' && atual==='BR')) return;   // só preenche o que está vazio
     el.value=v; mascarar(el); el.classList.add('lido'); n++;
   });
+  /* comprovante de quem só tem o campo de endereço inteiro: monta a linha */
+  if(/^end/.test(chave) && !n){
+    var cap=chave.slice(3), un=document.getElementById('f-endereco'+cap);
+    if(un && !String(un.value||'').trim()){
+      var partes=[campos.logradouro, campos.numero, campos.bairro, campos.cidade].filter(Boolean).join(', ');
+      if(partes){ un.value=semAcento(partes)+(campos.cep?' - CEP '+fmtCep(campos.cep):''); un.classList.add('lido'); n++; }
+    }
+  }
   atualizarTrava();
   return n;
 }
@@ -367,6 +480,17 @@ function aoArquivo(chave, sub, tipoLeitura, input){
     st.className='lst err';
     st.textContent=(e && e.sem ? e.sem+' ' : 'Leitura indisponível agora. ')+'Preencha os dados manualmente.';
   });
+}
+
+/* endereço de comprador / fiador / cônjuge: campos separados, se existirem na venda */
+function mapaEndereco(chave){
+  if(!/^end/.test(chave)) return {};
+  var cap=chave.slice(3), m={};
+  [['cep','cep'],['logradouro','logradouro'],['logradouro','endereco'],['numero','numero'],['bairro','setor'],['cidade','cidade']].forEach(function(x){
+    if(m[x[0]]) return;
+    if(document.getElementById('f-'+x[1]+cap)) m[x[0]]=x[1]+cap;
+  });
+  return m;
 }
 
 /* ---------------- pendências e resumo ---------------- */
@@ -404,6 +528,7 @@ function pendencias(){
     if(tag){ tag.className='marca'+(ativos[g]?'':' opc'); tag.textContent=ativos[g]?'obrigatório':'só se houver'; }
   });
   document.querySelectorAll('.campo').forEach(function(cx){
+    if(cx.closest('[data-oculto="1"]')) return;          // endereço do cônjuge quando mora junto
     var g=cx.dataset.g||'', cond=COND_GRUPOS.test(g);
     var req = cond ? !!ativos[g] : cx.dataset.obrig==='1';
     var inp=cx.querySelector('input,select');
@@ -417,6 +542,7 @@ function pendencias(){
     if(req && vazio) campos.push((TITULO_GRUPO[g]&&g!=='pagamento'&&g!=='endereco'&&g!=='contato'?TITULO_GRUPO[g]+': ':'')+cx.querySelector('label').childNodes[0].textContent);
   });
   document.querySelectorAll('.doc').forEach(function(d){
+    if(d.closest('[data-oculto="1"]')) return;
     var g=d.dataset.g||'', cond=COND_GRUPOS.test(g);
     var req = cond ? !!ativos[g] : d.dataset.exigido==='1';
     var tem = d.dataset.enviado==='1' || arquivosDe(d.dataset.chave).length>0;
@@ -462,6 +588,16 @@ function enviar(){
     campos[c.id]=v;
   });
   if(problema) return erro(problema[0], problema[1]);
+  /* 01/10 — cônjuge no mesmo endereço: copia o endereço do proponente */
+  var cbEnd=document.getElementById('conjMesmoEnd');
+  if(cbEnd){
+    campos.conjugeMesmoEndereco = cbEnd.checked ? 'SIM' : 'NAO';
+    if(cbEnd.checked){
+      [['cepConjuge','cep'],['enderecoConjuge','endereco'],['numeroConjuge','numero'],['setorConjuge','setor'],['cidadeConjuge','cidade']].forEach(function(x){
+        var o=document.getElementById('f-'+x[1]); if(o && String(o.value||'').trim()) campos[x[0]]=String(o.value).trim();
+      });
+    }
+  }
   var lista=todosArquivos();
   var total=lista.reduce(function(a,x){ return a+x.arquivo.size; },0);
   if(total>LIMITE) return erro('Os arquivos somam mais de 20 MB. Reduza ou comprima os arquivos e tente de novo.');
@@ -481,7 +617,7 @@ function enviar(){
   apiPost({acao:'completarVenda', pageId:ID, token:TOKEN, campos:campos}).then(function(j){
     if(!j || !j.ok) throw new Error((j&&j.erro)||'erro desconhecido');
     gravados=(j.gravados||[]).length;
-    var chaves=Object.keys(ARQ).filter(function(ch){ return arquivosDe(ch).length; });
+    var chaves=Object.keys(ARQ).filter(function(ch){ return arquivosDe(ch).length && !(ch==='endConjuge' && cbEnd && cbEnd.checked); });
     var i=0;
     function proximo(){
       if(i>=chaves.length) return Promise.resolve();

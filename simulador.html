@@ -71,6 +71,50 @@
   .resumo{background:var(--fundo);border:1px dashed var(--borda);border-radius:8px;padding:16px;font-size:13px;color:var(--texto-suave);line-height:1.6;}
   .copia{font-size:12px;color:var(--texto-suave);margin-top:6px;}
   @media(max-width:640px){.linha{grid-template-columns:1fr;}header h1{font-size:15px;}}
+
+  /* ===== 01/10 — CELULAR =====================================================
+     Campos saíam para fora da tela: o <select> (unidade com descrição longa) e o
+     input dentro da grade não encolhiam abaixo do tamanho do texto. Aqui todo
+     campo ocupa a largura da coluna e pode encolher; no celular o espaçamento
+     diminui, as etapas rolam na horizontal e a fonte dos campos fica em 16px
+     (abaixo disso o iPhone dá zoom ao tocar). */
+  html,body{max-width:100%;overflow-x:hidden;}
+  .linha{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .linha>*,.campo{min-width:0;}
+  .campo input:not([type=checkbox]):not([type=radio]):not([type=file]),.campo select,.campo textarea{width:100%;max-width:100%;min-width:0;}
+  select{text-overflow:ellipsis;}
+  img,table{max-width:100%;}
+  @media(max-width:640px){
+    .linha{grid-template-columns:minmax(0,1fr);gap:12px;margin-bottom:12px;}
+    header{padding:12px 14px;gap:10px;flex-wrap:wrap;}
+    header .logos img{height:38px;}
+    header h1{font-size:15px;line-height:1.25;}
+    main{margin:14px auto 60px;padding:0 10px;}
+    .card{padding:16px 14px;border-radius:9px;}
+    .card h2{font-size:15px;margin-bottom:14px;}
+    .passos{overflow-x:auto;gap:5px;margin-bottom:14px;padding-bottom:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+    .passos::-webkit-scrollbar{display:none;}
+    .passo{flex:1 0 auto;min-width:72px;max-width:150px;font-size:11.5px;padding:8px 6px;line-height:1.25;}
+    input,select,textarea{font-size:16px;}
+    input[type=file]{font-size:13px;max-width:100%;}
+    .rodape{gap:10px;flex-wrap:wrap;}
+    .rodape button{flex:1 1 140px;}
+    .prazo-opt{min-width:0;flex:1 1 90px;padding:10px 6px;}
+    .comissao-box{flex-wrap:wrap;gap:6px;}
+    .tabfluxo,.sinais table{font-size:12px;}
+    .tabfluxo td{padding:5px 6px;}
+    .tabfluxo td.num,.sinais td.num{white-space:nowrap;}
+    .resumo,.status{padding:12px;}
+    .check{font-size:13px;}
+  }
+  /* tabela larga rola dentro da própria caixa, sem empurrar a página */
+  .rola-x{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;}
+  .data-dupla{display:flex;gap:6px;align-items:stretch;position:relative;}
+  .data-dupla input[type=text]{flex:1 1 auto;min-width:0;}
+  .campo .data-dupla input[type=date],.data-dupla input[type=date]{position:absolute !important;right:0;top:0;width:46px !important;height:100%;
+    opacity:0;pointer-events:none;padding:0;border:0;}
+  .bt-cal{flex:0 0 46px;padding:0;background:#fff;border:1px solid var(--borda);border-radius:6px;font-size:18px;line-height:1;cursor:pointer;}
+  input.data-invalida{border-color:#B0431F !important;box-shadow:0 0 0 3px rgba(176,67,31,.18) !important;}
 </style>
 </head>
 <body>
@@ -515,7 +559,17 @@
       txt.maxLength = 10;
       txt.className = el.className;
       txt.style.marginBottom = '6px';
-      el.parentNode.insertBefore(txt, el);
+      /* 01/10 — no celular apareciam DOIS campos (texto + calendário) um embaixo do outro.
+         Agora fica o campo de digitar e, ao lado, um botão que abre o calendário do aparelho. */
+      var caixa = document.createElement('div');
+      caixa.className = 'data-dupla';
+      el.parentNode.insertBefore(caixa, el);
+      caixa.appendChild(txt); caixa.appendChild(el);
+      var btCal = document.createElement('button');
+      btCal.type = 'button'; btCal.className = 'bt-cal'; btCal.setAttribute('aria-label','Abrir calendário'); btCal.textContent = '📅';
+      btCal.addEventListener('click', function(){ try{ el.showPicker(); }catch(e){ try{ el.focus(); el.click(); }catch(e2){} } });
+      caixa.appendChild(btCal);
+      txt.style.marginBottom = '0';
 
       // do ISO (aaaa-mm-dd) para o que a pessoa le
       function doCampo(){
@@ -538,7 +592,8 @@
           var iso = ano + '-' + mes + '-' + dia;
           var t = new Date(iso + 'T12:00:00');
           // so aceita data que existe de verdade: 31/02 nao passa
-          if(!isNaN(t) && String(t.getDate()).padStart(2,'0') === dia){
+          // 01/10: o ano também precisa estar na faixa do campo (min/max)
+          if(!isNaN(t) && String(t.getDate()).padStart(2,'0') === dia && (!el.min || iso>=el.min) && (!el.max || iso<=el.max)){
             el.value = iso;
             txt.style.borderColor = '';
             try{ el.dispatchEvent(new Event('change', {bubbles:true})); }catch(e){}
@@ -552,6 +607,48 @@
       });
     });
   }
+
+  /* ===== 01/10 — ANO DA DATA COM 4 DÍGITOS ===================================
+     O campo de data do navegador aceitava ano com 5 ou 6 dígitos (202655). Com
+     min/max o próprio navegador limita o ano a 4 dígitos; e se ainda assim vier
+     uma data fora da faixa (digitada, colada, lida de documento), o campo é
+     limpo e fica vermelho em vez de seguir com a data errada.
+     Nascimento: de 01/01/1900 até hoje. Demais datas: 1900 a 2100. */
+  function hojeISO(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  function dataForaDaFaixa(el){
+    var v=String(el.value||''); if(!v) return false;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(v)) return true;
+    return (el.min && v<el.min) || (el.max && v>el.max);
+  }
+  function limitarDatas(){
+    document.querySelectorAll('input[type="date"]').forEach(function(el){
+      if(el.dataset.limitada) return;
+      el.dataset.limitada='1';
+      var nasc=/nascimento/i.test(el.name||el.id||'');
+      if(!el.min) el.min='1900-01-01';
+      if(!el.max) el.max= nasc ? hojeISO() : '2100-12-31';
+      function conferir(){
+        if(dataForaDaFaixa(el)){
+          el.value='';
+          el.classList.add('data-invalida');
+          el.setCustomValidity(nasc ? 'Data de nascimento inválida — confira o ano (4 dígitos).' : 'Data inválida — confira o ano (4 dígitos).');
+          try{ el.reportValidity(); }catch(e){}
+          el.dispatchEvent(new Event('change',{bubbles:true}));
+        } else if(el.value){ el.classList.remove('data-invalida'); el.setCustomValidity(''); }
+      }
+      el.addEventListener('change', conferir);
+      el.addEventListener('blur', conferir);
+    });
+  }
+  limitarDatas();
+  /* etapas no celular: a etapa ativa sempre aparece (a faixa rola sozinha até ela) */
+  (function(){
+    var ps=document.querySelector('.passos'); if(!ps || !window.MutationObserver) return;
+    new MutationObserver(function(){
+      var a=ps.querySelector('.passo.ativo'); if(!a || ps.scrollWidth<=ps.clientWidth) return;
+      ps.scrollTo({left:Math.max(0,a.offsetLeft-ps.clientWidth/2+a.offsetWidth/2),behavior:'smooth'});
+    }).observe(ps,{subtree:true,attributes:true,attributeFilter:['class']});
+  })();
   digitarDatas();
 
   verSubcampos();

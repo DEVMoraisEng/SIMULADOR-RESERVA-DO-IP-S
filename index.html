@@ -226,8 +226,13 @@
      de verdade (#C1121F). */
   /* Tipo 2 no verde-limão: o verde-água anterior brigava com o azul de
      RESERVADA. Limão sai da faixa do azul e da do vermelho de uma vez. */
-  var PALETA=['#E8A33D','#A3C93A','#9078A8','#BFC4C9'];
-  var DEC_COR='#7A4A16';
+  /* 02/10 (item 1) — 6 cores bem diferentes entre si e das cores de situação do mapa
+     (EM BREVE cinza #9AA0A6, RESERVADA azul #1F6FB2, VENDIDA vermelho #C1121F):
+     Tipo 1 amarelo · Tipo 2 verde-limão · Tipo 3 lilás · Tipo 4 verde-água ·
+     Tipo 5 laranja · Tipo 6 magenta. Antes o Tipo 5 repetia a cor do Tipo 1 (a lista
+     tinha 4 cores), ficava colado no marrom do decorado, e o Tipo 4 era cinza como o EM BREVE. */
+  var PALETA=['#F2C200','#7CB518','#8E5BB5','#17A398','#F06A1D','#D25FA6'];
+  var DEC_COR='#4A2A0C';   // decorado: marrom bem escuro, longe do laranja do Tipo 5
   var tiposOrdenados=[];
   function corDoTipo(t,decorado){
     if(decorado) return DEC_COR;

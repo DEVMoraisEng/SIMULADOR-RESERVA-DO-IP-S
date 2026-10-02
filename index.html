@@ -556,12 +556,7 @@
     if(!wrap || wrap.dataset.nav) return;
     wrap.dataset.nav='1';
 
-    // roda do mouse = zoom (Ctrl não é exigido: o mapa é o conteúdo da área)
-    wrap.addEventListener('wheel', function(e){
-      if(!svgMapa()) return;
-      e.preventDefault();
-      aplicarZoom(zLevel*(e.deltaY<0?1.15:0.87), e.clientX, e.clientY);
-    }, {passive:false});
+    /* 02/10 — sem zoom pela rolagem do mouse (atrapalhava rolar a página): só os botões + e − */
 
     // arrastar com o botão esquerdo = mover o mapa
     // IMPORTANTE: só chamamos setPointerCapture() depois de confirmar que é
@@ -775,7 +770,7 @@
   carregarSVG();      // mapa já, sem esperar os dados
   carregar(true);     // dados em paralelo
   // auto-atualiza a cada 60s (sem atrapalhar se um pop-up estiver aberto)
-  setInterval(function(){ if(!ocupado()) carregar(false); }, 60000);
+  setInterval(function(){ if(!ocupado()) carregar(false); }, 30000);   // 02/10 (item 3): status e valores a cada 30 s
 
 
 /* r60 — Memorial de Incorporação (art. 32, §3º, Lei nº 4.591/1964). Preencha

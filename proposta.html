@@ -267,6 +267,23 @@
         <span class="ajuda">Sem crédito aprovado, a CAIXA é simulada só como <b>estimativa</b> do crédito do cliente e a origem da renda passa a ser obrigatória.</span>
       </div>
     </div>
+    <!-- 02/10 (item 7) — correspondente: quem aprovou o crédito ou para quem a Morais deve enviar -->
+    <div id="cardCorresp1" style="margin:0 0 14px;padding:12px 14px;border:2px solid var(--amarelo,#EFB700);border-radius:10px;background:#FFFBEF">
+      <b style="color:var(--marrom)">Qual correspondente aprovou o crédito?</b><span class="obrig">*</span>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px">
+        <label class="check" style="margin:0"><input type="radio" name="correspAprovou" value="AUDICRED" onchange="verCorresp()"> AUDICRED (Danilo)</label>
+        <label class="check" style="margin:0"><input type="radio" name="correspAprovou" value="AMAZONAS" onchange="verCorresp()"> AMAZONAS (Daniela)</label>
+        <label class="check" style="margin:0"><input type="radio" name="correspAprovou" value="OUTRA" onchange="verCorresp()"> Outro correspondente</label>
+      </div>
+    </div>
+    <div id="cardCorresp2" style="display:none;margin:0 0 14px;padding:12px 14px;border:2px solid #9CC3E4;border-radius:10px;background:#F2F8FD">
+      <b style="color:#1B4F7A">Para qual correspondente prefere que a Morais envie a proposta?</b><span class="obrig">*</span>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px">
+        <label class="check" style="margin:0"><input type="radio" name="correspPrefere" value="AUDICRED"> AUDICRED (Danilo)</label>
+        <label class="check" style="margin:0"><input type="radio" name="correspPrefere" value="AMAZONAS"> AMAZONAS (Daniela)</label>
+        <label class="check" style="margin:0"><input type="radio" name="correspPrefere" value="QUALQUER"> Qualquer um — a Morais define</label>
+      </div>
+    </div>
 
     <div class="resumo" style="margin-bottom:18px">
       <b>3 QUARTOS SENDO 1 SUÍTE — MCMV FAIXA 3</b> · 70,27 m² · entrega 15/10/2028<br>
@@ -1228,6 +1245,22 @@
     if(vai && antes==='none') renderProdutos();
   }
 
+  /* 02/10 (item 7) — COM crédito: pergunta quem aprovou (AUDICRED/AMAZONAS gravam direto; "outro" abre a
+     preferência). SEM crédito: vai direto à preferência de para quem a Morais envia. */
+  function verCorresp(){
+    var f=F(), com=f.creditoAprovadoCaixa.value==='SIM';
+    var c1=document.getElementById('cardCorresp1'), c2=document.getElementById('cardCorresp2');
+    var ap=(document.querySelector('input[name="correspAprovou"]:checked')||{}).value||'';
+    if(c1) c1.style.display = com ? '' : 'none';
+    if(c2) c2.style.display = (!com || ap==='OUTRA') ? '' : 'none';
+  }
+  function correspEscolhido(){
+    var com=F().creditoAprovadoCaixa.value==='SIM';
+    var ap=(document.querySelector('input[name="correspAprovou"]:checked')||{}).value||'';
+    var pr=(document.querySelector('input[name="correspPrefere"]:checked')||{}).value||'';
+    if(com && (ap==='AUDICRED'||ap==='AMAZONAS')) return {correspondente:ap, preferido:''};
+    return {correspondente:'', preferido:pr};
+  }
   function verCredito(){
     var com = F().creditoAprovadoCaixa.value==='SIM';
     document.getElementById('boxCredito').style.display = com ? '' : 'none';
@@ -1240,6 +1273,7 @@
       if(!com) F().subsidio.value='';
     }
     if(!com){ F().creditoAprovado.value=''; }
+    verCorresp();
     if(F().maisDeUmComprador && F().maisDeUmComprador.checked) montarDependentes();   // asterisco do comprador
     montarFluxo();
   }
@@ -1957,6 +1991,12 @@
     var f=F();
     if(n===1){
       if(!f.unidade.value) return erro('Selecione a unidade.', f.unidade);
+      /* 02/10 (item 7) */
+      var comC=f.creditoAprovadoCaixa.value==='SIM';
+      var apC=(document.querySelector('input[name="correspAprovou"]:checked')||{}).value||'';
+      var prC=(document.querySelector('input[name="correspPrefere"]:checked')||{}).value||'';
+      if(comC && !apC) return erro('Informe <b>qual correspondente aprovou o crédito</b>.', document.getElementById('cardCorresp1'));
+      if((!comC || apC==='OUTRA') && !prC) return erro('Informe <b>para qual correspondente prefere que a Morais envie</b> a proposta.', document.getElementById('cardCorresp2'));
       if(!f.cliente.value.trim()) return erro('Informe o <b>nome do proponente</b>.', f.cliente);
       if(!nomeCompleto(f.cliente.value))
         return erro('Informe o <b>nome completo</b> do proponente (nome e sobrenome).', f.cliente);
@@ -2344,6 +2384,7 @@
       origemRendaConjuge:padrao(f.origemRendaConjuge.value),
       profissaoConjuge:padrao(f.profissaoConjuge.value),
       creditoAprovadoCaixa:f.creditoAprovadoCaixa.value,
+      correspondente:correspEscolhido().correspondente, correspondentePreferido:correspEscolhido().preferido,   // 02/10 (item 7)
       parcelaFinanciamento:moeda(f.parcelaFinanciamento.value),
       saldoFgts:moeda(f.saldoFgts.value), subsidio:moeda(f.subsidio.value),
       valorEntrada:moeda(f.valorEntrada.value), creditoAprovado:moeda(f.creditoAprovado.value),

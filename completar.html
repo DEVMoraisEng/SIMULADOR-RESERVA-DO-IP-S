@@ -298,12 +298,14 @@ function pintar(){
 
   /* r63 — cada campo diz se é obrigatório (c.obrig) e o grupo. Servidor
      antigo não manda isso: aí vale a lista padrão abaixo. */
-  var htmlProp='', htmlCorr='', htmlFiad='', fiadorAtual='';
+  var htmlProp='', htmlCorr='', htmlFiad='', fiadorAtual='', htmlCred='';
+  var CRED=['creditoAprovadoCaixa','creditoAprovado','correspondente','parcelaFinanciamento'];
   DADOS.campos.forEach(function(c){
     if(SEMPRE_FORA.indexOf(c.id)>=0) return;           // referências: saíram
     if(ENDERECO_INTEIRO.indexOf(c.id)>=0 && temEnderecoSeparado()) return;   // 01/10: vai separado
     var grupo = c.grupo || (CAMPOS_CONJUGE.indexOf(c.id)>=0 ? 'conjuge' : 'prop');
     var h = htmlCampo(c);
+    if(CRED.indexOf(c.id)>=0){ htmlCred += h; return; }   // 02/10 (item 2): quadro próprio do crédito
     if(grupo==='corretor') htmlCorr += h;
     else if(grupo==='fiador'){
       var n = /2$/.test(c.id) ? '2' : '1';
@@ -313,6 +315,21 @@ function pintar(){
     else htmlProp += h;
   });
   document.getElementById('campos').innerHTML=htmlProp;
+  /* 02/10 (item 2) — CRÉDITO NA CAIXA em quadro próprio, no alto: quem enviou sem crédito e foi
+     aprovado marca SIM, informa o correspondente e o valor; a simulação roda de novo (ou, abaixo
+     de 80% da avaliação, informa a parcela). */
+  var cxCred=document.getElementById('cardCredito');
+  if(!cxCred){
+    cxCred=document.createElement('div'); cxCred.className='card'; cxCred.id='cardCredito';
+    cxCred.style.cssText='border:2px solid #EFB700;background:#FFFBEF';
+    var alvoC=document.getElementById('campos').closest('.card')||document.getElementById('campos');
+    alvoC.parentNode.insertBefore(cxCred, alvoC);
+  }
+  cxCred.innerHTML = htmlCred ? '<h2 style="color:var(--marrom)">Crédito na CAIXA</h2>'+
+    '<p class="ajuda" style="margin:0 0 10px">Se o crédito foi aprovado depois do envio, marque <b>SIM</b>, informe <b>qual correspondente</b> aprovou e o <b>valor</b>. '+
+    'Crédito igual ou maior que 80% da avaliação: a simulação roda de novo e a parcela chega por e-mail. Menor que 80%: informe também a parcela.</p>'+
+    '<div class="grade">'+htmlCred+'</div>' : '';
+  cxCred.style.display = htmlCred ? '' : 'none';
   document.getElementById('camposCorretor').innerHTML=htmlCorr;
   document.getElementById('cardCorretor').style.display = htmlCorr ? '' : 'none';
   document.getElementById('camposFiador').innerHTML=htmlFiad;

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Proposta para análise · Reserva do Ipês</title>
+<!-- 02/10/2026 (item 22) — página SÓ DE LEITURA do correspondente bancário.
+     Mostra os dados da proposta e os documentos anexados, com download de cada um.
+     Não grava nada: o link (p = proposta, t = token) é gerado pelo portal ao
+     enviar a proposta ao correspondente e vale 30 dias. -->
+<style>
+  :root{ --marrom:#7A4A16; --amarelo:#EFB700; --fundo:#FBF7EF; --borda:#E7DCC7;
+         --texto:#2A2118; --texto-suave:#6B5A45; --verde:#1D5433; --vermelho:#8A2E17; --azul:#1B5173; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fundo);color:var(--texto);font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;font-size:15px;line-height:1.5}
+  header{background:linear-gradient(90deg,#5A3410,#7A4A16);color:#fff;padding:14px 18px;display:flex;gap:12px;align-items:center}
+  header img{height:42px;background:#fff;border-radius:8px;padding:3px}
+  header h1{margin:0;font-size:17px} header span{font-size:12px;color:#F3DFB8}
+  main{max-width:900px;margin:0 auto;padding:18px 14px 60px}
+  .card{background:#fff;border:1px solid var(--borda);border-radius:12px;padding:18px;margin-bottom:14px}
+  h2{font-size:15px;color:var(--marrom);margin:0 0 10px}
+  .aviso{padding:12px 14px;border-radius:8px;font-size:13.5px;margin-bottom:14px}
+  .aviso.info{background:#EEF5FB;border:1px solid #9CC3E4;color:#1B4F7A}
+  .aviso.erro{background:#FDECEA;border:1px solid #E2A493;color:var(--vermelho)}
+  .grade{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px}
+  @media(max-width:680px){.grade{grid-template-columns:1fr}}
+  .item{border-bottom:1px dashed var(--borda);padding:6px 0}
+  .item small{display:block;font-size:11px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.3px}
+  .item b{font-weight:600;word-break:break-word}
+  .doc{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--borda)}
+  .doc .g{font-size:11px;font-weight:700;color:var(--texto-suave);text-transform:uppercase}
+  .doc a{flex:none;background:var(--azul);color:#fff;text-decoration:none;padding:7px 12px;border-radius:7px;font-size:13px;font-weight:700}
+  .topo{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center}
+  .bt{background:var(--azul);color:#fff;border:0;border-radius:8px;padding:9px 14px;font-weight:700;cursor:pointer;font-size:13.5px}
+  .load{color:var(--texto-suave)}
+  @media print{ header,.bt,.doc a{display:none} body{background:#fff} .card{border:0} }
+</style>
+</head>
+<body>
+<header>
+  <img src="assets/logo-morais.png" alt="Morais">
+  <div><h1>Proposta para análise de crédito</h1><span>Condomínio Reserva do Ipês · Morais Engenharia e Construção · somente leitura</span></div>
+</header>
+<main>
+  <div id="conteudo"><div class="card load">Carregando a proposta…</div></div>
+</main>
+<script>
+var APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbzwUIApU5nKXi1vG3cEs_V2DWCdkLDwY_vo0zBxO59ZBLbEihIxuOqbHdNLm-8pVVwVJQ/exec';
+var q=new URLSearchParams(location.search), ID=q.get('p')||'', TOKEN=q.get('t')||'';
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function brl(v){ return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function dataBr(v){ var m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? m[3]+'/'+m[2]+'/'+m[1] : String(v||''); }
+function rotulo(n){ var t=String(n).toLowerCase(); return t.charAt(0).toUpperCase()+t.slice(1); }
+/* seções por nome da coluna — o que não cair em nenhuma vai para "Outras informações" */
+var SECOES=[
+  ['Unidade e valores',/^(UNIDADE|TIPO|PRECO|VALOR|AVALIA|PARCELA|PRAZO|CREDITO|CLIENTE COM CREDITO|BANCO|SISTEMA|ENTRADA|SUBSIDIO|SALDO FGTS|FGTS|COMISS|RENDA|ORIGEM)/],
+  ['Proponente',/^(CLIENTE$|CPF$|IDENTIDADE|DATA NASCIMENTO$|ESTADO CIVIL|REGIME|NACIONALIDADE$|PROFISSAO$|E-MAIL PROPONENTE|CELULAR|TELEFONE|ENDERECO$|CEP$|LOGRADOURO$|NUMERO$|SETOR$|CIDADE$)/],
+  ['Cônjuge',/CONJUGE/],
+  ['Compradores e dependentes',/(DEPENDENTE|COMPRADOR)/],
+  ['Fiadores',/FIADOR/],
+  ['Corretor',/^(VENDEDOR|CRECI|IMOBILIARIA|EMAIL$|CORRESPONDENTE)/]
+];
+function norm(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim(); }
+function valorTxt(c){
+  if(c.tipo==='number'){ return /VALOR|PRECO|AVALIA|PARCELA|CREDITO|SUBSIDIO|FGTS|RENDA|ENTRADA|COMISSAO R/.test(norm(c.nome)) ? brl(c.valor) : String(c.valor).replace('.',','); }
+  if(c.tipo==='date') return dataBr(c.valor);
+  return String(c.valor);
+}
+function pintar(r){
+  var el=document.getElementById('conteudo');
+  if(!r || !r.ok){
+    var m={LINK_INVALIDO:'Este link não é válido (pode ter sido substituído por um mais novo).',LINK_VENCIDO:'Este link venceu. Peça um novo à Morais Engenharia.',
+           LINK_INCOMPLETO:'Link incompleto — confira se copiou o endereço inteiro.',PROPOSTA_NAO_ENCONTRADA:'Proposta não encontrada.'}[r&&r.erro]||('Não foi possível abrir a proposta agora. '+esc(r&&(r.erro||r.mensagem)||''));
+    el.innerHTML='<div class="aviso erro"><b>'+m+'</b><br>Dúvidas: vendasreservadosipes@gmail.com</div>'; return;
+  }
+  var grupos={}, ordem=SECOES.map(function(s){return s[0];}).concat(['Outras informações']);
+  (r.campos||[]).forEach(function(c){
+    var n=norm(c.nome), g='Outras informações';
+    for(var i=0;i<SECOES.length;i++){ if(SECOES[i][1].test(n)){ g=SECOES[i][0]; break; } }
+    (grupos[g]=grupos[g]||[]).push(c);
+  });
+  var h='<div class="card"><div class="topo"><div><h2 style="margin:0">Proposta '+esc(r.numero||'')+'</h2>'+
+        '<div style="font-size:13px;color:var(--texto-suave)">'+esc(r.cliente||'')+(r.unidade?' · Unidade '+esc(r.unidade):'')+'</div></div>'+
+        '<button class="bt" onclick="window.print()">Imprimir / salvar em PDF</button></div></div>'+
+        '<div class="aviso info">Consulta <b>somente leitura</b>. Os dados abaixo são os que constam na proposta neste momento; '+
+        'os documentos podem ser baixados um a um.'+(r.validade?' Link válido até <b>'+esc(r.validade)+'</b>.':'')+'</div>';
+  var docs=r.documentos||[];
+  h+='<div class="card"><h2>Documentos anexados ('+docs.length+')</h2>'+
+     (docs.length ? docs.map(function(d){
+        return '<div class="doc"><div><div class="g">'+esc(rotulo(d.grupo))+'</div>'+esc(d.nome)+'</div>'+
+               '<a href="'+esc(d.url)+'" target="_blank" rel="noopener" download>Baixar</a></div>';
+      }).join('') : '<div class="load">Nenhum documento anexado ainda.</div>')+
+     '<div style="font-size:11.5px;color:var(--texto-suave);margin-top:8px">Os links de download são renovados a cada vez que a página é aberta. Se algum não abrir, recarregue a página.</div></div>';
+  ordem.forEach(function(g){
+    var lista=grupos[g]; if(!lista||!lista.length) return;
+    h+='<div class="card"><h2>'+esc(g)+'</h2><div class="grade">'+lista.map(function(c){
+      return '<div class="item"><small>'+esc(rotulo(c.nome))+'</small><b>'+esc(valorTxt(c))+'</b></div>';
+    }).join('')+'</div></div>';
+  });
+  el.innerHTML=h;
+}
+if(!ID||!TOKEN){ pintar({ok:false,erro:'LINK_INCOMPLETO'}); }
+else fetch(APPS_SCRIPT_URL+'?acao=propostaVer&p='+encodeURIComponent(ID)+'&t='+encodeURIComponent(TOKEN))
+  .then(function(r){ return r.json(); }).then(pintar)
+  .catch(function(e){ pintar({ok:false,erro:'Sem conexão com o servidor.'}); });
+</script>
+</body>
+</html>

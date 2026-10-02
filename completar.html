@@ -257,6 +257,13 @@ function temConjuge(){
   v=String(v).toUpperCase();
   return v.indexOf('CASAD')>=0 || v.indexOf('UNIAO')>=0 || v.indexOf('UNIÃO')>=0;
 }
+function verCreditoLink(){
+  var sel=document.getElementById('c-creditoAprovadoCaixa'), cr=document.getElementById('c-creditoAprovado');
+  if(!sel||!cr) return;
+  var cx=cr.closest('.campo'); if(cx) cx.style.display = sel.value==='SIM' ? '' : 'none';
+  if(sel.value==='SIM' && cx){ cx.dataset.obrig='1'; } else if(cx){ cx.dataset.obrig='0'; }
+  try{ atualizarTrava(); }catch(e){}
+}
 function verConjuge(){
   var com=temConjuge();
   CAMPOS_CONJUGE.forEach(function(id){
@@ -307,6 +314,7 @@ function pintar(){
     });
 
   verConjuge();
+  verCreditoLink();
 }
 
 /* r63 — campos que não aparecem mais e os obrigatórios (para servidor antigo) */
@@ -350,6 +358,14 @@ function htmlCampo(c){
     campo='<select id="c-'+c.id+'" onchange="verConjuge()"><option value="">Selecione…</option>'+
       ESTADOS.map(function(o){ return '<option'+(mesmaOpcao(c.valor,o)?' selected':'')+'>'+o+'</option>'; }).join('')+
       '</select>';
+  } else if(c.id==='creditoAprovadoCaixa'){
+    /* 02/10 (item 13) — enviou SEM crédito aprovado e foi aprovado depois: muda para SIM,
+       informa o valor e a simulação roda de novo com o crédito aprovado */
+    var cav=semAcento(c.valor)==='SIM'?'SIM':'NAO';
+    campo='<select id="c-'+c.id+'" onchange="verCreditoLink()">'+
+          '<option value="NAO"'+(cav==='NAO'?' selected':'')+'>NÃO — ainda sem crédito aprovado</option>'+
+          '<option value="SIM"'+(cav==='SIM'?' selected':'')+'>SIM — já tem carta de crédito aprovada</option></select>'+
+          '<span style="font-size:11.5px;color:var(--texto-suave)">Se o crédito foi aprovado depois do envio, marque SIM e informe o valor: a simulação roda de novo com o crédito aprovado e a nova parcela chega por e-mail.</span>';
   } else if(c.id==='regimeBens'){
     var atual=semAcento(c.valor), achou=false;
     campo='<select id="c-'+c.id+'"><option value="">Selecione…</option>'+REGIMES.map(function(r){

@@ -235,7 +235,7 @@
           (R$ 1.000 no ato + 3 × R$ 3.000).</span>
           <div id="avisoEntradaMin" style="display:none;margin-top:6px;padding:8px 11px;border-radius:6px;background:#FBEDEA;border:1px solid #E2A493;color:#8A2E17;font-size:12px;">O valor para entrada precisa ser de pelo menos R$ 10.000,00.</div>
         </div>
-        <div class="campo">
+        <div class="campo" style="display:none">
           <label>Data de referência (teste)</label>
           <input type="date" name="dataSimulacao">
           <span class="ajuda">Em branco = hoje. Serve para conferir como o fluxo se reorganiza depois de 20/11/2026.</span>
@@ -243,7 +243,7 @@
       </div>
       <!-- r64 — TESTE do sistema offline -->
       <div class="linha">
-        <div class="campo">
+        <div class="campo" style="display:none">
           <label>Sistema de simulação (teste)</label>
           <select name="modoSiop">
             <option value="">AUTOMÁTICO — online; se indisponível, sistema offline</option>
@@ -633,10 +633,10 @@
           el.classList.add('data-invalida');
           el.setCustomValidity(nasc ? 'Data de nascimento inválida — confira o ano (4 dígitos).' : 'Data inválida — confira o ano (4 dígitos).');
           try{ el.reportValidity(); }catch(e){}
-          el.dispatchEvent(new Event('change',{bubbles:true}));
         } else if(el.value){ el.classList.remove('data-invalida'); el.setCustomValidity(''); }
       }
-      el.addEventListener('change', conferir);
+      /* 02/10 (item 6) — só confere ao SAIR do campo: no 'change' o navegador dispara a cada
+         número do ano ("0002") e a mensagem aparecia antes de terminar de digitar */
       el.addEventListener('blur', conferir);
     });
   }

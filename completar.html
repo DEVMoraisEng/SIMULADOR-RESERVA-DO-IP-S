@@ -338,7 +338,17 @@ function simLinkColetar(simula){
 function verCreditoLink(){
   var sel=document.getElementById('c-creditoAprovadoCaixa'), cr=document.getElementById('c-creditoAprovado');
   if(!sel||!cr) return;
-  if(!cr.dataset.ouvindo){ cr.addEventListener('input', verCreditoLink); cr.dataset.ouvindo='1'; }
+  if(!cr.dataset.ouvindo){
+    cr.addEventListener('input', verCreditoLink); cr.dataset.ouvindo='1';
+    /* 03/10 — valores em dinheiro (R$ 300.000,00): formata ao sair do campo e já na abertura */
+    ['c-creditoAprovado','c-parcelaFinanciamento','sl-saldoFgts','sl-subsidio','sl-valorEntrada','sl-rendaTotal'].forEach(function(id){
+      var el=document.getElementById(id); if(!el || el.dataset.moeda) return;
+      el.dataset.moeda='1'; el.setAttribute('inputmode','decimal');
+      var fmt=function(){ var n=simLinkNumTxt(el.value); el.value = n ? n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : ''; };
+      el.addEventListener('blur', function(){ fmt(); verCreditoLink(); });
+      fmt();
+    });
+  }
   var sim = sel.value==='SIM';
   var bc=document.getElementById('boxCredLink'); if(bc) bc.style.display = sim ? '' : 'none';
   ['c-creditoAprovado','c-correspondente'].forEach(function(id){

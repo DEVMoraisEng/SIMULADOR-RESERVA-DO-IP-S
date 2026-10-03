@@ -257,70 +257,120 @@ function temConjuge(){
   v=String(v).toUpperCase();
   return v.indexOf('CASAD')>=0 || v.indexOf('UNIAO')>=0 || v.indexOf('UNIÃO')>=0;
 }
-/* 03/10 — DADOS DA SIMULAÇÃO NO LINK. Quem enviou sem crédito e foi aprovado depois precisa
-   rodar a simulação da CAIXA para achar a parcela real: os mesmos campos da etapa 2 do
-   simulador (renda, FGTS, prazo, sistema, seguradora, perfil, entrada). Vêm preenchidos com o
-   que a proposta já tinha (DADOS.simDados) e seguem junto no envio. */
-var SIM_LINK_PERFIL=[['possuiImovelCidade','Possui algum imóvel'],['fgts3anos','Possui 3 anos de trabalho sob regime do FGTS'],
-  ['maisDeUmComprador','Possui mais de um comprador e/ou dependente na proposta'],['jaBeneficiado','Já foi beneficiado com subsídio FGTS/União'],
-  ['relacionamentoCaixa','Tem ou gostaria de ter relacionamento com a CAIXA'],['servidorPublico','Algum dos participantes é servidor público'],
-  ['creditoSalarioCaixa','Tem ou gostaria de ter crédito salário na CAIXA ou produto de Previdência']];
+/* 03/10 (r77) — CRÉDITO APROVADO NO LINK = IGUAL À ETAPA 2 DA PROPOSTA.
+   Mesmas regras do formulário da proposta:
+     - crédito IGUAL ou ACIMA do teto (80% da avaliação): financia o teto, a parcela sai da
+       simulação da CAIXA (não se preenche) e aparecem os "Dados para a simulação da CAIXA";
+     - crédito ABAIXO do teto: a CAIXA não simula esse valor, então a PARCELA é obrigatória
+       e não há simulação.
+   Os campos vêm preenchidos com o que a proposta já tinha (DADOS.simDados). */
+var SIM_LINK_PERFIL=[['possuiImovelCidade','Possui algum imóvel'],['fgts3anos','Tem 3 anos de FGTS'],
+  ['maisDeUmComprador','Mais de um comprador ou dependente'],['jaBeneficiado','Já foi beneficiado com subsídio FGTS/União'],
+  ['relacionamentoCaixa','Tem ou gostaria de ter relacionamento com a CAIXA']];
+var SIM_LINK_SUB=[['servidorPublico','Algum dos participantes é servidor público'],['creditoSalarioCaixa','Tem ou gostaria de ter crédito salário na CAIXA ou produto de Previdência']];
 function simLinkVal(k, padrao){ var d=(DADOS&&DADOS.simDados)||{}; return (d[k]===undefined||d[k]===null||d[k]==='') ? padrao : d[k]; }
+function simLinkSim(k){ var v=simLinkVal(k,false); return v===true||String(v).toUpperCase()==='SIM'||String(v)==='true'; }
 function simLinkBRL(v){ var n=Number(v); return (v===''||v==null||isNaN(n)) ? '' : n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function brlL(v){ return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function simLinkNumTxt(t){ t=String(t||'').trim(); if(!t) return 0;
+  var n=/,/.test(t) ? Number(t.replace(/\./g,'').replace(',','.')) : Number(t.replace(/\.(?=\d{3}(\D|$))/g,'')); return isNaN(n)?0:n; }
+function simLinkNum(id){ var el=document.getElementById(id); return el ? simLinkNumTxt(el.value) : 0; }
+function simLinkAval(){ return Number(simLinkVal('avaliacao',0))||0; }
 function simCamposHtml(){
   var seg=String(simLinkVal('seguradora','CAIXA RESIDENCIAL HABITACIONAL')).toUpperCase();
   var sis=String(simLinkVal('sistemaAmortizacao','PRICE')).toUpperCase();
   var pe=String(simLinkVal('prazoEntrada','48'));
-  var renda=simLinkVal('rendaTotal','');
-  return '<div id="boxSimLink" style="display:none;margin-top:14px;padding:12px 14px;border:1px dashed #C9A227;border-radius:10px;background:#FFFDF6">'+
-    '<b style="color:var(--marrom)">Dados para a simulação da CAIXA</b>'+
-    '<div class="grade" style="margin-top:10px">'+
-      '<div class="campo"><label>Renda bruta familiar (R$)<span class="obrig">*</span></label><input id="sl-rendaTotal" inputmode="decimal" value="'+simLinkBRL(renda)+'"></div>'+
-      '<div class="campo"><label>FGTS disponível (R$)</label><input id="sl-saldoFgts" inputmode="decimal" value="'+simLinkBRL(simLinkVal('saldoFgts',''))+'"></div>'+
-      '<div class="campo"><label>Prazo do financiamento (meses)<span class="obrig">*</span></label><input id="sl-prazoMeses" type="number" min="60" max="420" step="1" value="'+(Number(simLinkVal('prazoMeses',420))||420)+'"></div>'+
-      '<div class="campo"><label>Sistema de amortização<span class="obrig">*</span></label><select id="sl-sistemaAmortizacao"><option'+(sis==='PRICE'?' selected':'')+'>PRICE</option><option'+(sis==='SAC'?' selected':'')+'>SAC</option></select></div>'+
-      '<div class="campo"><label>Seguradora<span class="obrig">*</span></label><select id="sl-seguradora">'+
-        ['CAIXA RESIDENCIAL HABITACIONAL','CAIXA RESIDENCIAL HABITACIONAL MAIS','TOKIO MARINE'].map(function(o){ return '<option'+(o===seg?' selected':'')+'>'+o+'</option>'; }).join('')+'</select></div>'+
-      '<div class="campo"><label>Valor para entrada (R$)</label><input id="sl-valorEntrada" inputmode="decimal" value="'+simLinkBRL(simLinkVal('valorEntrada',10000))+'"></div>'+
-      '<div class="campo"><label>Prazo da entrada</label><select id="sl-prazoEntrada">'+['24','36','48'].map(function(o){ return '<option value="'+o+'"'+(o===pe?' selected':'')+'>'+o+' meses</option>'; }).join('')+'</select></div>'+
+  var ck=function(x){ return '<label class="check" style="display:flex;gap:8px;align-items:center;margin:4px 0"><input type="checkbox" id="sl-'+x[0]+'"'+(simLinkSim(x[0])?' checked':'')+' style="width:auto" onchange="verCreditoLink()"> '+x[1]+'</label>'; };
+  return '<div id="boxCredLink" style="display:none">'+
+    '<div class="grade" style="margin-top:6px">'+
+      '<div class="campo"><label>Saldo FGTS (R$)</label><input id="sl-saldoFgts" inputmode="decimal" value="'+simLinkBRL(simLinkVal('saldoFgts',''))+'"></div>'+
+      '<div class="campo"><label>Subsídio (R$)</label><input id="sl-subsidio" inputmode="decimal" value="'+simLinkBRL(simLinkVal('subsidio',''))+'"></div>'+
+      '<div class="campo"><label>Valor para entrada (R$)<span class="obrig">*</span></label><input id="sl-valorEntrada" inputmode="decimal" value="'+simLinkBRL(simLinkVal('valorEntrada',10000))+'">'+
+        '<span class="ajuda">Mínimo <b>R$ 10.000,00</b> — é o valor do <b>sinal</b> (R$ 1.000 no ato + 3 × R$ 3.000).</span></div>'+
+      '<div class="campo"><label>Renda total (proponente + cônjuge) (R$)<span class="obrig">*</span></label><input id="sl-rendaTotal" inputmode="decimal" value="'+simLinkBRL(simLinkVal('rendaTotal',''))+'"></div>'+
     '</div>'+
-    '<div style="margin-top:8px">'+SIM_LINK_PERFIL.map(function(x){
-      var v=simLinkVal(x[0],false); var on=(v===true||String(v).toUpperCase()==='SIM'||String(v)==='true');
-      return '<label class="check" style="display:flex;gap:8px;align-items:center;margin:4px 0"><input type="checkbox" id="sl-'+x[0]+'"'+(on?' checked':'')+' style="width:auto"> '+x[1]+'</label>';
-    }).join('')+'</div>'+
-    '<span class="ajuda" style="display:block;margin-top:6px">A data de nascimento usada é a do proponente, em "Dados do proponente".</span></div>';
+    '<div id="slAviso" class="aviso" style="display:none;margin:8px 0"></div>'+
+    '<div class="grade">'+
+      '<div class="campo"><label>Valor financiado (R$)</label><input id="sl-financiado" readonly><span class="ajuda">Crédito aprovado, limitado ao teto de 80% da avaliação.</span></div>'+
+      '<div class="campo"><label>Prazo (meses)</label><input id="sl-prazo" type="number" value="'+(Number(simLinkVal('prazoMeses',420))||420)+'"></div>'+
+      '<div class="campo"><label>Sistema de amortização</label><select id="sl-sistemaAmortizacao"><option value="PRICE"'+(sis==='PRICE'?' selected':'')+'>PRICE — parcela fixa</option><option value="SAC"'+(sis==='SAC'?' selected':'')+'>SAC — parcela decrescente</option></select></div>'+
+      '<div class="campo"><label>Prazo total da entrada<span class="obrig">*</span></label><select id="sl-prazoEntrada">'+['24','36','48'].map(function(o){ return '<option value="'+o+'"'+(o===pe?' selected':'')+'>'+o+' meses</option>'; }).join('')+'</select></div>'+
+    '</div>'+
+    '<div id="boxSimLink" style="display:none;margin-top:12px;padding:12px 14px;border:1px dashed #C9A227;border-radius:10px;background:#FFFDF6">'+
+      '<b style="color:var(--marrom)">Dados para a simulação da CAIXA</b>'+
+      '<p class="ajuda" style="margin:4px 0 10px">Quando o crédito bate no teto de 80%, o sistema roda a simulação automaticamente. Ele precisa exatamente destes campos — são os mesmos do simulador.</p>'+
+      '<div class="grade">'+
+        '<div class="campo"><label>Prazo do financiamento (meses)</label><input id="sl-prazoMeses" type="number" min="60" max="420" step="1" value="'+(Number(simLinkVal('prazoMeses',420))||420)+'"><span class="ajuda">Máximo permitido: 420 meses.</span></div>'+
+        '<div class="campo"><label>Seguradora</label><select id="sl-seguradora">'+
+          ['CAIXA RESIDENCIAL HABITACIONAL','TOKIO MARINE SEGURADORA','TOO SEGUROS'].map(function(o){ return '<option'+(o===seg?' selected':'')+'>'+o+'</option>'; }).join('')+'</select></div>'+
+      '</div>'+
+      SIM_LINK_PERFIL.map(function(x){
+        var h=ck(x);
+        if(x[0]==='jaBeneficiado') h+='<div class="campo" id="slBoxConcessao" style="display:none;margin:2px 0 8px 26px;max-width:260px"><label>Data da concessão do benefício</label><input type="date" id="sl-dataConcessaoBeneficio" value="'+String(simLinkVal('dataConcessaoBeneficio','')).slice(0,10)+'"></div>';
+        if(x[0]==='relacionamentoCaixa') h+='<div id="slBoxRel" style="display:none;margin:2px 0 8px 26px">'+SIM_LINK_SUB.map(ck).join('')+'</div>';
+        return h;
+      }).join('')+
+      '<div style="margin-top:8px;font-size:13px"><b style="color:var(--marrom)">Linha de financiamento que será simulada:</b> <span id="slProdutos"></span></div>'+
+    '</div>'+
+  '</div>';
 }
-function simLinkNum(id){ var el=document.getElementById(id); if(!el) return 0; var t=String(el.value||'').trim(); if(!t) return 0;
-  var n=/,/.test(t) ? Number(t.replace(/\./g,'').replace(',','.')) : Number(t.replace(/\.(?=\d{3}(\D|$))/g,'')); return isNaN(n)?0:n; }
-function simLinkColetar(){
-  var o={ rendaTotal:simLinkNum('sl-rendaTotal'), saldoFgts:simLinkNum('sl-saldoFgts'),
-    prazoMeses:Number((document.getElementById('sl-prazoMeses')||{}).value)||420,
+function simLinkProdutos(){ var el=document.getElementById('sl-possuiImovelCidade');
+  return (el&&el.checked) ? ['SBPE SFH - TR - AQUISIÇÃO DE IMÓVEL RESIDENCIAL NOVO'] : ['NPMCMV - IMÓVEL NOVO INDIVIDUAL']; }
+function simLinkColetar(simula){
+  var o={ creditoAprovadoCaixa:'SIM', saldoFgts:simLinkNum('sl-saldoFgts'), subsidio:simLinkNum('sl-subsidio'),
+    valorEntrada:simLinkNum('sl-valorEntrada'), rendaTotal:simLinkNum('sl-rendaTotal'),
+    prazo:Number((document.getElementById('sl-prazo')||{}).value)||420,
     sistemaAmortizacao:(document.getElementById('sl-sistemaAmortizacao')||{}).value||'PRICE',
-    seguradora:(document.getElementById('sl-seguradora')||{}).value||'CAIXA RESIDENCIAL HABITACIONAL',
-    valorEntrada:simLinkNum('sl-valorEntrada'), prazoEntrada:Number((document.getElementById('sl-prazoEntrada')||{}).value)||48,
-    simularParcela:true };
-  SIM_LINK_PERFIL.forEach(function(x){ var el=document.getElementById('sl-'+x[0]); o[x[0]]=!!(el&&el.checked); });
-  o.produtos = o.possuiImovelCidade ? ['SBPE SFH - TR - AQUISIÇÃO DE IMÓVEL RESIDENCIAL NOVO'] : ['NPMCMV - IMÓVEL NOVO INDIVIDUAL'];
+    prazoEntrada:Number((document.getElementById('sl-prazoEntrada')||{}).value)||48,
+    valorFinanciado:simLinkNumTxt((document.getElementById('sl-financiado')||{}).value),
+    simularParcela:!!simula };
+  if(simula){
+    o.prazoMeses=Number((document.getElementById('sl-prazoMeses')||{}).value)||420;
+    o.seguradora=(document.getElementById('sl-seguradora')||{}).value||'CAIXA RESIDENCIAL HABITACIONAL';
+    SIM_LINK_PERFIL.concat(SIM_LINK_SUB).forEach(function(x){ var el=document.getElementById('sl-'+x[0]); o[x[0]]=!!(el&&el.checked); });
+    if(!o.relacionamentoCaixa){ o.servidorPublico=false; o.creditoSalarioCaixa=false; }
+    o.dataConcessaoBeneficio = o.jaBeneficiado ? ((document.getElementById('sl-dataConcessaoBeneficio')||{}).value||'') : '';
+    o.produtos=simLinkProdutos();
+  }
   return o;
 }
+/* mesmo quadro de aviso do teto da proposta */
 function verCreditoLink(){
   var sel=document.getElementById('c-creditoAprovadoCaixa'), cr=document.getElementById('c-creditoAprovado');
   if(!sel||!cr) return;
+  if(!cr.dataset.ouvindo){ cr.addEventListener('input', verCreditoLink); cr.dataset.ouvindo='1'; }
   var sim = sel.value==='SIM';
-  var bs=document.getElementById('boxSimLink'); if(bs) bs.style.display = sim ? '' : 'none';
-  var pf=document.getElementById('c-parcelaFinanciamento'); if(pf && pf.closest('.campo')) pf.closest('.campo').dataset.esconder='1';
-  ['c-creditoAprovado','c-correspondente','c-parcelaFinanciamento'].forEach(function(id){
-    var el=document.getElementById(id); if(!el) return;
-    var cx=el.closest('.campo'); if(!cx) return;
-    cx.style.display = (sim && id!=='c-parcelaFinanciamento') ? '' : 'none';   // 03/10: a parcela vem da simulação
-    cx.dataset.obrig = (sim && id!=='c-parcelaFinanciamento') ? '1' : '0';
-    /* 02/10 (item 8) — parcela: só quando o crédito fica abaixo de 80% da avaliação (acima disso a simulação calcula) */
-    if(id==='c-parcelaFinanciamento' && !cx.querySelector('.ajuda-parc')){
-      var a=document.createElement('span'); a.className='ajuda-parc'; a.style.cssText='font-size:11.5px;color:var(--texto-suave)';
-      a.textContent='Preencha só se o crédito aprovado for MENOR que 80% da avaliação. Igual ou acima, a simulação calcula a parcela.';
-      cx.appendChild(a);
-    }
+  var bc=document.getElementById('boxCredLink'); if(bc) bc.style.display = sim ? '' : 'none';
+  ['c-creditoAprovado','c-correspondente'].forEach(function(id){
+    var el=document.getElementById(id); if(!el) return; var cx=el.closest('.campo'); if(!cx) return;
+    cx.style.display = sim ? '' : 'none'; cx.dataset.obrig = sim ? '1' : '0';
   });
+  var aval=simLinkAval(), teto=aval*0.8, cred=simLinkNumTxt(cr.value);
+  var fin=document.getElementById('sl-financiado'); if(fin) fin.value = cred ? brlL(teto ? Math.min(cred,teto) : cred) : '';
+  var av=document.getElementById('slAviso'), pf=document.getElementById('c-parcelaFinanciamento');
+  var pcx=pf && pf.closest('.campo'), bs=document.getElementById('boxSimLink');
+  var noTeto = sim && cred>0 && teto>0 && cred>=teto-0.5, abaixo = sim && cred>0 && teto>0 && cred<teto-0.5;
+  if(pcx){ pcx.style.display = abaixo ? '' : 'none'; pcx.dataset.obrig = abaixo ? '1' : '0'; }
+  if(bs) bs.style.display = noTeto ? '' : 'none';
+  if(av){
+    if(!sim || !cred || !teto){ av.style.display='none'; }
+    else if(noTeto){
+      var acima=cred>teto+0.5;
+      av.style.display='block'; av.className='aviso ok';
+      av.innerHTML='<b>Crédito '+(acima?'acima do':'igual ao')+' teto da Caixa.</b><br>Avaliação '+brlL(aval)+' → teto de financiamento <b>'+brlL(teto)+'</b> (80%).<br>'+
+        (acima ? 'O crédito informado ('+brlL(cred)+') foi limitado a esse teto, e a diferença de <b>'+brlL(cred-teto)+'</b> voltou para a entrada.<br>'
+               : 'O crédito informado ('+brlL(cred)+') é exatamente o teto.<br>')+
+        '<span style="font-size:12px">Como o valor bate no teto, a parcela sai da simulação da CAIXA — não precisa preencher.</span>';
+    } else {
+      av.style.display='block'; av.className='aviso info';
+      av.innerHTML='<b>Crédito dentro do teto da Caixa.</b><br>Avaliação '+brlL(aval)+' → teto de financiamento <b>'+brlL(teto)+'</b> (80%).<br>'+
+        'O crédito informado é '+brlL(cred)+', ou seja, <b>'+brlL(teto-cred)+'</b> abaixo do teto.<br>'+
+        '<span style="font-size:12px">A CAIXA não simula um valor abaixo do teto, então a <b>parcela precisa ser informada</b> logo abaixo.</span>';
+    }
+  }
+  var jb=document.getElementById('sl-jaBeneficiado'), bcc=document.getElementById('slBoxConcessao'); if(bcc) bcc.style.display = (jb&&jb.checked) ? '' : 'none';
+  var rc=document.getElementById('sl-relacionamentoCaixa'), br=document.getElementById('slBoxRel'); if(br) br.style.display = (rc&&rc.checked) ? '' : 'none';
+  var sp=document.getElementById('slProdutos'); if(sp) sp.textContent=simLinkProdutos()[0];
   try{ atualizarTrava(); }catch(e){}
 }
 function verConjuge(){
@@ -374,9 +424,9 @@ function pintar(){
     alvoC.parentNode.insertBefore(cxCred, alvoC);
   }
   cxCred.innerHTML = htmlCred ? '<h2 style="color:var(--marrom)">Crédito na CAIXA</h2>'+
-    '<p class="ajuda" style="margin:0 0 10px">Se o crédito foi aprovado depois do envio, marque <b>SIM</b>, informe <b>qual correspondente</b> aprovou, o <b>valor</b> e os '+
-    '<b>dados da simulação</b> abaixo. Ao enviar, a simulação na CAIXA roda de novo com o crédito aprovado (financiamento de até 80% da avaliação) '+
-    'e a <b>parcela real</b> chega por e-mail, como resposta ao e-mail da proposta.</p>'+
+    '<p class="ajuda" style="margin:0 0 10px">Se o crédito foi aprovado depois do envio, marque <b>SIM</b> e preencha como na proposta: '+
+    '<b>correspondente</b>, <b>valor do crédito</b> e entrada. Crédito no teto de 80% da avaliação: a simulação da CAIXA roda e a parcela chega por e-mail. '+
+    'Abaixo do teto: informe a <b>parcela</b>.</p>'+
     '<div class="grade">'+htmlCred+'</div>'+simCamposHtml() : '';
   cxCred.style.display = htmlCred ? '' : 'none';
   document.getElementById('camposCorretor').innerHTML=htmlCorr;
@@ -692,18 +742,22 @@ function enviar(){
     var el=document.getElementById('c-'+c.id); if(!el) return;
     if(String(el.value||'').trim()) campos[c.id]=el.value;
   });
-  /* 03/10 — crédito aprovado pelo link: os dados da simulação vão junto e a simulação roda */
+  /* 03/10 (r77) — crédito aprovado pelo link: mesmas regras da etapa 2 da proposta */
   var selC=document.getElementById('c-creditoAprovadoCaixa');
   if(selC && selC.value==='SIM'){
-    var falta=[];
-    if(!String((document.getElementById('c-creditoAprovado')||{}).value||'').trim()) falta.push('valor do crédito aprovado');
+    var falta=[], aval=simLinkAval(), teto=aval*0.8, cred=simLinkNum('c-creditoAprovado');
+    if(!cred) falta.push('valor do crédito aprovado');
     if(!String((document.getElementById('c-correspondente')||{}).value||'').trim()) falta.push('correspondente');
-    if(!simLinkNum('sl-rendaTotal')) falta.push('renda bruta familiar');
-    var nasc=document.getElementById('c-dataNascimento'); if(nasc && !nasc.value) falta.push('data de nascimento do proponente');
+    if(simLinkNum('sl-valorEntrada') < 10000) falta.push('valor para entrada (mínimo R$ 10.000,00)');
+    if(!simLinkNum('sl-rendaTotal')) falta.push('renda total');
+    var simula = teto>0 && cred>=teto-0.5;
+    if(cred && !simula && !simLinkNum('c-parcelaFinanciamento')) falta.push('parcela do financiamento (crédito abaixo do teto)');
+    if(simula){ var nasc=document.getElementById('c-dataNascimento'); if(nasc && !nasc.value) falta.push('data de nascimento do proponente'); }
     if(falta.length){ av.style.display='block'; av.className='aviso erro';
-      av.innerHTML='Para rodar a simulação com o crédito aprovado, informe: <b>'+falta.join(', ')+'</b>.'; return; }
-    var sd=simLinkColetar(); Object.keys(sd).forEach(function(k){ campos[k]=sd[k]; });
+      av.innerHTML='Para registrar o crédito aprovado, informe: <b>'+falta.join(', ')+'</b>.'; return; }
+    var sd=simLinkColetar(simula); Object.keys(sd).forEach(function(k){ campos[k]=sd[k]; });
   }
+
 
   bt.disabled=true;
   av.style.display='block'; av.className='aviso info';

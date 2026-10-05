@@ -343,10 +343,12 @@ function verCreditoLink(){
     /* 03/10 — valores em dinheiro (R$ 300.000,00): formata ao sair do campo e já na abertura */
     ['c-creditoAprovado','c-parcelaFinanciamento','sl-saldoFgts','sl-subsidio','sl-valorEntrada','sl-rendaTotal'].forEach(function(id){
       var el=document.getElementById(id); if(!el || el.dataset.moeda) return;
-      el.dataset.moeda='1'; el.setAttribute('inputmode','decimal');
+      el.dataset.moeda='1'; el.setAttribute('inputmode','numeric'); el.dataset.tipo='numero';
       var fmt=function(){ var n=simLinkNumTxt(el.value); el.value = n ? n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : ''; };
-      el.addEventListener('blur', function(){ fmt(); verCreditoLink(); });
       fmt();
+      /* 05/10 (item 9) — formata enquanto digita (centavos), não só ao sair do campo */
+      el.addEventListener('input', function(){ mascarar(el); verCreditoLink(); });
+      el.addEventListener('blur', verCreditoLink);
     });
   }
   var sim = sel.value==='SIM';
@@ -464,6 +466,8 @@ function mascarar(el){
   var t=el.dataset.tipo;
   if(t==='cep') el.value=fmtCep(el.value);
   else if(t==='cpf'){ if(/^0+$/.test(dig(el.value))) el.value=''; else el.value=fmtCpf(el.value); }
+  /* 05/10 (item 9) — dinheiro no formato R$ ENQUANTO digita (mesma máscara de centavos da proposta) */
+  else if(t==='numero'){ var d=dig(el.value); el.value = d ? (parseInt(d,10)/100).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.') : ''; }
 }
 /* fiador com qualquer dado preenchido: tudo dele vira obrigatório (menos e-mail) */
 function fiadorAtivo(n){
@@ -497,10 +501,16 @@ function htmlCampo(c){
       '</select>';
   } else if(c.id==='correspondente'){
     /* 02/10 (item 8) — qual correspondente aprovou o crédito */
+    /* 05/10 (item 8) — vem preenchido com o correspondente para quem a Morais ENVIOU a proposta
+       (o portal grava o nome ao enviar: AUDICRED, DANIELA…). DANIELA/DANILO viram a empresa. */
     var cv=semAcento(c.valor);
+    var alvo = (cv.indexOf('AUDICRED')>=0||cv.indexOf('DANILO')>=0) ? 'AUDICRED'
+             : (cv.indexOf('AMAZONAS')>=0||cv.indexOf('DANIELA')>=0) ? 'AMAZONAS'
+             : (cv==='OUTRO' ? 'OUTRO' : '');
+    var extra = (cv && !alvo) ? '<option value="'+esc(c.valor)+'" selected>'+esc(c.valor)+'</option>' : '';
     campo='<select id="c-'+c.id+'"><option value="">Selecione…</option>'+
-          ['AUDICRED','AMAZONAS','OUTRO'].map(function(o){ return '<option value="'+o+'"'+(cv.indexOf(o)>=0?' selected':'')+'>'+
-            (o==='AUDICRED'?'AUDICRED (Danilo)':(o==='AMAZONAS'?'AMAZONAS (Daniela)':'Outro correspondente'))+'</option>'; }).join('')+'</select>';
+          ['AUDICRED','AMAZONAS','OUTRO'].map(function(o){ return '<option value="'+o+'"'+(o===alvo?' selected':'')+'>'+
+            (o==='AUDICRED'?'AUDICRED (Danilo)':(o==='AMAZONAS'?'AMAZONAS (Daniela)':'Outro correspondente'))+'</option>'; }).join('')+extra+'</select>';
   } else if(c.id==='creditoAprovadoCaixa'){
     /* 02/10 (item 13) — enviou SEM crédito aprovado e foi aprovado depois: muda para SIM,
        informa o valor e a simulação roda de novo com o crédito aprovado */

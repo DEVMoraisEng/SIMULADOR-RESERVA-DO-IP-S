@@ -482,14 +482,13 @@ function preencher(chave, campos){
     var v=campos[k]; if(!v) return;
     var el=document.getElementById('f-'+mapa[k]);
     if(!el) return;
-    var atual=String(el.value||'').trim();
-    if(atual && !(k==='nacionalidade' && atual==='BR')) return;   // só preenche o que está vazio
+    /* 06/10 — o documento lido SEMPRE corrige o campo (antes só preenchia o que estava vazio) */
     el.value=v; mascarar(el); el.classList.add('lido'); n++;
   });
   /* comprovante de quem só tem o campo de endereço inteiro: monta a linha */
   if(/^end/.test(chave) && !n){
     var cap=chave.slice(3), un=document.getElementById('f-endereco'+cap);
-    if(un && !String(un.value||'').trim()){
+    if(un){
       var partes=[campos.logradouro, campos.numero, campos.bairro, campos.cidade].filter(Boolean).join(', ');
       if(partes){ un.value=semAcento(partes)+(campos.cep?' - CEP '+fmtCep(campos.cep):''); un.classList.add('lido'); n++; }
     }

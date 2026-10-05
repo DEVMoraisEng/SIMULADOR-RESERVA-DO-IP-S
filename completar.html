@@ -180,6 +180,7 @@ var REGRA_DOC={
   'IR + EXTRATOS':['EMPRESÁRIO','AUTÔNOMO','MEI','PROFISSIONAL LIBERAL','RURAL']
 };
 var DOC_SEMPRE=['DOC. PROP.','CERTIDOES','COMPROVANTE DE ENDERECO'];
+
 var DICA_DOC={
   'DOC. PROP.':'RG e CPF do proponente, com foto, dos dois lados.',
   'DOC. CONJUGE':'RG e CPF do cônjuge.',
@@ -213,6 +214,21 @@ var ROTULO_DOC={
   'DOC. FIADOR 1':'Documento do fiador 1','DOC. FIADOR 2':'Documento do fiador 2',
   'COMP. END. FIADOR 1':'Comprovante de endereço do fiador 1','COMP. END. FIADOR 2':'Comprovante de endereço do fiador 2'
 };
+/* 06/10 (item 3) — documentos do CÔNJUGE e dos COMPRADORES, cada um no seu quadro */
+var CONJ_BASE={'CONTRACHEQUES CONJUGE':'CONTRACHEQUES','CARTEIRA DE TRABALHO CONJUGE':'CARTEIRA DE TRABALHO','EXTRATO FGTS CONJUGE':'EXTRATO FGTS',
+  'PRO LABORE CONJUGE':'PRO LABORE','MOVIMENTACAO BANCARIA CONJUGE':'MOVIMENTACAO BANCARIA','EXTRATO PLATAFORMA CONJUGE':'EXTRATO PLATAFORMA','IR CONJUGE':'IR + EXTRATOS'};
+(function(){
+  Object.keys(CONJ_BASE).forEach(function(c){ var b=CONJ_BASE[c];
+    ROTULO_DOC[c]=(ROTULO_DOC[b]||b)+' do cônjuge'; DICA_DOC[c]=DICA_DOC[b]||''; DONO_DOC[c]='cônjuge'; });
+  ROTULO_DOC['COMP. END. CONJUGE']='Comprovante de endereço do cônjuge'; DONO_DOC['COMP. END. CONJUGE']='cônjuge';
+  DICA_DOC['COMP. END. CONJUGE']='O cônjuge mora em outro endereço: conta de água, luz ou telefone dos últimos 3 meses.';
+  [1,2].forEach(function(n){
+    ROTULO_DOC['DOC. COMPRADOR '+n]='Documento do comprador '+n; DICA_DOC['DOC. COMPRADOR '+n]='CNH ou RG + CPF do comprador '+n+'.';
+    ROTULO_DOC['COMP. END. COMPRADOR '+n]='Comprovante de endereço do comprador '+n; DICA_DOC['COMP. END. COMPRADOR '+n]='Conta de água, luz ou telefone dos últimos 3 meses.';
+    ROTULO_DOC['COMP. RENDA COMPRADOR '+n]='Comprovantes de renda do comprador '+n; DICA_DOC['COMP. RENDA COMPRADOR '+n]='Conforme a origem da renda: contracheques, carteira de trabalho, IR ou extratos.';
+    ['DOC. COMPRADOR ','COMP. END. COMPRADOR ','COMP. RENDA COMPRADOR '].forEach(function(k){ DONO_DOC[k+n]='comprador '+n; });
+  });
+})();
 
 function esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function dig(v){ return String(v||'').replace(/\D/g,''); }
@@ -591,6 +607,7 @@ function origensEscolhidas(){
   var a=document.getElementById('c-origemRenda'), b=document.getElementById('c-origemRendaConjuge');
   return [(a&&a.value)||'', (b&&b.value)||''];
 }
+function regraTem(lista, o){ return (lista||[]).some(function(x){ return semAcento(x)===semAcento(o); }); }   // compara sem acento
 function montarDocs(){
   var origens=origensEscolhidas();
   var civil=(document.getElementById('c-estadoCivil')||{}).value||'';
@@ -604,24 +621,27 @@ function montarDocs(){
   DADOS.documentos.forEach(function(d){
     var regra=REGRA_DOC[d.coluna];
     var fiaN = (/FIADOR ([12])$/.exec(d.coluna)||[])[1];          // 01/10: documento e comprovante de cada fiador
+    /* 06/10 (item 3) — cada documento olha a PESSOA dele */
+    var PD=DADOS.pessoasDocs||{}, compN=(/COMPRADOR ([12])$/.exec(d.coluna)||[])[1], baseC=CONJ_BASE[d.coluna];
     var exigido = DOC_SEMPRE.indexOf(d.coluna)>=0 ||
-                  (regra && origens.some(function(o){ return o && regra.indexOf(o)>=0; })) ||
+                  (regra && origens[0] && regraTem(regra, origens[0])) ||
+                  (baseC && temConjuge() && origens[1] && regraTem(REGRA_DOC[baseC], origens[1])) ||
                   (d.coluna==='COMPROVANTE DE DIVORCIO' && civil.indexOf('DIVORC')>=0) ||
-                  (d.coluna==='DOC. CONJUGE' && temConjuge());
-    if(!exigido && !fiaN) return;
+                  (d.coluna==='DOC. CONJUGE' && temConjuge()) ||
+                  (d.coluna==='COMP. END. CONJUGE' && temConjuge() && PD.conjMesmoEnd===false) ||
+                  (compN && Number(compN)<=(PD.compradores||0));
+    if(!exigido && !fiaN && !(d.temArquivo && (baseC||compN||d.coluna==='COMP. END. CONJUGE'))) return;
     var nome=ROTULO_DOC[d.coluna]||d.rotulo;
     var id='d-'+d.coluna.replace(/\W/g,'');
     /* 01/10 — selo de quem é o documento: proponente, cônjuge, fiador… */
     var dono=DONO_DOC[d.coluna]||'';
-    if(!dono && regra){
-      var ds=[];
-      if(origens[0] && regra.indexOf(origens[0])>=0) ds.push('proponente · '+origens[0]);
-      if(temConjuge() && origens[1] && regra.indexOf(origens[1])>=0) ds.push('cônjuge · '+origens[1]);
-      dono=ds.join(' + ');
-    }
+    if(!dono && regra) dono='proponente'+(origens[0]?' · '+origens[0]:'');
+    if(baseC && origens[1]) dono='cônjuge · '+origens[1];
     if(!dono && (d.coluna==='CERTIDOES'||d.coluna==='COMPROVANTE DE DIVORCIO')) dono = temConjuge() ? 'proponente e cônjuge' : 'proponente';
     var le=LEITURA[d.coluna];
-    linhas.push('<div class="doc'+(d.temArquivo||fiaN?'':' pedido')+'" data-exigido="'+(fiaN?0:1)+'" data-enviado="'+(d.temArquivo?1:0)+'"'+
+    var gPessoa = /^fiador/.test(dono) ? dono.replace(/^./,function(x){return x.toUpperCase();}).replace(/ ·.*/,'')
+                : (/^cônjuge/.test(dono) ? 'Cônjuge' : (/^comprador/.test(dono) ? dono.replace('comprador','Comprador') : 'Proponente'));
+    linhas.push('<!--G:'+gPessoa+'--><div class="doc'+(d.temArquivo||fiaN?'':' pedido')+'" data-exigido="'+(fiaN?0:1)+'" data-enviado="'+(d.temArquivo?1:0)+'"'+
       (fiaN?' data-fia="'+fiaN+'"':'')+' data-nome="'+esc(nome)+'">'+
       '<label for="'+id+'">'+esc(nome)+(dono?'<span class="dono">do '+esc(dono)+'</span>':'')+
       (d.temArquivo?'<span class="marca ok-marca">já enviado</span>':'<span class="marca">falta</span>')+
@@ -629,6 +649,12 @@ function montarDocs(){
       (le?'<span class="lst" id="lst-'+id+'"></span>':'')+'</label>'+
       '<input type="file" accept="image/*,application/pdf" id="'+id+'" data-rotulo="'+esc(d.rotulo)+'" data-col="'+esc(d.coluna)+'" multiple onchange="aoArquivo(this)"></div>');
   });
+  /* 06/10 (item 3) — um quadro por pessoa, como na proposta */
+  var gr={}, ord=['Proponente','Cônjuge','Comprador 1','Comprador 2','Fiador 1','Fiador 2'];
+  linhas.forEach(function(h){ var m=/^<!--G:(.*?)-->/.exec(h); var g=m?m[1]:'Proponente'; (gr[g]=gr[g]||[]).push(h.replace(/^<!--G:.*?-->/,'')); });
+  linhas = Object.keys(gr).sort(function(a,b){ return (ord.indexOf(a)+99)%99-(ord.indexOf(b)+99)%99; }).map(function(g){
+    return '<div style="border:1.5px solid #E7DCC7;border-radius:10px;padding:8px 12px;margin:0 0 12px;background:#FFFDF8">'+
+      '<b style="display:block;margin:2px 0 6px;color:#6B4A12;font-size:14px">'+esc(g)+'</b>'+gr[g].join('')+'</div>'; });
   document.getElementById('docs').innerHTML = linhas.join('') ||
     '<div class="sub">Escolha a <b>origem da renda</b> acima para ver os documentos exigidos.</div>';
 

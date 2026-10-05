@@ -1424,7 +1424,7 @@
           '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px">'+
           '<label style="font-size:11px;color:var(--marrom);font-weight:700">Data de nascimento'+obrigComp+'<input type="date" class="dep-nasc" value="'+esc_(p.dataNascimento||'')+'"></label>'+
           '<label style="font-size:11px;color:var(--marrom);font-weight:700">E-mail'+obrigComp+'<input type="email" class="dep-email" value="'+esc_(p.email||'')+'"></label>'+
-          '<label style="font-size:11px;color:var(--marrom);font-weight:700">Celular'+obrigComp+'<input type="text" class="dep-cel" inputmode="numeric" maxlength="15" placeholder="(00) 00000-0000" value="'+esc_(p.celular||'')+'"></label>'+
+          '<label style="font-size:11px;color:var(--marrom);font-weight:700">Celular'+obrigComp+'<input type="text" class="dep-cel" inputmode="numeric" maxlength="15" placeholder="(00) 00000-0000" oninput="this.value=fmtTel(this.value)" value="'+esc_(fmtTel(p.celular||''))+'"></label>'+
           '</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">'+
           '<label style="font-size:11px;color:var(--marrom);font-weight:700">Renda (R$)'+obrigComp+'<input type="text" class="dep-renda" inputmode="numeric" placeholder="0,00" value="'+esc_(p.renda||'')+'"></label>'+
           '<label style="font-size:11px;color:var(--marrom);font-weight:700">Origem da renda'+obrigComp+'<select class="dep-origem">'+
@@ -1618,7 +1618,8 @@
       if(!extras.length) extras=[{nome:'',tipo:'DEPENDENTE'}];
       extras.forEach(function(p,i){
         var quem=p.nome ? (p.nome) : ((p.tipo==='COMPRADOR'?'2º comprador ':'dependente ')+(i+1));
-        lista.push(['dep'+i, 'Documentos de '+quem,
+        /* 06/10 — comprador (1 e 2) tem quadro próprio (documento, endereço e renda): sem o bloco "Documentos de" */
+        if(!(p.tipo==='COMPRADOR' && i<2)) lista.push(['dep'+i, 'Documentos de '+quem,
           p.tipo==='COMPRADOR'
             ? 'Documento pessoal, comprovante de endereço, comprovante de estado civil e comprovação de renda.'
             : 'Criança: certidão de nascimento ou identidade. Maior de idade: documento pessoal + comprovante de estado civil.',
@@ -1629,11 +1630,30 @@
           null, 'compradorRenda']);
       });
     }
+    /* 06/10 (item 1) — o comprador e o cônjuge (endereço diferente) também aparecem no passo 4 */
+    if(F().maisDeUmComprador.checked) extras.forEach(function(p,i){
+      if(p.tipo!=='COMPRADOR' || i>1) return;
+      lista.push(['docComp'+(i+1),'Documento do comprador '+(i+1),(p.nome?p.nome+' — ':'')+'CNH ou RG + CPF.',null,'espelhoComp']);
+      lista.push(['endComp'+(i+1),'Comprovante de endereço do comprador '+(i+1),'Conta de água, luz ou telefone dos últimos 3 meses.',null,'espelhoComp']);
+    });
+    if(conjugeAtivo() && !F().conjugeMesmoEndereco.checked)
+      lista.push(['endConj4','Comprovante de endereço do cônjuge','O cônjuge mora em outro endereço: conta de água, luz ou telefone dos últimos 3 meses.',null,'espelhoConj']);
     var i0=lista.findIndex(function(d){ return d[0]==='outros'; });
     if(i0>=0) lista.push(lista.splice(i0,1)[0]);   // "Outros documentos" por último
     return lista;
   }
 
+  /* 06/10 (item 1) — o arquivo escolhido no passo 4 vai para o campo original (passo 1 ou 2): um lugar só */
+  function espelharArquivo(src, chave){
+    var alvo=null;
+    if(chave==='endConj4') alvo=document.getElementById('p1-endconj-comp');
+    else { var iC=Number(chave.slice(-1))-1, blk=document.querySelector('#listaDependentes .dep[data-i="'+iC+'"]');
+           alvo = blk && blk.querySelector(/^doc/.test(chave) ? '.dep-doc' : '.dep-end'); }
+    if(!alvo){ erro('Não achei o campo de origem deste documento.'); return; }
+    var dt=new DataTransfer(); for(var i=0;i<src.files.length;i++) dt.items.add(src.files[i]);
+    alvo.files=dt.files; alvo.dispatchEvent(new Event('change',{bubbles:true}));
+    setTimeout(montarAnexos, 300);
+  }
   function montarAnexos(){
     var f=F();
     var DOCS_ATIVOS=docsDaVez();
@@ -1668,6 +1688,17 @@
       var quem = donos.length ? donos.join(' + ')
                : (DONO_FIXO[d[0]] || (d[4]==='dependente' ? 'DEPENDENTE / 2º COMPRADOR' : 'ANÁLISE DE CRÉDITO'));
       var ehCreci = d[0]==='docCreci';
+      if(d[4]==='espelhoComp' || d[4]==='espelhoConj'){
+        var alvoId = d[4]==='espelhoConj' ? 'p1-endconj-comp' : '';
+        var nC = d[0].slice(-1), iC = Number(nC)-1;
+        var ja = d[4]==='espelhoConj' ? (PENDCONJ||[]).length : ((/^doc/.test(d[0]) ? PDEP[iC] : PDEND[iC])||[]).length;
+        var gkE = d[4]==='espelhoConj' ? 'Cônjuge' : 'Comprador '+nC;
+        if(!grupos[gkE]){ grupos[gkE]=[]; ordemG.push(gkE); }
+        grupos[gkE].push('<div class="anexo pedido"><label for="ax-'+d[0]+'">'+d[1]+'<span class="tag-doc">do '+gkE.toUpperCase()+'</span>'+
+          (ja?'<span class="tag-doc" style="background:#DDF2E3;color:#1D5433">✓ '+ja+' arquivo(s) já anexado(s)</span>':'')+'<small>'+d[2]+'</small></label>'+
+          '<input type="file" class="espelho" id="ax-'+d[0]+'" multiple accept="image/*,application/pdf" onchange="espelharArquivo(this,\''+d[0]+'\')"></div>');
+        return '';
+      }
       var html='<div class="anexo'+(pedido?' pedido':'')+(ehCreci?' creci':'')+'">'+
              '<label for="ax-'+d[0]+'">'+d[1]+
              (pedido?'<span class="tag-doc">'+(temDono?'do ':'pedido para ')+quem+'</span>':'')+
@@ -1743,7 +1774,7 @@
         (P1[q][k]||[]).forEach(function(a){ out.push({rotulo:P1_ROTULO[q], arquivo:a}); });
       });
     });
-    document.querySelectorAll('#anexos input[type=file]').forEach(function(el){
+    document.querySelectorAll('#anexos input[type=file]:not(.espelho)').forEach(function(el){
       for(var i=0;i<el.files.length;i++) out.push({rotulo:el.dataset.rotulo, arquivo:el.files[i]});
     });
     /* CRECI anexado só no passo 5 (quando o passo 4 ficou sem) */
@@ -2157,7 +2188,7 @@
          Sem todos em mãos, o corretor marca a caixa e a proposta segue; o
          que faltar é juntado depois na página do Notion. */
       var faltam=[];
-      document.querySelectorAll('#anexos .anexo.pedido input[type=file]').forEach(function(cx){
+      document.querySelectorAll('#anexos .anexo.pedido input[type=file]:not(.espelho)').forEach(function(cx){
         if(!cx.files.length && !p1Qtd(cx.id) && !naoAnexarAgora(cx)) faltam.push(cx.dataset.rotulo);
       });
       /* 01/10 — documentos de quem foi informado nos outros passos */

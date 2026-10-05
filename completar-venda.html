@@ -237,6 +237,10 @@ function htmlCampo(c){
 }
 
 function grupoDeDoc(chave){
+  /* 05/10 (item 12) — comprovantes de renda e estado civil no card de QUEM eles são */
+  if(chave==='rendaDocs' || chave==='certidoes') return 'prop';
+  if(chave==='rendaConjuge') return 'conjuge';
+  var mR=/^rendaComprador(\d)$/.exec(chave); if(mR) return 'comprador'+mR[1];
   return chave==='compEndereco' ? 'endereco'
     : (chave==='docProponente' ? 'prop' : chave==='docConjuge' ? 'conjuge'
     : chave.replace(/^end/,'doc').replace('doc','').replace(/^./,function(x){return x.toLowerCase();}));
@@ -246,7 +250,11 @@ function htmlDoc(d){
             : (d.exigido ? '<span class="marca">falta</span>' : '<span class="marca opc">opcional</span>');
   var cab='<div class="doc'+(d.exigido&&!d.temArquivo?' pedido':'')+'" id="doc-'+d.chave+'" data-chave="'+d.chave+'"'+
     ' data-exigido="'+(d.exigido?1:0)+'" data-enviado="'+(d.temArquivo?1:0)+'" data-nome="'+esc(d.rotulo)+'" data-g="'+esc(grupoDeDoc(d.chave))+'">'+
-    '<label>'+esc(d.rotulo)+marca+'<small>'+esc(DICA_DOC[d.chave]||'')+'</small></label>';
+    '<label>'+esc(d.rotulo)+marca+'<small>'+esc(DICA_DOC[d.chave]||'')+'</small></label>'+
+    /* 05/10 (item 12) — o que já está anexado aparece aqui, para conferir */
+    ((d.arquivos&&d.arquivos.length) ? '<div style="font-size:12.5px;margin:2px 0 6px">📎 '+d.arquivos.map(function(f){
+        return f.url ? '<a href="'+esc(f.url)+'" target="_blank" rel="noopener" style="color:#1B5173">'+esc(f.nome)+'</a>' : esc(f.nome); }).join(' · ')+
+      ' <span style="color:#6B5A45">— anexe de novo só se quiser trocar ou acrescentar</span></div>' : '');
   if(DOC_PESSOA.indexOf(d.chave)>=0){
     return cab+'<select class="sel" id="tipo-'+d.chave+'" onchange="montarSubs(\''+d.chave+'\')">'+
       '<option value="">Escolha o documento…</option><option value="CNH">CNH (já tem tudo)</option>'+
@@ -285,7 +293,7 @@ function pintar(){
     (porGrupo[g]=porGrupo[g]||[]).push(c);
   });
   DADOS.documentos.forEach(function(d){
-    if(d.chave==='certidoes'||d.chave==='rendaDocs'||d.chave==='outrosDocs'){ outros.push(d); return; }
+    if(d.chave==='outrosDocs'){ outros.push(d); return; }   // 05/10 (item 12): estado civil e renda vão para o card da pessoa
     var g = grupoDeDoc(d.chave);
     (docsGrupo[g]=docsGrupo[g]||[]).push(d);
   });

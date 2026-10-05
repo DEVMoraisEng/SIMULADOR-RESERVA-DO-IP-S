@@ -2214,6 +2214,13 @@
           somarRenda(); montarFluxo();
         });
       });
+    /* 05/10 (item 9) — renda dos dependentes/2º comprador também no formato R$ enquanto digita
+       (as linhas são criadas depois, por isso o ouvinte fica no documento) */
+    document.addEventListener('input',function(e){
+      var t=e.target; if(!t || !t.classList || !t.classList.contains('dep-renda')) return;
+      var d=dig(t.value);
+      t.value = d ? (parseInt(d,10)/100).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.') : '';
+    });
     document.querySelectorAll('[data-pad="1"]').forEach(function(el){
       el.addEventListener('input',function(e){
         var pos=e.target.selectionStart;

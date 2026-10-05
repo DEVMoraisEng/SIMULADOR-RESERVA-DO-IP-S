@@ -214,11 +214,10 @@
       </div>
       <div class="campo full" style="margin-bottom:16px;">
         <label>Prazo total da entrada<span class="obrig">*</span></label>
-        <span class="ajuda" style="display:block;margin:-2px 0 8px">1ª parcela da entrada em <b>20/11/2026</b> — por isso os prazos ficam com uma parcela a menos (23, 35 e 47 meses).</span>
         <div class="prazo-opts">
-          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="24"><b>23 meses</b><small>comissão 5,00%</small></label>
-          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="36"><b>35 meses</b><small>comissão 4,75%</small></label>
-          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="48" checked><b>47 meses</b><small>comissão 4,50%</small></label>
+          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="24"><b class="prazo-n" data-base="24">24 meses</b><small>comissão 5,00%</small></label>
+          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="36"><b class="prazo-n" data-base="36">36 meses</b><small>comissão 4,75%</small></label>
+          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="48" checked><b class="prazo-n" data-base="48">48 meses</b><small>comissão 4,50%</small></label>
         </div>
         <div class="comissao-box"><span>Comissão do corretor</span><b id="comissaoTxt">—</b></div>
       </div>
@@ -854,6 +853,15 @@
     .then(function(){ buscarAoVivo().then(function(d){aplicarUnidades(d);}).catch(function(){}); });
   verificarServico(); setInterval(verificarServico,60000);
 
+</script>
+<script>
+/* 05/10 — prazo da entrada: o 1º boleto vence até 30/11/2026. Proposta até novembro = 24/36/48 meses;
+   a cada mês depois disso o prazo perde uma parcela (dez/2026 = 23/35/47, jan/2027 = 22/34/46...).
+   O valor gravado continua 24/36/48 (é a opção da comissão); só o número de parcelas mostrado muda. */
+(function(){
+  var h=new Date(), red=Math.max(0,(h.getFullYear()-2026)*12+(h.getMonth()+1)-11);
+  document.querySelectorAll('.prazo-n').forEach(function(b){ b.textContent=(Number(b.dataset.base)-red)+' meses'; });
+})();
 </script>
 </body>
 </html>

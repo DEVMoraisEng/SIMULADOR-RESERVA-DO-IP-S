@@ -564,11 +564,10 @@
     <div class="linha">
       <div class="campo full" style="margin-bottom:16px;">
         <label>Prazo total da entrada<span class="obrig">*</span></label>
-        <span class="ajuda" style="display:block;margin:-2px 0 8px">1ª parcela da entrada em <b>20/11/2026</b> — por isso os prazos ficam com uma parcela a menos (23, 35 e 47 meses).</span>
         <div class="prazo-opts" id="prazoOpts">
-          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="24" onchange="atualizarComissao()"><b>23 meses</b><small>comissão 5,00%</small></label>
-          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="36" onchange="atualizarComissao()"><b>35 meses</b><small>comissão 4,75%</small></label>
-          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="48" onchange="atualizarComissao()"><b>47 meses</b><small>comissão 4,50%</small></label>
+          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="24" onchange="atualizarComissao()"><b class="prazo-n" data-base="24">24 meses</b><small>comissão 5,00%</small></label>
+          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="36" onchange="atualizarComissao()"><b class="prazo-n" data-base="36">36 meses</b><small>comissão 4,75%</small></label>
+          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="48" onchange="atualizarComissao()"><b class="prazo-n" data-base="48">48 meses</b><small>comissão 4,50%</small></label>
         </div>
         <div class="comissao-box"><span>Comissão do corretor</span><b id="comissaoTxt">Escolha o prazo</b></div>
       </div>
@@ -1644,7 +1643,9 @@
       if(el.files.length) guardados[el.id]=el.files;
     });
     var extrasHtml=[];
-    document.getElementById('anexos').innerHTML=DOCS_ATIVOS.map(function(d){
+    /* 05/10 (item 2) — documentos em quadros por PESSOA (proponente, cônjuge, compradores...) */
+    var grupos={}, ordemG=[];
+    DOCS_ATIVOS.map(function(d){
       /* 05/10 (item 5) — documento de renda do PROPONENTE olha só a origem dele; o do CÔNJUGE, só a do cônjuge */
       var porOrigem = d[3] && (d[4]==='conj'
         ? (conjugeAtivo() && origens[1] && d[3].indexOf(origens[1])>=0)
@@ -1678,7 +1679,18 @@
          atrás do "ver os demais documentos". */
       /* 30/09: só o que a análise pede para ESTE cliente (+ CRECI e "Outros") — sem lista escondida */
       if(!pedido && !ehCreci && d[0]!=='outros') return '';
+      var gk = d[4]==='conj' || d[0]==='docConjuge' ? 'Cônjuge'
+             : (d[4]==='compradorRenda' ? 'Comprador '+d[0].slice(-1)
+             : (/^dep\d+$/.test(d[0]) ? 'Compradores e dependentes'
+             : (ehCreci || d[0]==='outros' || d[0]==='docParticipantes' ? 'Corretor e outros documentos' : 'Proponente')));
+      if(!grupos[gk]){ grupos[gk]=[]; ordemG.push(gk); }
+      grupos[gk].push(html);
       return html;
+    });
+    var ORD=['Proponente','Cônjuge','Comprador 1','Comprador 2','Compradores e dependentes','Corretor e outros documentos'];
+    ordemG.sort(function(a,b){ return ORD.indexOf(a)-ORD.indexOf(b); });
+    document.getElementById('anexos').innerHTML=ordemG.map(function(g){
+      return '<div class="card-pessoa" style="padding:10px 12px"><h3>'+g+'</h3>'+grupos[g].join('')+'</div>';
     }).join('');
     /* mantém os arquivos já escolhidos quando a lista é redesenhada */
     Object.keys(guardados).forEach(function(id){
@@ -1691,7 +1703,7 @@
     resumoAnexos();
     pintarCreci();
     atualizarCreciP5();
-    instalarNaoAnexar(document.getElementById('anexos'));
+    /* 05/10 (item 2) — no passo 4 não tem mais o "Não anexar agora" */
   }
   /* 02/10 (item 4) — "Não anexar agora" em TODOS os documentos: marcado, o arquivo
      não é cobrado no envio e segue pendente para o link de complemento. */
@@ -2772,6 +2784,15 @@
     aoTrocarUnidade();
   });
   carregarUnidades();
+</script>
+<script>
+/* 05/10 — prazo da entrada: o 1º boleto vence até 30/11/2026. Proposta até novembro = 24/36/48 meses;
+   a cada mês depois disso o prazo perde uma parcela (dez/2026 = 23/35/47, jan/2027 = 22/34/46...).
+   O valor gravado continua 24/36/48 (é a opção da comissão); só o número de parcelas mostrado muda. */
+(function(){
+  var h=new Date(), red=Math.max(0,(h.getFullYear()-2026)*12+(h.getMonth()+1)-11);
+  document.querySelectorAll('.prazo-n').forEach(function(b){ b.textContent=(Number(b.dataset.base)-red)+' meses'; });
+})();
 </script>
 </body>
 </html>

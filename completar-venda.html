@@ -116,7 +116,7 @@ var P=new URLSearchParams(location.search), ID=P.get('p')||'', TOKEN=P.get('t')|
 var DADOS=null;
 var ARQ={};            // chave do documento -> {sub: [File]}
 var DIA_MIN=5;         // dia de pagamento: a partir do dia 5
-var COND_GRUPOS=/^(comprador|fiador)[12]$/;   // grupos que só valem se alguém for informado
+var COND_GRUPOS=/^comprador[12]$/;   // 05/10 (item 4): só os compradores dependem de existir — os DOIS fiadores são obrigatórios
 var SINT={};           // documentos criados aqui (o servidor não listou) -> vão como "outros" com o nome identificado
 /* 01/10 — regime de bens: lista fechada (igual à proposta) */
 var REGIMES=['COMUNHAO PARCIAL DE BENS','COMUNHAO UNIVERSAL DE BENS','SEPARACAO TOTAL DE BENS',
@@ -245,6 +245,30 @@ function grupoDeDoc(chave){
     : (chave==='docProponente' ? 'prop' : chave==='docConjuge' ? 'conjuge'
     : chave.replace(/^end/,'doc').replace('doc','').replace(/^./,function(x){return x.toLowerCase();}));
 }
+/* 05/10 (item 4) — comprovantes de renda conforme a ORIGEM de cada pessoa (um campo para cada documento) */
+var SUB_RENDA={
+  'CLT':[['contracheques','Dois últimos contracheques'],['carteira','Carteira de trabalho (física ou digital)'],['fgts','Extrato do FGTS']],
+  'SERVIDOR PUBLICO':[['contracheques','Dois últimos contracheques']],
+  'EMPRESARIO':[['ir','Imposto de renda (declaração + recibo)'],['prolabore','Pró-labore']],
+  'AUTONOMO':[['ir','Imposto de renda (se declara)'],['extratos','Movimentação bancária - 4 últimos meses']],
+  'MEI':[['ir','Imposto de renda (se declara)'],['extratos','Movimentação bancária - 4 últimos meses']],
+  'MOTORISTA DE APLICATIVO':[['plataforma','Extrato da plataforma - 4 últimos meses'],['extratos','Movimentação bancária - 4 últimos meses']],
+  'PROFISSIONAL LIBERAL':[['ir','Imposto de renda (declaração + recibo)']],
+  'RURAL':[['ir','Imposto de renda (declaração + recibo)']],
+  'APOSENTADO / PENSIONISTA':[['beneficio','Extrato do benefício (INSS)']],
+  'OUTRO':[['extratos','Movimentação bancária - 4 últimos meses']]
+};
+function semAc(v){ return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim(); }
+function origemDoDoc(chave){
+  var o=(DADOS&&DADOS.origens)||{};
+  if(chave==='rendaDocs') return o.prop; if(chave==='rendaConjuge') return o.conjuge;
+  var m=/^rendaComprador(\d)$/.exec(chave); return m ? o['comprador'+m[1]] : '';
+}
+function subsRendaDe(chave){
+  if(!/^renda(Docs|Conjuge|Comprador\d)$/.test(chave)) return null;
+  var or=semAc(origemDoDoc(chave)); if(!or) return null;
+  return SUB_RENDA[or] || SUB_RENDA[or.replace(/ \/ .*/,'')] || null;
+}
 function htmlDoc(d){
   var marca = d.temArquivo ? '<span class="marca ok-marca">'+(d.naProposta?'já enviado na proposta':'já enviado')+'</span>'
             : (d.exigido ? '<span class="marca">falta</span>' : '<span class="marca opc">opcional</span>');
@@ -255,6 +279,16 @@ function htmlDoc(d){
     ((d.arquivos&&d.arquivos.length) ? '<div style="font-size:12.5px;margin:2px 0 6px">📎 '+d.arquivos.map(function(f){
         return f.url ? '<a href="'+esc(f.url)+'" target="_blank" rel="noopener" style="color:#1B5173">'+esc(f.nome)+'</a>' : esc(f.nome); }).join(' · ')+
       ' <span style="color:#6B5A45">— anexe de novo só se quiser trocar ou acrescentar</span></div>' : '');
+  var subsR=subsRendaDe(d.chave);
+  if(subsR && !d.temArquivo){
+    var orTxt=origemDoDoc(d.chave);
+    return cab.replace('class="doc','data-subs="'+subsR.map(function(x){return x[0];}).join(',')+'" class="doc')+
+      '<div class="subs" style="grid-template-columns:1fr">'+subsR.map(function(t){
+        return '<div><label>'+esc(t[1])+' <span style="font-weight:400;color:#6B5A45">('+esc(orTxt)+')</span></label>'+
+          '<input type="file" accept="image/*,application/pdf" multiple id="a-'+d.chave+'-'+t[0]+'" '+
+          'onchange="aoArquivo(\''+d.chave+'\',\''+t[0]+'\',\'\',this)"><div class="lst" id="lst-'+d.chave+'-'+t[0]+'"></div></div>';
+      }).join('')+'</div></div>';
+  }
   if(DOC_PESSOA.indexOf(d.chave)>=0){
     return cab+'<select class="sel" id="tipo-'+d.chave+'" onchange="montarSubs(\''+d.chave+'\')">'+
       '<option value="">Escolha o documento…</option><option value="CNH">CNH (já tem tudo)</option>'+
@@ -552,8 +586,12 @@ function pendencias(){
   document.querySelectorAll('.doc').forEach(function(d){
     if(d.closest('[data-oculto="1"]')) return;
     var g=d.dataset.g||'', cond=COND_GRUPOS.test(g);
-    var req = cond ? !!ativos[g] : d.dataset.exigido==='1';
-    var tem = d.dataset.enviado==='1' || arquivosDe(d.dataset.chave).length>0;
+    /* 05/10 (item 4) — nenhum documento é opcional (só "outros documentos"); renda: TODOS os itens da origem */
+    var req = d.dataset.chave==='outrosDocs' ? false : (cond ? !!ativos[g] : true);
+    var subsD = d.dataset.subs ? d.dataset.subs.split(',') : null;
+    var tem = d.dataset.enviado==='1' || (subsD
+      ? subsD.every(function(sb){ return ((ARQ[d.dataset.chave]||{})[sb]||[]).length>0; })
+      : arquivosDe(d.dataset.chave).length>0);
     d.classList.toggle('pedido', req && !tem);
     var m=d.querySelector('label .marca');
     if(m){

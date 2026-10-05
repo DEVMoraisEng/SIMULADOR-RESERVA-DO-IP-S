@@ -94,6 +94,16 @@ function pintar(r){
         'os documentos podem ser baixados um a um.'+(r.validade?' Link válido até <b>'+esc(r.validade)+'</b>.':'')+
         (r.atualizadoEm?'<br><b>Atualizado em '+esc(r.atualizadoEm)+'</b>.':'')+
         (r.enviadoEm?' Itens marcados <span class="tag-novo">NOVO</span> ou <span class="tag-alt">ALTERADO</span> mudaram depois do envio ('+esc(r.enviadoEm)+').':'')+'</div>';
+  /* 05/10 (item 6) — renda de cada pessoa e a renda total */
+  if(r.renda){
+    var R=r.renda, lin=function(q,o,v){ return '<div class="item"><small>'+esc(q)+(o?' · '+esc(o):'')+'</small><b>'+brl(v)+'</b></div>'; };
+    h+='<div class="card"><h2>Renda</h2><div class="grade">'+
+       lin('Proponente',R.origemProponente,R.proponente)+
+       (R.conjuge||R.origemConjuge ? lin('Cônjuge',R.origemConjuge,R.conjuge) : '')+
+       (R.compradores||[]).map(function(c,i){ return lin('Comprador '+(i+1)+' — '+c.nome,c.origem,c.renda); }).join('')+
+       '<div class="item" style="background:#F6F1E6"><small>Renda total</small><b style="font-size:17px">'+brl(R.total)+'</b></div>'+
+       '</div></div>';
+  }
   var docs=r.documentos||[];
   h+='<div class="card"><h2>Documentos anexados ('+docs.length+')</h2>'+
      (docs.length ? docs.map(function(d){

@@ -57,8 +57,9 @@ function dataBr(v){ var m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})/); retur
 function rotulo(n){ var t=String(n).toLowerCase(); return t.charAt(0).toUpperCase()+t.slice(1); }
 /* seções por nome da coluna — o que não cair em nenhuma vai para "Outras informações" */
 var SECOES=[
-  ['Unidade e valores',/^(UNIDADE|TIPO|PRECO|VALOR|AVALIA|PARCELA|PRAZO|CREDITO|CLIENTE COM CREDITO|BANCO|SISTEMA|ENTRADA|SUBSIDIO|SALDO FGTS|FGTS|COMISS|RENDA|ORIGEM)/],
-  ['Proponente',/^(CLIENTE$|CPF$|IDENTIDADE|DATA NASCIMENTO$|ESTADO CIVIL|REGIME|NACIONALIDADE$|PROFISSAO$|E-MAIL PROPONENTE|CELULAR|TELEFONE|ENDERECO$|CEP$|LOGRADOURO$|NUMERO$|SETOR$|CIDADE$)/],
+  /* 05/10 (item 9) — renda, origem e FGTS ficam no bloco de CADA pessoa, não em "Unidade e valores" */
+  ['Unidade e valores',/^(UNIDADE|TIPO|PRECO|VALOR|AVALIA|PARCELA|PRAZO|CREDITO|CLIENTE COM CREDITO|BANCO|SISTEMA|ENTRADA|SUBSIDIO|COMISS)/],
+  ['Proponente',/^(CLIENTE$|CPF$|IDENTIDADE|DATA NASCIMENTO$|ESTADO CIVIL|REGIME|NACIONALIDADE$|PROFISSAO$|E-MAIL PROPONENTE|CELULAR$|TELEFONE$|ENDERECO$|CEP$|LOGRADOURO$|NUMERO$|SETOR$|CIDADE$|RENDA( APROVADA| TITULAR| FORMAL| INFORMAL)?$|ORIGEM( DA)? RENDA$|SALDO FGTS$|FGTS( DISPONIVEL)?$)/],
   ['Cônjuge',/CONJUGE/],
   ['Compradores e dependentes',/(DEPENDENTE|COMPRADOR)/],
   ['Fiadores',/FIADOR/],
@@ -66,7 +67,10 @@ var SECOES=[
 ];
 function norm(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim(); }
 function valorTxt(c){
-  if(c.tipo==='number'){ return /VALOR|PRECO|AVALIA|PARCELA|CREDITO|SUBSIDIO|FGTS|RENDA|ENTRADA|COMISSAO R/.test(norm(c.nome)) ? brl(c.valor) : String(c.valor).replace('.',','); }
+  /* 05/10 (item 10) — prazos, dias e quantidades são número, não dinheiro */
+  if(c.tipo==='number'){ var nn=norm(c.nome);
+    if(/PRAZO|MESES|DIA|QTD|QUANT|NUMERO|TIPO|UNIDADE|%/.test(nn)) return String(c.valor).replace('.',',')+(/PRAZO/.test(nn)?' meses':'');
+    return /VALOR|PRECO|AVALIA|PARCELA|CREDITO|SUBSIDIO|FGTS|RENDA|ENTRADA|COMISSAO R/.test(nn) ? brl(c.valor) : String(c.valor).replace('.',','); }
   if(c.tipo==='date') return dataBr(c.valor);
   return String(c.valor);
 }
@@ -97,8 +101,11 @@ function pintar(r){
                '<a href="'+esc(d.url)+'" target="_blank" rel="noopener" download>Baixar</a></div>';
       }).join('') : '<div class="load">Nenhum documento anexado ainda.</div>')+
      '<div style="font-size:11.5px;color:var(--texto-suave);margin-top:8px">Os links de download são renovados a cada vez que a página é aberta. Se algum não abrir, recarregue a página.</div></div>';
+  var PRIO=[/RENDA/,/ORIGEM/,/FGTS/,/PROFISSAO/];
+  function peso(c){ var n=norm(c.nome); for(var i=0;i<PRIO.length;i++){ if(PRIO[i].test(n)) return i; } return PRIO.length; }
   ordem.forEach(function(g){
     var lista=grupos[g]; if(!lista||!lista.length) return;
+    if(g!=='Unidade e valores') lista=lista.slice().sort(function(a,b){ return peso(a)-peso(b); });
     h+='<div class="card"><h2>'+esc(g)+'</h2><div class="grade">'+lista.map(function(c){
       return '<div class="item'+(c.alterado?' alterado':'')+'"><small>'+esc(rotulo(c.nome))+(c.alterado?'<span class="tag-alt">ALTERADO</span>':'')+'</small><b>'+esc(valorTxt(c))+'</b></div>';
     }).join('')+'</div></div>';

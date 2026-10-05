@@ -424,36 +424,44 @@
   <section class="card" data-etapa="2" style="display:none">
     <h2>Renda e financiamento</h2>
 
-    <div class="secao">Trabalho e renda</div>
-    <div class="linha">
-      <!-- r41 (item 7) — cargo e empresa removidos -->
-      <!-- r46 (item 2) — tempo de serviço removido -->
-      <!-- ITEM 13 — renda aprovada, sem distinção formal/informal -->
-      <div class="campo"><label>Renda aprovada (R$)</label>
-        <input type="text" name="rendaAprovada" inputmode="numeric" placeholder="0,00"></div>
-      <div class="campo campo-origem"><label>Origem da renda</label>
-        <select name="origemRenda" onchange="montarAnexos();montarFluxo();"><option value="">Selecione…</option><option>CLT</option><option>SERVIDOR PÚBLICO</option><option>EMPRESÁRIO</option><option>AUTÔNOMO</option><option>MEI</option><option>MOTORISTA DE APLICATIVO</option><option>APOSENTADO / PENSIONISTA</option><option>PROFISSIONAL LIBERAL</option><option>RURAL</option><option>OUTRO</option></select></div>
-      <div class="campo"><label>Renda total (proponente + cônjuge)</label><input type="text" id="rendaTotal" readonly></div>
+    <!-- 05/10 (item 3) — RENDA EM CARDS POR PESSOA: renda, origem e FGTS de cada um juntos -->
+    <style>
+      .card-pessoa{border:1.5px solid var(--borda,#E7DCC7);border-radius:10px;padding:12px 14px;margin:0 0 12px;background:#FFFDF8}
+      .card-pessoa h3{margin:0 0 8px;font-size:14px;color:var(--marrom)}
+      .card-pessoa .linha{margin:0}
+    </style>
+    <div class="secao">Renda de quem compra</div>
+    <div class="card-pessoa" id="cardRendaProp">
+      <h3>Proponente</h3>
+      <div class="linha">
+        <!-- ITEM 13 — renda aprovada, sem distinção formal/informal -->
+        <div class="campo"><label>Renda do proponente (R$)</label>
+          <input type="text" name="rendaAprovada" inputmode="numeric" placeholder="0,00"></div>
+        <div class="campo campo-origem"><label>Origem da renda do proponente</label>
+          <select name="origemRenda" onchange="montarAnexos();montarFluxo();"><option value="">Selecione…</option><option>CLT</option><option>SERVIDOR PÚBLICO</option><option>EMPRESÁRIO</option><option>AUTÔNOMO</option><option>MEI</option><option>MOTORISTA DE APLICATIVO</option><option>APOSENTADO / PENSIONISTA</option><option>PROFISSIONAL LIBERAL</option><option>RURAL</option><option>OUTRO</option></select></div>
+        <div class="campo"><label>FGTS do proponente (R$)</label>
+          <input type="text" name="saldoFgts" inputmode="numeric" placeholder="0,00"></div>
+      </div>
     </div>
     <!-- 02/10 (item 8) — renda e FGTS do cônjuge, um campo para cada, igual ao do proponente -->
-    <div id="boxConjugeRenda" style="display:none">
-      <div class="secao">Renda do cônjuge</div>
+    <div id="boxConjugeRenda" class="card-pessoa" style="display:none">
+      <h3>Cônjuge</h3>
       <div class="linha">
-        <div class="campo"><label>Saldo FGTS do cônjuge (R$)</label>
-          <input type="text" name="saldoFgtsConjuge" inputmode="numeric" placeholder="0,00"></div>
-        <!-- ITEM 13 — sem formal/informal: uma renda aprovada só -->
-        <div class="campo"><label>Renda aprovada do cônjuge (R$)</label>
+        <div class="campo"><label>Renda do cônjuge (R$)</label>
           <input type="text" name="rendaAprovadaConjuge" inputmode="numeric" placeholder="0,00"></div>
         <div class="campo campo-origem"><label>Origem da renda do cônjuge</label>
           <select name="origemRendaConjuge" onchange="montarAnexos();montarFluxo();"><option value="">Selecione…</option><option>CLT</option><option>SERVIDOR PÚBLICO</option><option>EMPRESÁRIO</option><option>AUTÔNOMO</option><option>MEI</option><option>MOTORISTA DE APLICATIVO</option><option>APOSENTADO / PENSIONISTA</option><option>PROFISSIONAL LIBERAL</option><option>RURAL</option><option>OUTRO</option></select></div>
+        <div class="campo"><label>FGTS do cônjuge (R$)</label>
+          <input type="text" name="saldoFgtsConjuge" inputmode="numeric" placeholder="0,00"></div>
       </div>
-      <span class="ajuda">O saldo de FGTS do cônjuge entra na composição da entrada junto com o do titular.</span>
+    </div>
+    <div class="linha">
+      <div class="campo"><label>Renda total (proponente + cônjuge)</label><input type="text" id="rendaTotal" readonly>
+        <span class="ajuda">O FGTS do cônjuge entra na entrada junto com o do proponente. A renda e a origem dos demais compradores ficam no card de cada um.</span></div>
     </div>
 
     <div class="secao">Recursos para a entrada</div>
     <div class="linha">
-      <div class="campo"><label>Saldo FGTS (R$)</label>
-        <input type="text" name="saldoFgts" inputmode="numeric" placeholder="0,00"></div>
       <!-- r41 (item 9) — sem crédito aprovado o subsídio some: quem diz é a CAIXA -->
       <div class="campo" id="boxSubsidio"><label>Subsídio (R$)</label>
         <input type="text" name="subsidio" inputmode="numeric" placeholder="0,00"></div>
@@ -1363,6 +1371,14 @@
       ['MOTORISTA DE APLICATIVO']],
     /* r46 (item 7) — FGTS: pedido para quem é CLT ou marcou 3 anos de FGTS */
     ['extratoFgts','Extrato do FGTS','Extrato do app ou do site da CAIXA, com o saldo.',['CLT'],'fgts'],
+    /* 05/10 (item 5) — os MESMOS comprovantes de renda, separados para o CÔNJUGE (um quadro para cada) */
+    ['impostoConj','Imposto de renda do cônjuge','Declaração completa + recibo de entrega.',['EMPRESÁRIO','AUTÔNOMO','MEI','PROFISSIONAL LIBERAL','RURAL'],'conj'],
+    ['contrachequesConj','Dois últimos contracheques do cônjuge','Carteira assinada ou servidor público.',['CLT','SERVIDOR PÚBLICO'],'conj'],
+    ['carteiraTrabalhoConj','Carteira de trabalho do cônjuge','Física ou digital (PDF do app).',['CLT'],'conj'],
+    ['proLaboreConj','Pró-labore do cônjuge','Empresário, exceto MEI.',['EMPRESÁRIO'],'conj'],
+    ['extratosConj','Movimentação bancária do cônjuge - 4 últimos meses','Autônomo, MEI ou informal sem IR.',['AUTÔNOMO','MEI','OUTRO'],'conj'],
+    ['plataformaConj','Extrato da plataforma do cônjuge - 4 últimos meses','Uber, iFood, 99 e afins.',['MOTORISTA DE APLICATIVO'],'conj'],
+    ['extratoFgtsConj','Extrato do FGTS do cônjuge','Extrato do app ou do site da CAIXA, com o saldo.',['CLT'],'conj'],
     /* r46 (item 8) — dependente / segundo comprador */
     ['dependente','Documentos do dependente ou 2º comprador',
       'Criança: certidão de nascimento ou identidade. Maior de idade: documento pessoal + comprovante de estado civil.',
@@ -1564,7 +1580,10 @@
       if(d[0]==='outros') return;
       var f=F();
       var origens=[(f.origemRenda&&f.origemRenda.value)||'', (f.origemRendaConjuge&&f.origemRendaConjuge.value)||''];
-      var porOrigem = d[3] && origens.some(function(o){ return o && d[3].indexOf(o)>=0; });
+      /* 05/10 (item 5) — documento de renda do PROPONENTE olha só a origem dele; o do CÔNJUGE, só a do cônjuge */
+      var porOrigem = d[3] && (d[4]==='conj'
+        ? (conjugeAtivo() && origens[1] && d[3].indexOf(origens[1])>=0)
+        : (origens[0] && d[3].indexOf(origens[0])>=0));
       var porSituacao = d[4] && situacaoPede(d[4]);
       var sempre = DOCS_SEMPRE.indexOf(d[0])>=0;
       var conj = d[0]==='docConjuge' && document.getElementById('boxConjuge').style.display!=='none';
@@ -1584,6 +1603,7 @@
     var f=F();
     if(chave==='fgts') return !!(f.fgts3anos && f.fgts3anos.checked);
     if(chave==='dependente') return !!(f.maisDeUmComprador && f.maisDeUmComprador.checked);
+    if(chave==='compradorRenda') return !!(f.maisDeUmComprador && f.maisDeUmComprador.checked);   // 05/10 (item 5)
     if(chave==='divorcio') return String(f.estadoCivil.value||'').indexOf('DIVORC')>=0;
     return false;
   }
@@ -1604,6 +1624,10 @@
             ? 'Documento pessoal, comprovante de endereço, comprovante de estado civil e comprovação de renda.'
             : 'Criança: certidão de nascimento ou identidade. Maior de idade: documento pessoal + comprovante de estado civil.',
           null, 'dependente']);
+        /* 05/10 (item 5) — comprador: quadro próprio para os comprovantes de renda dele */
+        if(p.tipo==='COMPRADOR' && i<2) lista.push(['rendaComp'+(i+1), 'Comprovantes de renda do comprador '+(i+1),
+          (p.nome?p.nome+' — ':'')+'conforme a origem da renda'+(p.origemRenda?' ('+p.origemRenda+')':'')+': contracheques, carteira de trabalho, IR ou extratos.',
+          null, 'compradorRenda']);
       });
     }
     var i0=lista.findIndex(function(d){ return d[0]==='outros'; });
@@ -1621,7 +1645,10 @@
     });
     var extrasHtml=[];
     document.getElementById('anexos').innerHTML=DOCS_ATIVOS.map(function(d){
-      var porOrigem = d[3] && origens.some(function(o){ return o && d[3].indexOf(o)>=0; });
+      /* 05/10 (item 5) — documento de renda do PROPONENTE olha só a origem dele; o do CÔNJUGE, só a do cônjuge */
+      var porOrigem = d[3] && (d[4]==='conj'
+        ? (conjugeAtivo() && origens[1] && d[3].indexOf(origens[1])>=0)
+        : (origens[0] && d[3].indexOf(origens[0])>=0));
       var porSituacao = d[4] && situacaoPede(d[4]);
       var sempre = DOCS_SEMPRE.indexOf(d[0])>=0;
       var conjugeObrig = d[0]==='docConjuge' && document.getElementById('boxConjuge').style.display!=='none';
@@ -1629,12 +1656,13 @@
       /* 01/10 — o selo diz DE QUEM é o documento (proponente, cônjuge…), não só o motivo */
       var donos=[];
       if(porOrigem){
-        if(origens[0] && d[3].indexOf(origens[0])>=0) donos.push('PROPONENTE · '+origens[0]);
-        if(conjugeAtivo() && origens[1] && d[3].indexOf(origens[1])>=0) donos.push('CÔNJUGE · '+origens[1]);
+        if(d[4]==='conj') donos.push('CÔNJUGE · '+origens[1]);
+        else donos.push('PROPONENTE · '+origens[0]);
       }
       var DONO_FIXO={docProponente:'PROPONENTE', docConjuge:'CÔNJUGE', compEndereco:'PROPONENTE',
         certidao:(conjugeAtivo()?'PROPONENTE E CÔNJUGE':'PROPONENTE'), divorcio:'PROPONENTE',
-        extratoFgts:(conjugeAtivo()?'PROPONENTE E CÔNJUGE':'PROPONENTE')};
+        extratoFgts:'PROPONENTE'};
+      if(d[4]==='compradorRenda') DONO_FIXO[d[0]]='COMPRADOR '+d[0].slice(-1);
       var temDono = !!(donos.length || DONO_FIXO[d[0]]);
       var quem = donos.length ? donos.join(' + ')
                : (DONO_FIXO[d[0]] || (d[4]==='dependente' ? 'DEPENDENTE / 2º COMPRADOR' : 'ANÁLISE DE CRÉDITO'));

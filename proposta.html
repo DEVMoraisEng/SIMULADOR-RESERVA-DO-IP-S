@@ -1307,6 +1307,7 @@
   function verEnderecoConjuge(){
     var mesmo=F().conjugeMesmoEndereco.checked;
     document.getElementById('boxEndConjuge').style.display = (conjugeAtivo() && !mesmo) ? '' : 'none';
+    try{ montarAnexos(); }catch(e){}   // 06/10 — o comprovante do cônjuge entra/sai do passo 4 na hora
     resumoAnexos();
   }
   var PENDCONJ=[];          // comprovante de endereço do cônjuge
@@ -1427,7 +1428,7 @@
           '<label style="font-size:11px;color:var(--marrom);font-weight:700">Celular'+obrigComp+'<input type="text" class="dep-cel" inputmode="numeric" maxlength="15" placeholder="(00) 00000-0000" oninput="this.value=fmtTel(this.value)" value="'+esc_(fmtTel(p.celular||''))+'"></label>'+
           '</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">'+
           '<label style="font-size:11px;color:var(--marrom);font-weight:700">Renda (R$)'+obrigComp+'<input type="text" class="dep-renda" inputmode="numeric" placeholder="0,00" value="'+esc_(p.renda||'')+'"></label>'+
-          '<label style="font-size:11px;color:var(--marrom);font-weight:700">Origem da renda'+obrigComp+'<select class="dep-origem">'+
+          '<label style="font-size:11px;color:var(--marrom);font-weight:700">Origem da renda'+obrigComp+'<select class="dep-origem" onchange="montarAnexos()">'+
             ['','CLT','SERVIDOR PÚBLICO','EMPRESÁRIO','AUTÔNOMO','MEI','MOTORISTA DE APLICATIVO','APOSENTADO / PENSIONISTA','PROFISSIONAL LIBERAL','RURAL','OUTRO']
               .map(function(o){ return '<option'+(o===(p.origemRenda||'')?' selected':'')+' value="'+o+'">'+(o||'Selecione…')+'</option>'; }).join('')+
           '</select></label></div>'+
@@ -1580,9 +1581,7 @@
       var f=F();
       var origens=[(f.origemRenda&&f.origemRenda.value)||'', (f.origemRendaConjuge&&f.origemRendaConjuge.value)||''];
       /* 05/10 (item 5) — documento de renda do PROPONENTE olha só a origem dele; o do CÔNJUGE, só a do cônjuge */
-      var porOrigem = d[3] && (d[4]==='conj'
-        ? (conjugeAtivo() && origens[1] && d[3].indexOf(origens[1])>=0)
-        : (origens[0] && d[3].indexOf(origens[0])>=0));
+      var porOrigem = porOrigemDoc(d, origens);
       var porSituacao = d[4] && situacaoPede(d[4]);
       var sempre = DOCS_SEMPRE.indexOf(d[0])>=0;
       var conj = d[0]==='docConjuge' && document.getElementById('boxConjuge').style.display!=='none';
@@ -1625,9 +1624,11 @@
             : 'Criança: certidão de nascimento ou identidade. Maior de idade: documento pessoal + comprovante de estado civil.',
           null, 'dependente']);
         /* 05/10 (item 5) — comprador: quadro próprio para os comprovantes de renda dele */
-        if(p.tipo==='COMPRADOR' && i<2) lista.push(['rendaComp'+(i+1), 'Comprovantes de renda do comprador '+(i+1),
-          (p.nome?p.nome+' — ':'')+'conforme a origem da renda'+(p.origemRenda?' ('+p.origemRenda+')':'')+': contracheques, carteira de trabalho, IR ou extratos.',
-          null, 'compradorRenda']);
+        /* 06/10 (item 2) — comprador: um quadro para CADA comprovante de renda, conforme a origem DELE */
+        if(p.tipo==='COMPRADOR' && i<2) ['imposto','contracheques','carteiraTrabalho','proLabore','extratos','plataforma','extratoFgts'].forEach(function(b){
+          var base=DOCS.filter(function(x){ return x[0]===b; })[0]; if(!base) return;
+          lista.push([b+'Comp'+(i+1), base[1]+' do comprador '+(i+1), (p.nome?p.nome+' — ':'')+base[2], base[3], 'comp'+(i+1)]);
+        });
       });
     }
     /* 06/10 (item 1) — o comprador e o cônjuge (endereço diferente) também aparecem no passo 4 */
@@ -1654,6 +1655,17 @@
     alvo.files=dt.files; alvo.dispatchEvent(new Event('change',{bubbles:true}));
     setTimeout(montarAnexos, 300);
   }
+  /* 06/10 — de QUEM é o documento de renda: proponente (origem dele), cônjuge ('conj') ou comprador ('comp1'/'comp2') */
+  function semAcentoP(v){ return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim(); }
+  function origemDoDono(d, origens){
+    if(d[4]==='conj') return conjugeAtivo() ? (origens[1]||'') : '';
+    var m=/^comp(\d)$/.exec(d[4]||''); if(m){ var ex=pessoasExtras()[Number(m[1])-1]; return (ex && ex.tipo==='COMPRADOR') ? (ex.origemRenda||'') : ''; }
+    return origens[0]||'';
+  }
+  function porOrigemDoc(d, origens){
+    if(!d[3]) return false; var o=semAcentoP(origemDoDono(d, origens)); if(!o) return false;
+    return d[3].some(function(r){ return semAcentoP(r)===o; });
+  }
   function montarAnexos(){
     var f=F();
     var DOCS_ATIVOS=docsDaVez();
@@ -1667,9 +1679,7 @@
     var grupos={}, ordemG=[];
     DOCS_ATIVOS.map(function(d){
       /* 05/10 (item 5) — documento de renda do PROPONENTE olha só a origem dele; o do CÔNJUGE, só a do cônjuge */
-      var porOrigem = d[3] && (d[4]==='conj'
-        ? (conjugeAtivo() && origens[1] && d[3].indexOf(origens[1])>=0)
-        : (origens[0] && d[3].indexOf(origens[0])>=0));
+      var porOrigem = porOrigemDoc(d, origens);
       var porSituacao = d[4] && situacaoPede(d[4]);
       var sempre = DOCS_SEMPRE.indexOf(d[0])>=0;
       var conjugeObrig = d[0]==='docConjuge' && document.getElementById('boxConjuge').style.display!=='none';
@@ -1677,7 +1687,9 @@
       /* 01/10 — o selo diz DE QUEM é o documento (proponente, cônjuge…), não só o motivo */
       var donos=[];
       if(porOrigem){
+        var mC=/^comp(\d)$/.exec(d[4]||'');
         if(d[4]==='conj') donos.push('CÔNJUGE · '+origens[1]);
+        else if(mC) donos.push('COMPRADOR '+mC[1]+' · '+origemDoDono(d, origens));
         else donos.push('PROPONENTE · '+origens[0]);
       }
       var DONO_FIXO={docProponente:'PROPONENTE', docConjuge:'CÔNJUGE', compEndereco:'PROPONENTE',
@@ -1711,7 +1723,7 @@
       /* 30/09: só o que a análise pede para ESTE cliente (+ CRECI e "Outros") — sem lista escondida */
       if(!pedido && !ehCreci && d[0]!=='outros') return '';
       var gk = d[4]==='conj' || d[0]==='docConjuge' ? 'Cônjuge'
-             : (d[4]==='compradorRenda' ? 'Comprador '+d[0].slice(-1)
+             : (/^comp\d$/.test(d[4]||'') ? 'Comprador '+d[4].slice(-1)
              : (/^dep\d+$/.test(d[0]) ? 'Compradores e dependentes'
              : (ehCreci || d[0]==='outros' || d[0]==='docParticipantes' ? 'Corretor e outros documentos' : 'Proponente')));
       if(!grupos[gk]){ grupos[gk]=[]; ordemG.push(gk); }

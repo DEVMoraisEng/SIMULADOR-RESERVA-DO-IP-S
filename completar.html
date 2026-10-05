@@ -638,6 +638,22 @@ function montarDocs(){
     if(!dono && regra) dono='proponente'+(origens[0]?' · '+origens[0]:'');
     if(baseC && origens[1]) dono='cônjuge · '+origens[1];
     if(!dono && (d.coluna==='CERTIDOES'||d.coluna==='COMPROVANTE DE DIVORCIO')) dono = temConjuge() ? 'proponente e cônjuge' : 'proponente';
+    /* 06/10 (item 2) — renda do comprador: um campo para CADA comprovante, pela origem dele */
+    var mRC=/^COMP\. RENDA COMPRADOR ([12])$/.exec(d.coluna);
+    if(mRC && !d.temArquivo){
+      var oC=((PD.origensComp||[])[Number(mRC[1])-1])||'';
+      var basesC=Object.keys(REGRA_DOC).filter(function(b){ return oC && regraTem(REGRA_DOC[b], oC); });
+      if(basesC.length){
+        basesC.forEach(function(b){
+          var nomeC=(ROTULO_DOC[b]||b)+' do comprador '+mRC[1], idC='d-'+b.replace(/\W/g,'')+'C'+mRC[1];
+          linhas.push('<!--G:Comprador '+mRC[1]+'--><div class="doc pedido" data-exigido="1" data-enviado="0" data-nome="'+esc(nomeC)+'">'+
+            '<label for="'+idC+'">'+esc(nomeC)+'<span class="dono">do comprador '+mRC[1]+' · '+esc(oC)+'</span><span class="marca">falta</span>'+
+            '<small>'+esc(DICA_DOC[b]||'')+'</small></label>'+
+            '<input type="file" accept="image/*,application/pdf" id="'+idC+'" data-rotulo="'+esc(nomeC)+'" data-col="'+esc(d.coluna)+'" multiple onchange="aoArquivo(this)"></div>');
+        });
+        return;
+      }
+    }
     var le=LEITURA[d.coluna];
     var gPessoa = /^fiador/.test(dono) ? dono.replace(/^./,function(x){return x.toUpperCase();}).replace(/ ·.*/,'')
                 : (/^cônjuge/.test(dono) ? 'Cônjuge' : (/^comprador/.test(dono) ? dono.replace('comprador','Comprador') : 'Proponente'));

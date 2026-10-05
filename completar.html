@@ -272,7 +272,7 @@ function simLinkVal(k, padrao){ var d=(DADOS&&DADOS.simDados)||{}; return (d[k]=
 function simLinkSim(k){ var v=simLinkVal(k,false); return v===true||String(v).toUpperCase()==='SIM'||String(v)==='true'; }
 function simLinkBRL(v){ var n=Number(v); return (v===''||v==null||isNaN(n)) ? '' : n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function brlL(v){ return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function simLinkNumTxt(t){ t=String(t||'').trim(); if(!t) return 0;
+function simLinkNumTxt(t){ t=String(t||'').replace(/[^\d,.\-]/g,'').trim(); if(!t) return 0;   // tira R$, espaços etc.
   var n=/,/.test(t) ? Number(t.replace(/\./g,'').replace(',','.')) : Number(t.replace(/\.(?=\d{3}(\D|$))/g,'')); return isNaN(n)?0:n; }
 function simLinkNum(id){ var el=document.getElementById(id); return el ? simLinkNumTxt(el.value) : 0; }
 function simLinkAval(){ return Number(simLinkVal('avaliacao',0))||0; }

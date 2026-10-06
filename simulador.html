@@ -178,7 +178,13 @@
       </div>
       <div class="linha" style="margin-top:16px;">
         <div class="campo"><label>Data de Nascimento<span class="obrig">*</span></label><input type="date" name="dataNascimento" required></div>
-        <div class="campo"><label>Renda Individual (R$)<span class="obrig">*</span></label><input type="text" name="rendaIndividual" inputmode="numeric" placeholder="0,00" required></div>
+        <div class="campo"><label>Renda do proponente (R$)<span class="obrig">*</span></label><input type="text" name="rendaIndividual" inputmode="numeric" placeholder="0,00" required oninput="setTimeout(somarRendaSim,0)"></div>
+      </div>
+      <!-- 06/10 — composição de renda: cônjuge e demais compradores somam na renda que vai para o SIOP -->
+      <div class="linha">
+        <div class="campo"><label>Renda do cônjuge e dos demais compradores (R$)</label><input type="text" name="rendaOutros" inputmode="numeric" placeholder="0,00" oninput="setTimeout(somarRendaSim,0)">
+          <span class="ajuda">Opcional. Some aqui a renda de todos que compram junto (cônjuge e outros compradores). Dependentes não entram.</span></div>
+        <div class="campo"><label>Renda total usada na simulação (R$)</label><input type="text" id="rendaTotalSim" readonly placeholder="0,00"></div>
       </div>
       <!-- r62 (item 2) — aviso do que falta no passo 1 -->
       <div id="avisoPasso1" class="status erro" style="display:none"></div>
@@ -390,6 +396,13 @@
   }
 
   function fmt(v){return (v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  /* 06/10 — renda total = proponente + cônjuge + demais compradores (é a que vai para o SIOP) */
+  function somarRendaSim(){
+    var f=document.forms[0]||document.querySelector('form'); var el=document.getElementById('rendaTotalSim'); if(!el) return;
+    var a=document.querySelector('[name="rendaIndividual"]'), b=document.querySelector('[name="rendaOutros"]');
+    var t=parseMoeda(a&&a.value)+parseMoeda(b&&b.value);
+    el.value = t ? t.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '';
+  }
   function parseMoeda(s){if(s==null)return 0;s=String(s).replace(/\./g,'').replace(',','.').replace(/[^0-9.]/g,'');return parseFloat(s)||0;}
   function qs(k){return new URLSearchParams(location.search).get(k);}
   function unidadeAtual(){var n=document.getElementById('unidade').value;return UNIDADES.find(function(u){return String(u.unidade)===String(n);});}
@@ -762,7 +775,9 @@
       servidorPublico:(f.relacionamentoCaixa.checked && f.servidorPublico.checked),
       creditoSalarioCaixa:(f.relacionamentoCaixa.checked && f.creditoSalarioCaixa.checked),
       dataNascimento:f.dataNascimento.value,
-      rendaIndividual:parseMoeda(f.rendaIndividual.value), seguradora:f.seguradora.value,
+      /* 06/10 — a CAIXA analisa a renda de todos que compram: vai a SOMA (proponente + cônjuge + compradores) */
+      rendaIndividual:parseMoeda(f.rendaIndividual.value)+parseMoeda(f.rendaOutros?f.rendaOutros.value:''),
+      rendaProponente:parseMoeda(f.rendaIndividual.value), rendaOutros:parseMoeda(f.rendaOutros?f.rendaOutros.value:''), seguradora:f.seguradora.value,
       prazoMeses:Math.min(420,Number(f.prazoMeses.value)||420),
       sistemaAmortizacao:f.sistemaAmortizacao.value,
       prazoEntrada:Number(prazo), comissaoPct:COMISSAO[prazo], comissaoValor:u.valorVenda*COMISSAO[prazo],

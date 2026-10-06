@@ -22,6 +22,10 @@
   .sub{font-size:13px;color:var(--texto-suave);margin:0 0 14px}
   .grade{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   @media(max-width:680px){.grade{grid-template-columns:1fr}}
+  /* 06/10 — celular: campos (inclusive data) do tamanho da tela */
+  .grade input,.grade select{box-sizing:border-box;max-width:100%;min-width:0}
+  .grade > *{min-width:0}
+  input[type=date]{min-height:42px}
   label{display:block;font-size:12px;font-weight:700;color:var(--texto-suave);margin-bottom:3px}
   input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--borda);border-radius:7px;
     font:inherit;font-size:14px;background:#fff;color:var(--texto)}
@@ -303,7 +307,7 @@ function simCamposHtml(){
       '<div class="campo"><label>Subsídio (R$)</label><input id="sl-subsidio" inputmode="decimal" value="'+simLinkBRL(simLinkVal('subsidio',''))+'"></div>'+
       '<div class="campo"><label>Valor para entrada (R$)<span class="obrig">*</span></label><input id="sl-valorEntrada" inputmode="decimal" value="'+simLinkBRL(simLinkVal('valorEntrada',10000))+'">'+
         '<span class="ajuda">Mínimo <b>R$ 10.000,00</b> — é o valor do <b>sinal</b> (R$ 1.000 no ato + 3 × R$ 3.000).</span></div>'+
-      '<div class="campo"><label>Renda total (proponente + cônjuge) (R$)<span class="obrig">*</span></label><input id="sl-rendaTotal" inputmode="decimal" value="'+simLinkBRL(simLinkVal('rendaTotal',''))+'"></div>'+
+      '<div class="campo"><label>Renda total (proponente + cônjuge + compradores) (R$)<span class="obrig">*</span></label><input id="sl-rendaTotal" inputmode="decimal" value="'+simLinkBRL(simLinkVal('rendaTotal',''))+'"></div>'+
     '</div>'+
     '<div id="slAviso" class="aviso" style="display:none;margin:8px 0"></div>'+
     '<div class="grade">'+
@@ -467,6 +471,12 @@ function pintar(){
     var nComp=/Comprador (\d)/.exec(q[1]), mostra = q[2] && (!nComp || Number(nComp[1])<=((DADOS.pessoasDocs||{}).compradores||0));
     cx.innerHTML = mostra ? '<h2>'+q[1]+'</h2><p class="sub">'+q[3]+'</p><div class="grade">'+q[2]+'</div>' : '';
     cx.style.display = mostra ? '' : 'none';
+    /* 06/10 — comprador que existe: todos os dados dele são obrigatórios (menos o RG) */
+    if(mostra && nComp) cx.querySelectorAll('.campo').forEach(function(cp){
+      var inp=cp.querySelector('input,select'); if(!inp || /^c-rgComprador/.test(inp.id)) return;
+      cp.dataset.obrig='1'; var lb=cp.querySelector('label');
+      if(lb && !lb.querySelector('.marca')){ var mk=document.createElement('span'); mk.className='marca'; mk.textContent='falta'; lb.appendChild(mk); }
+    });
   });
   /* 02/10 (item 2) — CRÉDITO NA CAIXA em quadro próprio, no alto: quem enviou sem crédito e foi
      aprovado marca SIM, informa o correspondente e o valor; a simulação roda de novo (ou, abaixo
@@ -494,6 +504,7 @@ function pintar(){
       el.addEventListener('change', atualizarTrava);
       mascarar(el);
     });
+  window.CEP_PRONTO=true;
 
   verConjuge();
   verCreditoLink();
@@ -507,10 +518,32 @@ function ehObrig(c){ if(CONJ_OBRIG.indexOf(c.id)>=0) return true;      // só va
   return (c.obrig===undefined) ? OBRIG_PADRAO.indexOf(c.id)>=0 : !!c.obrig; }
 function mascarar(el){
   var t=el.dataset.tipo;
-  if(t==='cep') el.value=fmtCep(el.value);
+  if(t==='cep'){ el.value=fmtCep(el.value); if(window.CEP_PRONTO && dig(el.value).length===8) buscarCepLink(el); }   // só quando a pessoa digita
+  else if(t==='tel'){ var dt=dig(el.value).slice(0,11);   // 06/10 — celular no formato (00) 00000-0000
+    el.value = dt.length>10 ? '('+dt.slice(0,2)+') '+dt.slice(2,7)+'-'+dt.slice(7) : (dt.length>6 ? '('+dt.slice(0,2)+') '+dt.slice(2,6)+'-'+dt.slice(6) : (dt.length>2 ? '('+dt.slice(0,2)+') '+dt.slice(2) : dt)); }
   else if(t==='cpf'){ if(/^0+$/.test(dig(el.value))) el.value=''; else el.value=fmtCpf(el.value); }
   /* 05/10 (item 9) — dinheiro no formato R$ ENQUANTO digita (mesma máscara de centavos da proposta) */
   else if(t==='numero'){ var d=dig(el.value); el.value = d ? (parseInt(d,10)/100).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.') : ''; }
+}
+/* 06/10 — CEP preenche o endereço sozinho (ViaCEP): proponente, cônjuge, compradores e fiadores */
+var CEP_LINK={cep:['logradouro','setor','cidade','endereco'], cepConjuge:['enderecoConjuge','setorConjuge','cidadeConjuge'],
+  cepFiador1:['logradouroFiador1','setorFiador1','cidadeFiador1','enderecoFiador1'], cepFiador2:['logradouroFiador2','setorFiador2','cidadeFiador2','enderecoFiador2'],
+  cepComprador1:['enderecoComprador1'], cepComprador2:['enderecoComprador2']};
+var CEP_LINK_ULT={};
+function buscarCepLink(el){
+  var id=String(el.id||'').replace(/^c-/,''), c=dig(el.value), alvo=CEP_LINK[id]; if(!alvo || c.length!==8 || CEP_LINK_ULT[id]===c) return;
+  CEP_LINK_ULT[id]=c;
+  fetch('https://viacep.com.br/ws/'+c+'/json/').then(function(r){ return r.json(); }).then(function(j){
+    if(!j || j.erro){ CEP_LINK_ULT[id]=''; return; }
+    var g=function(n){ return document.getElementById('c-'+n); }, so=alvo.length===1 || !g(alvo[1]);
+    if(so){   // só um campo de endereço: monta a linha inteira
+      var un=g(alvo[0]) || g(alvo[3]); if(un){ un.value=semAcento([j.logradouro,j.bairro,j.localidade].filter(Boolean).join(', ')); un.classList.add('lido'); }
+    } else {
+      [[alvo[0],j.logradouro],[alvo[1],j.bairro],[alvo[2],j.localidade]].forEach(function(p){ var e=g(p[0]); if(e && p[1]){ e.value=semAcento(p[1]); e.classList.add('lido'); } });
+      if(!g(alvo[0]) && alvo[3] && g(alvo[3])){ g(alvo[3]).value=semAcento([j.logradouro,j.bairro,j.localidade].filter(Boolean).join(', ')); }
+    }
+    atualizarTrava();
+  }).catch(function(){ CEP_LINK_ULT[id]=''; });
 }
 /* fiador com qualquer dado preenchido: tudo dele vira obrigatório (menos e-mail) */
 function fiadorAtivo(n){

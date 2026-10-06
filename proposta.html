@@ -145,6 +145,15 @@
   details.outros-docs{margin-top:10px;} details.outros-docs summary{cursor:pointer;font-weight:700;color:var(--marrom);font-size:13px;}
   #listaDependentes input,#listaDependentes select{width:100%;padding:7px 9px;border:1px solid var(--borda);border-radius:6px;font:inherit;font-size:13px;}
   @media(max-width:640px){ #listaDependentes .dep{grid-template-columns:1fr!important;} }
+  /* 06/10 — compradores/dependentes no celular: um campo por linha, nada saindo da tela */
+  #listaDependentes input,#listaDependentes select{box-sizing:border-box;min-width:0;max-width:100%;}
+  #listaDependentes label{display:block;min-width:0;}
+  #listaDependentes .dep-grid > *{min-width:0;}
+  #listaDependentes input[type=date]{min-height:38px;-webkit-appearance:none;appearance:none;}
+  @media(max-width:640px){
+    #listaDependentes .dep-grid{grid-template-columns:1fr!important;}
+    #listaDependentes input,#listaDependentes select{font-size:16px;padding:10px 11px;}
+  }
   .tag-doc{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:10px;background:var(--amarelo);
     color:var(--marrom);font-size:10px;font-weight:800;vertical-align:middle;}
   .anexo label{flex:1;font-size:13px;color:var(--texto);font-weight:600;margin:0;}
@@ -343,11 +352,11 @@
       <div class="campo"><label>Data de nascimento</label><input type="date" name="dataNascimento"></div>
       <div class="campo"><label>E-mail do proponente<span class="obrig">*</span></label><input type="email" name="emailProponente" required></div>
       <!-- 30/09: endereço separado, igual ao banco de vendas (o comprovante de endereço lido preenche) -->
-      <div class="campo"><label>CEP</label><input type="text" name="cep" inputmode="numeric" maxlength="9" placeholder="00000-000"></div>
-      <div class="campo full"><label>Endereço (rua, avenida ou quadra)</label><input type="text" name="endereco" data-pad="1"></div>
+      <div class="campo"><label>CEP<span class="obrig">*</span></label><input type="text" name="cep" inputmode="numeric" maxlength="9" placeholder="00000-000"></div>
+      <div class="campo full"><label>Endereço (rua, avenida ou quadra)<span class="obrig">*</span></label><input type="text" name="endereco" data-pad="1"></div>
       <div class="campo"><label>Número ou lote</label><input type="text" name="numero" data-pad="1"></div>
-      <div class="campo"><label>Setor ou bairro</label><input type="text" name="setor" data-pad="1"></div>
-      <div class="campo"><label>Cidade</label><input type="text" name="cidade" data-pad="1"></div>
+      <div class="campo"><label>Setor ou bairro<span class="obrig">*</span></label><input type="text" name="setor" data-pad="1"></div>
+      <div class="campo"><label>Cidade<span class="obrig">*</span></label><input type="text" name="cidade" data-pad="1"></div>
       <!-- 02/10 (item 7) — só celular: o telefone fixo saiu (fica escondido para não quebrar o envio) -->
       <div class="campo" style="display:none"><label>Telefone</label>
         <input type="text" name="telefone" inputmode="numeric" maxlength="15"></div>
@@ -408,7 +417,7 @@
           <div class="campo"><label>CEP do cônjuge<span class="obrig">*</span></label><input type="text" name="cepConjuge" inputmode="numeric" maxlength="9" placeholder="00000-000"></div>
           <div class="campo full"><label>Endereço do cônjuge (rua, avenida ou quadra)<span class="obrig">*</span></label><input type="text" name="logradouroConjuge" data-pad="1"></div>
           <div class="campo"><label>Número ou lote</label><input type="text" name="numeroConjuge" data-pad="1"></div>
-          <div class="campo"><label>Setor ou bairro</label><input type="text" name="setorConjuge" data-pad="1"></div>
+          <div class="campo"><label>Setor ou bairro<span class="obrig">*</span></label><input type="text" name="setorConjuge" data-pad="1"></div>
           <div class="campo"><label>Cidade<span class="obrig">*</span></label><input type="text" name="cidadeConjuge" data-pad="1"></div>
         </div>
       </div>
@@ -456,7 +465,7 @@
       </div>
     </div>
     <div class="linha">
-      <div class="campo"><label>Renda total (proponente + cônjuge)</label><input type="text" id="rendaTotal" readonly>
+      <div class="campo"><label>Renda total (proponente + cônjuge + compradores)</label><input type="text" id="rendaTotal" readonly>
         <span class="ajuda">O FGTS do cônjuge entra na entrada junto com o do proponente. A renda e a origem dos demais compradores ficam no card de cada um.</span></div>
     </div>
 
@@ -1288,9 +1297,14 @@
 
   function somarRenda(){
     var f=F();
-    /* Renda total = titular + cônjuge. Na análise da Caixa é a renda
-       familiar que conta, não só a do titular. */
+    /* Renda total = titular + cônjuge + COMPRADORES (06/10). Na análise da Caixa é a renda
+       de todos que compõem a compra; é este total que vai para a simulação no SIOP. */
     var t=moeda(f.rendaAprovada.value)+moeda(f.rendaAprovadaConjuge.value);
+    if(f.maisDeUmComprador && f.maisDeUmComprador.checked)
+      document.querySelectorAll('#listaDependentes .dep').forEach(function(d){
+        var tp=d.querySelector('.dep-tipo'), r=d.querySelector('.dep-renda');
+        if(tp && tp.value==='COMPRADOR' && r) t+=moeda(r.value);
+      });
     document.getElementById('rendaTotal').value = brl(t);
   }
   function verConjuge(){
@@ -1407,7 +1421,7 @@
       var comp=p.tipo==='COMPRADOR';
       var obrigComp=(F().creditoAprovadoCaixa.value==='NAO')?'<span class="obrig">*</span>':'';
       html+='<div class="dep" data-i="'+i+'" style="margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed var(--borda)">'+
-        '<div style="display:grid;grid-template-columns:1fr 150px 160px;gap:8px">'+
+        '<div class="dep-grid" style="display:grid;grid-template-columns:1fr 150px 160px;gap:8px">'+
         '<input type="text" class="dep-nome" placeholder="Nome completo" value="'+esc_(p.nome)+'" oninput="montarAnexos()">'+
         '<input type="text" class="dep-cpf" inputmode="numeric" maxlength="14" placeholder="'+(comp?'CPF':'CPF (opcional)')+'" value="'+esc_(p.cpf)+'">'+
         '<select class="dep-tipo" onchange="montarDependentes()">'+
@@ -1415,18 +1429,18 @@
           '<option'+(comp?' selected':'')+'>COMPRADOR</option>'+
         '</select></div>'+
         /* 30/09: comprador entra no contrato — profissão, nacionalidade e documento (lido na hora) */
-        (comp ? '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">'+
+        (comp ? '<div class="dep-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">'+
           '<input type="text" class="dep-prof" placeholder="Profissão" value="'+esc_(p.profissao||'')+'">'+
           '<input type="text" class="dep-nac" placeholder="Nacionalidade" value="'+esc_(p.nacionalidade||'BR')+'">'+
           '<input type="text" class="dep-rg" placeholder="RG (opcional)" value="'+esc_(p.rg||'')+'">'+
           '</div>'+
           /* 02/10 (item 12) — nascimento, e-mail, celular, renda e origem do comprador:
              opcionais com crédito aprovado; obrigatórios SEM crédito aprovado */
-          '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px">'+
+          '<div class="dep-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px">'+
           '<label style="font-size:11px;color:var(--marrom);font-weight:700">Data de nascimento'+obrigComp+'<input type="date" class="dep-nasc" value="'+esc_(p.dataNascimento||'')+'"></label>'+
           '<label style="font-size:11px;color:var(--marrom);font-weight:700">E-mail'+obrigComp+'<input type="email" class="dep-email" value="'+esc_(p.email||'')+'"></label>'+
           '<label style="font-size:11px;color:var(--marrom);font-weight:700">Celular'+obrigComp+'<input type="text" class="dep-cel" inputmode="numeric" maxlength="15" placeholder="(00) 00000-0000" oninput="this.value=fmtTel(this.value)" value="'+esc_(fmtTel(p.celular||''))+'"></label>'+
-          '</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">'+
+          '</div><div class="dep-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">'+
           '<label style="font-size:11px;color:var(--marrom);font-weight:700">Renda (R$)'+obrigComp+'<input type="text" class="dep-renda" inputmode="numeric" placeholder="0,00" value="'+esc_(p.renda||'')+'"></label>'+
           '<label style="font-size:11px;color:var(--marrom);font-weight:700">Origem da renda'+obrigComp+'<select class="dep-origem" onchange="montarAnexos()">'+
             ['','CLT','SERVIDOR PÚBLICO','EMPRESÁRIO','AUTÔNOMO','MEI','MOTORISTA DE APLICATIVO','APOSENTADO / PENSIONISTA','PROFISSIONAL LIBERAL','RURAL','OUTRO']
@@ -1440,10 +1454,10 @@
           '<div class="lst" id="lst-depend-'+i+'">'+(PDEND[i]&&PDEND[i].length?PDEND[i].length+' arquivo(s) anexado(s).':'')+'</div>'+
           '<span class="ajuda">O comprovante é lido e preenche o endereço do comprador abaixo — vai para o cadastro da venda.</span></div>'+
           /* 01/10: endereço do comprador separado, igual ao banco de vendas */
-          '<div style="display:grid;grid-template-columns:140px 1fr;gap:8px;margin-top:8px">'+
+          '<div class="dep-grid" style="display:grid;grid-template-columns:140px 1fr;gap:8px;margin-top:8px">'+
           '<input type="text" class="dep-cep" inputmode="numeric" maxlength="9" placeholder="CEP" value="'+esc_(p.cep||'')+'">'+
           '<input type="text" class="dep-logr" placeholder="Endereço (rua, avenida ou quadra)" value="'+esc_(p.logradouro||'')+'">'+
-          '</div><div style="display:grid;grid-template-columns:140px 1fr 1fr;gap:8px;margin-top:8px">'+
+          '</div><div class="dep-grid" style="display:grid;grid-template-columns:140px 1fr 1fr;gap:8px;margin-top:8px">'+
           '<input type="text" class="dep-num" placeholder="Número ou lote" value="'+esc_(p.numero||'')+'">'+
           '<input type="text" class="dep-setor" placeholder="Setor ou bairro" value="'+esc_(p.setor||'')+'">'+
           '<input type="text" class="dep-cid" placeholder="Cidade" value="'+esc_(p.cidade||'')+'">'+
@@ -1455,7 +1469,8 @@
     instalarNaoAnexar(document.getElementById('listaDependentes'));
     document.querySelectorAll('.dep-cep').forEach(function(c){
       c.value=fmtCepP(c.value);
-      c.addEventListener('input', function(){ c.value=fmtCepP(c.value); });
+      c.addEventListener('input', function(){ c.value=fmtCepP(c.value); if(dig(c.value).length===8) buscarCep(c); });
+      c.addEventListener('blur', function(){ if(dig(c.value).length===8) buscarCep(c); });
     });
     document.querySelectorAll('.dep-cpf').forEach(function(c){
       c.addEventListener('input', function(){
@@ -1878,6 +1893,28 @@
       } else { st.className='lst err'; st.textContent='Não consegui ler o comprovante — preencha o endereço manualmente.'; }
     }).catch(function(e){ st.className='lst err'; st.textContent=(e&&e.semLeitura?e.semLeitura+' ':'Leitura indisponível agora. ')+'Preencha o endereço manualmente.'; });
   }
+  /* 06/10 — CEP preenche rua, setor e cidade sozinho (ViaCEP), para proponente, cônjuge, fiadores e compradores */
+  var CEP_ALVOS={cep:['endereco','setor','cidade'], cepConjuge:['logradouroConjuge','setorConjuge','cidadeConjuge'],
+    cepFiador1:['logradouroFiador1','setorFiador1','cidadeFiador1'], cepFiador2:['logradouroFiador2','setorFiador2','cidadeFiador2']};
+  var CEP_ULTIMO={};
+  function buscarCep(el){
+    var c=dig(el.value); if(c.length!==8) return;
+    var chave=el.name||('dep'+((el.closest('.dep')||{dataset:{}}).dataset.i));
+    if(CEP_ULTIMO[chave]===c) return; CEP_ULTIMO[chave]=c;
+    var alvos;
+    if(CEP_ALVOS[el.name]){ var f=F(); alvos=CEP_ALVOS[el.name].map(function(n){ return f[n]; }); }
+    else { var d=el.closest('.dep'); if(!d) return; alvos=[d.querySelector('.dep-logr'), d.querySelector('.dep-setor'), d.querySelector('.dep-cid')]; }
+    el.style.opacity='.6';
+    fetch('https://viacep.com.br/ws/'+c+'/json/').then(function(r){ return r.json(); }).then(function(j){
+      el.style.opacity='';
+      if(!j || j.erro){ CEP_ULTIMO[chave]=''; erro('CEP <b>'+fmtCepP(c)+'</b> não encontrado. Confira o número ou preencha o endereço à mão.', el); return; }
+      var vals=[j.logradouro, j.bairro, j.localidade];
+      alvos.forEach(function(a,i){ if(a && vals[i]){ a.value=padrao(vals[i]); a.classList.add('lido'); } });
+      var prox=alvos[0] && alvos[0].form ? (alvos[0].form[el.name==='cep'?'numero':(el.name||'').replace('cep','numero')]) : null;
+      if(!prox){ var dd=el.closest('.dep'); prox=dd && dd.querySelector('.dep-num'); }
+      if(prox && !prox.value) try{ prox.focus(); }catch(e){}
+    }).catch(function(){ el.style.opacity=''; CEP_ULTIMO[chave]=''; });
+  }
   function enderecoCompleto(){
     var f=F();
     var partes=[padrao(f.endereco.value), padrao(f.numero.value), padrao(f.setor.value), padrao(f.cidade.value)].filter(Boolean);
@@ -2075,6 +2112,11 @@
     var f=F();
     if(n===1){
       if(!f.unidade.value) return erro('Selecione a unidade.', f.unidade);
+      /* 06/10 — endereço do proponente obrigatório */
+      if(dig(f.cep.value).length!==8) return erro('Informe o <b>CEP</b> do proponente.', f.cep);
+      if(!f.endereco.value.trim()) return erro('Informe o <b>endereço</b> do proponente (rua, avenida ou quadra).', f.endereco);
+      if(!f.setor.value.trim()) return erro('Informe o <b>setor ou bairro</b> do proponente.', f.setor);
+      if(!f.cidade.value.trim()) return erro('Informe a <b>cidade</b> do proponente.', f.cidade);
       /* 02/10 (item 7) */
       var comC=f.creditoAprovadoCaixa.value==='SIM';
       var apC=(document.querySelector('input[name="correspAprovou"]:checked')||{}).value||'';
@@ -2094,6 +2136,7 @@
         if(!f.conjugeMesmoEndereco.checked){
           if(dig(f.cepConjuge.value).length!==8) return erro('Informe o <b>CEP do cônjuge</b> (ele mora em outro endereço).', f.cepConjuge);
           if(!f.logradouroConjuge.value.trim()) return erro('Informe o <b>endereço do cônjuge</b>.', f.logradouroConjuge);
+          if(!f.setorConjuge.value.trim()) return erro('Informe o <b>setor ou bairro do cônjuge</b>.', f.setorConjuge);
           if(!f.cidadeConjuge.value.trim()) return erro('Informe a <b>cidade do cônjuge</b>.', f.cidadeConjuge);
         }
       }
@@ -2122,6 +2165,12 @@
           var nm=(b.querySelector('.dep-nome').value||'').trim();
           if(tipo==='COMPRADOR'){
             if(!cpfValido(cpfEl.value)) return erro('<b>CPF do comprador '+esc_(nm)+'</b> inválido ou vazio.', cpfEl);
+            /* 06/10 — endereço do comprador obrigatório */
+            var endReq=[['.dep-cep','CEP'],['.dep-logr','endereço'],['.dep-setor','setor ou bairro'],['.dep-cid','cidade']];
+            for(var ei=0; ei<endReq.length; ei++){
+              var ee=b.querySelector(endReq[ei][0]);
+              if(ee && (endReq[ei][0]==='.dep-cep' ? dig(ee.value).length!==8 : !String(ee.value||'').trim())) return erro('Informe <b>'+endReq[ei][1]+'</b> do comprador '+esc_(nm)+'.', ee);
+            }
             if(semCred){
               var req=[['.dep-nasc','data de nascimento'],['.dep-email','e-mail'],['.dep-cel','celular'],['.dep-renda','renda'],['.dep-origem','origem da renda']];
               for(var ri=0; ri<req.length; ri++){
@@ -2277,7 +2326,8 @@
     });
     ['cep','cepConjuge','cepFiador1','cepFiador2'].forEach(function(nome){
       var el=F()[nome]; if(!el) return;
-      el.addEventListener('input',function(e){ e.target.value=fmtCepP(e.target.value); });
+      el.addEventListener('input',function(e){ e.target.value=fmtCepP(e.target.value); if(dig(e.target.value).length===8) buscarCep(e.target); });
+      el.addEventListener('blur',function(e){ if(dig(e.target.value).length===8) buscarCep(e.target); });
     });
     ['telefone','celular','celularConjuge','telRef1','telRef2'].forEach(function(nome){
       var el=F()[nome]; if(!el) return;
@@ -2304,7 +2354,9 @@
       var t=e.target; if(!t || !t.classList || !t.classList.contains('dep-renda')) return;
       var d=dig(t.value);
       t.value = d ? (parseInt(d,10)/100).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.') : '';
+      try{ somarRenda(); }catch(e2){}   // 06/10: a renda do comprador entra na renda total
     });
+    document.addEventListener('change',function(e){ if(e.target && e.target.classList && (e.target.classList.contains('dep-tipo')||e.target.name==='maisDeUmComprador')) try{ somarRenda(); }catch(e3){} });
     document.querySelectorAll('[data-pad="1"]').forEach(function(el){
       el.addEventListener('input',function(e){
         var pos=e.target.selectionStart;

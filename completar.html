@@ -401,8 +401,21 @@ function verCreditoLink(){
   var sp=document.getElementById('slProdutos'); if(sp) sp.textContent=simLinkProdutos()[0];
   try{ atualizarTrava(); }catch(e){}
 }
+/* 06/10 — endereço do cônjuge só aparece (e é cobrado) quando ele mora em outro endereço */
+function conjMoraJunto(){ var el=document.getElementById('c-conjugeMesmoEndereco');
+  if(el) return el.value!=='NAO'; return ((DADOS&&DADOS.pessoasDocs)||{}).conjMesmoEnd!==false; }
+function verEndConjLink(){
+  var junto=conjMoraJunto(), com=temConjuge();
+  ['cepConjuge','enderecoConjuge','numeroConjuge','setorConjuge','cidadeConjuge'].forEach(function(id){
+    var el=document.getElementById('c-'+id); if(!el) return; var cx=el.closest('.campo'); if(!cx) return;
+    cx.style.display=(com && !junto)?'':'none';
+    cx.dataset.obrig=(com && !junto && /^(cep|endereco|cidade)/.test(id))?'1':'0';
+  });
+  var cc=document.getElementById('cardConjuge'); if(cc && cc.innerHTML) cc.style.display = com ? '' : 'none';
+}
 function verConjuge(){
   var com=temConjuge();
+  try{ verEndConjLink(); }catch(e){}
   CAMPOS_CONJUGE.forEach(function(id){
     var el=document.getElementById('c-'+id);
     if(!el) return;
@@ -424,7 +437,7 @@ function pintar(){
 
   /* r63 — cada campo diz se é obrigatório (c.obrig) e o grupo. Servidor
      antigo não manda isso: aí vale a lista padrão abaixo. */
-  var htmlProp='', htmlCorr='', htmlFiad='', fiadorAtual='', htmlCred='';
+  var htmlProp='', htmlCorr='', htmlFiad='', fiadorAtual='', htmlCred='', htmlConj='', htmlComp={};
   var CRED=['creditoAprovadoCaixa','creditoAprovado','correspondente','parcelaFinanciamento'];
   DADOS.campos.forEach(function(c){
     if(SEMPRE_FORA.indexOf(c.id)>=0) return;           // referências: saíram
@@ -433,6 +446,8 @@ function pintar(){
     var h = htmlCampo(c);
     if(CRED.indexOf(c.id)>=0){ htmlCred += h; return; }   // 02/10 (item 2): quadro próprio do crédito
     if(grupo==='corretor') htmlCorr += h;
+    else if(grupo==='conjuge') htmlConj += h;                       // 06/10: cônjuge em quadro próprio
+    else if(/^comprador[12]$/.test(grupo)) htmlComp[grupo]=(htmlComp[grupo]||'')+h;   // 06/10: cada comprador no seu quadro
     else if(grupo==='fiador'){
       var n = /2$/.test(c.id) ? '2' : '1';
       if(n!==fiadorAtual){ htmlFiad += '<div class="secao">Fiador '+n+'</div>'; fiadorAtual=n; }
@@ -441,6 +456,18 @@ function pintar(){
     else htmlProp += h;
   });
   document.getElementById('campos').innerHTML=htmlProp;
+  /* 06/10 — CÔNJUGE e COMPRADORES em quadros próprios, logo depois do proponente */
+  var cardProp=document.getElementById('campos').closest('.card'), depois=cardProp;
+  [['cardConjuge','Cônjuge',htmlConj,'Dados do cônjuge. Se ele mora em outro endereço, informe o endereço dele e anexe o comprovante em "Documentos obrigatórios".'],
+   ['cardComprador1','Comprador 1',htmlComp.comprador1||'','Dados do 2º comprador, que entra na compra junto com o proponente.'],
+   ['cardComprador2','Comprador 2',htmlComp.comprador2||'','Dados do 3º comprador.']].forEach(function(q){
+    var cx=document.getElementById(q[0]);
+    if(!cx){ cx=document.createElement('div'); cx.className='card'; cx.id=q[0]; depois.parentNode.insertBefore(cx, depois.nextSibling); }
+    depois=cx;
+    var nComp=/Comprador (\d)/.exec(q[1]), mostra = q[2] && (!nComp || Number(nComp[1])<=((DADOS.pessoasDocs||{}).compradores||0));
+    cx.innerHTML = mostra ? '<h2>'+q[1]+'</h2><p class="sub">'+q[3]+'</p><div class="grade">'+q[2]+'</div>' : '';
+    cx.style.display = mostra ? '' : 'none';
+  });
   /* 02/10 (item 2) — CRÉDITO NA CAIXA em quadro próprio, no alto: quem enviou sem crédito e foi
      aprovado marca SIM, informa o correspondente e o valor; a simulação roda de novo (ou, abaixo
      de 80% da avaliação, informa a parcela). */
@@ -506,7 +533,14 @@ function mesmaOpcao(a,b){
 function htmlCampo(c){
   var vazio=!String(c.valor||'').trim();
   var campo;
-  if(c.id==='origemRenda'||c.id==='origemRendaConjuge'){
+  if(c.id==='conjugeMesmoEndereco'){
+    var mv=semAcento(c.valor);
+    campo='<select id="c-'+c.id+'" onchange="verEndConjLink();montarDocs()"><option value="SIM"'+(mv!=='NAO'?' selected':'')+'>SIM — mesmo endereço</option>'+
+          '<option value="NAO"'+(mv==='NAO'?' selected':'')+'>NÃO — mora em outro endereço</option></select>';
+  } else if(/^origemRendaComprador[12]$/.test(c.id)){
+    campo='<select id="c-'+c.id+'" onchange="montarDocs()"><option value="">Selecione…</option>'+
+      ORIGENS.map(function(o){ return '<option'+(mesmaOpcao(c.valor,o)?' selected':'')+'>'+o+'</option>'; }).join('')+'</select>';
+  } else if(c.id==='origemRenda'||c.id==='origemRendaConjuge'){
     campo='<select id="c-'+c.id+'" onchange="montarDocs()">'+
       '<option value="">Selecione…</option>'+
       ORIGENS.map(function(o){ return '<option'+(mesmaOpcao(c.valor,o)?' selected':'')+'>'+o+'</option>'; }).join('')+
@@ -628,7 +662,7 @@ function montarDocs(){
                   (baseC && temConjuge() && origens[1] && regraTem(REGRA_DOC[baseC], origens[1])) ||
                   (d.coluna==='COMPROVANTE DE DIVORCIO' && civil.indexOf('DIVORC')>=0) ||
                   (d.coluna==='DOC. CONJUGE' && temConjuge()) ||
-                  (d.coluna==='COMP. END. CONJUGE' && temConjuge() && PD.conjMesmoEnd===false) ||
+                  (d.coluna==='COMP. END. CONJUGE' && temConjuge() && !conjMoraJunto()) ||
                   (compN && Number(compN)<=(PD.compradores||0));
     if(!exigido && !fiaN && !(d.temArquivo && (baseC||compN||d.coluna==='COMP. END. CONJUGE'))) return;
     var nome=ROTULO_DOC[d.coluna]||d.rotulo;
@@ -641,7 +675,8 @@ function montarDocs(){
     /* 06/10 (item 2) — renda do comprador: um campo para CADA comprovante, pela origem dele */
     var mRC=/^COMP\. RENDA COMPRADOR ([12])$/.exec(d.coluna);
     if(mRC && !d.temArquivo){
-      var oC=((PD.origensComp||[])[Number(mRC[1])-1])||'';
+      var selOC=document.getElementById('c-origemRendaComprador'+mRC[1]);
+      var oC=(selOC&&selOC.value)||((PD.origensComp||[])[Number(mRC[1])-1])||'';
       var basesC=Object.keys(REGRA_DOC).filter(function(b){ return oC && regraTem(REGRA_DOC[b], oC); });
       if(basesC.length){
         basesC.forEach(function(b){

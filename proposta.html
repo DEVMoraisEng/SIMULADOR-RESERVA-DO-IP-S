@@ -705,6 +705,8 @@
       <div class="campo"><label>Imobiliária</label><input type="text" name="imobiliaria" data-pad="1"></div>
       <div class="campo"><label>E-mail do corretor<span class="obrig">*</span></label>
         <input type="email" name="email" required></div>
+      <div class="campo"><label>Celular do corretor<span class="obrig">*</span></label>
+        <input type="tel" name="celularCorretor" inputmode="numeric" maxlength="15" placeholder="(00) 00000-0000" required oninput="this.value=fmtTel(this.value)"></div>
       <div class="campo full"><label>Observações</label><input type="text" name="observacoes" data-pad="1"></div>
     </div>
 
@@ -2479,6 +2481,7 @@
        nao chegava a ninguem. */
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailCorretor))
       return erro('Informe um <b>e-mail válido</b> para receber a proposta.', f.email);
+    if(dig(f.celularCorretor.value).length<10) return erro('Informe o <b>celular do corretor</b> com DDD.', f.celularCorretor);   // 06/10
     if(!document.getElementById('aceite').checked) return erro('É preciso autorizar o uso dos dados.');
     if(!document.getElementById('ciencia').checked)
       return erro('Marque a declaração de ciência do <b>aviso importante</b> (caráter estimativo).',
@@ -2538,6 +2541,7 @@
       possuiImovel:!!f.possuiImovelCidade.checked,   /* r46 — vem do bloco da CAIXA */
       vendedor:padrao(f.vendedor.value), creci:padrao(f.creci.value),
       imobiliaria:padrao(f.imobiliaria.value), email:String(f.email.value).trim().toLowerCase(),
+      celularCorretor:dig(f.celularCorretor.value),   // 06/10
       observacoes:padrao(f.observacoes.value),
       prazoEntrada:Number(prazoEscolhido())||0,
       comissaoPct:COMISSAO[prazoEscolhido()]||0,

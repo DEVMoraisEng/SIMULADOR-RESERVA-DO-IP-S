@@ -278,6 +278,10 @@
         <div class="campo"><label>Imobiliária</label><input type="text" name="imobiliaria" data-padrao="texto"></div>
       </div>
       <div class="linha">
+        <div class="campo"><label>Celular do corretor<span class="obrig">*</span></label><input type="tel" name="celularCorretor" inputmode="tel" maxlength="15" placeholder="(00) 00000-0000" required data-data="1"
+          oninput="var d=this.value.replace(/\D/g,'').slice(0,11);this.value=d.length>10?'('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7):(d.length>6?'('+d.slice(0,2)+') '+d.slice(2,6)+'-'+d.slice(6):(d.length>2?'('+d.slice(0,2)+') '+d.slice(2):d));"></div>
+      </div>
+      <div class="linha">
         <div class="campo"><label>Nome do cliente<span class="obrig">*</span></label><input type="text" name="nomeCliente" data-padrao="texto" required></div>
         <div class="campo"><label>CPF do cliente<span class="obrig">*</span></label><input type="text" name="cpfCliente" placeholder="000.000.000-00" inputmode="numeric" maxlength="14" required>
           <span class="ajuda" id="cpfAviso" style="display:none;color:#8A2E17;">CPF inválido — confira os números.</span></div>
@@ -744,6 +748,9 @@
       return;
     }
     if(!produtosSelecionados.length){mostrarStatus('erro','Selecione ao menos uma linha de financiamento (passo 2).');return;}
+    if(e.target.celularCorretor && e.target.celularCorretor.value.replace(/\D/g,'').length<10){   // 06/10
+      mostrarStatus('erro','Informe o <b>celular do corretor</b> com DDD.');return;
+    }
     if(parseMoeda(e.target.valorEntrada.value)<10000){
       mostrarStatus('erro','O <b>valor para entrada</b> precisa ser de pelo menos R$ 10.000,00 (passo 2).');return;
     }
@@ -786,6 +793,7 @@
       modoSiop:(f.modoSiop ? f.modoSiop.value : ''),   /* r64 — teste ONLINE/OFFLINE */
       produtos:produtosSelecionados,
       corretor:padrao(f.corretor.value), imobiliaria:padrao(f.imobiliaria.value),
+      celularCorretor:String(f.celularCorretor?f.celularCorretor.value:'').replace(/\D/g,''),   // 06/10
       nomeCliente:padrao(f.nomeCliente.value), cpfCliente:padraoCpf(f.cpfCliente.value),
       emailDestino:padraoEmail(f.emailDestino.value), emailCopia:EMAIL_COPIA,
       /* r62 — a unidade estava reservada no envio (o servidor confere) */

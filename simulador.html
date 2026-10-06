@@ -178,13 +178,8 @@
       </div>
       <div class="linha" style="margin-top:16px;">
         <div class="campo"><label>Data de Nascimento<span class="obrig">*</span></label><input type="date" name="dataNascimento" required></div>
-        <div class="campo"><label>Renda do proponente (R$)<span class="obrig">*</span></label><input type="text" name="rendaIndividual" inputmode="numeric" placeholder="0,00" required oninput="setTimeout(somarRendaSim,0)"></div>
-      </div>
-      <!-- 06/10 — composição de renda: cônjuge e demais compradores somam na renda que vai para o SIOP -->
-      <div class="linha">
-        <div class="campo"><label>Renda do cônjuge e dos demais compradores (R$)</label><input type="text" name="rendaOutros" inputmode="numeric" placeholder="0,00" oninput="setTimeout(somarRendaSim,0)">
-          <span class="ajuda">Opcional. Some aqui a renda de todos que compram junto (cônjuge e outros compradores). Dependentes não entram.</span></div>
-        <div class="campo"><label>Renda total usada na simulação (R$)</label><input type="text" id="rendaTotalSim" readonly placeholder="0,00"></div>
+        <div class="campo"><label>Renda total (R$)<span class="obrig">*</span></label><input type="text" name="rendaIndividual" inputmode="numeric" placeholder="0,00" required>
+          <span class="ajuda">Soma da renda de todos que compram: proponente, cônjuge e demais compradores.</span></div>
       </div>
       <!-- r62 (item 2) — aviso do que falta no passo 1 -->
       <div id="avisoPasso1" class="status erro" style="display:none"></div>
@@ -775,9 +770,8 @@
       servidorPublico:(f.relacionamentoCaixa.checked && f.servidorPublico.checked),
       creditoSalarioCaixa:(f.relacionamentoCaixa.checked && f.creditoSalarioCaixa.checked),
       dataNascimento:f.dataNascimento.value,
-      /* 06/10 — a CAIXA analisa a renda de todos que compram: vai a SOMA (proponente + cônjuge + compradores) */
-      rendaIndividual:parseMoeda(f.rendaIndividual.value)+parseMoeda(f.rendaOutros?f.rendaOutros.value:''),
-      rendaProponente:parseMoeda(f.rendaIndividual.value), rendaOutros:parseMoeda(f.rendaOutros?f.rendaOutros.value:''), seguradora:f.seguradora.value,
+      /* 06/10 — renda TOTAL de quem compra (proponente + cônjuge + compradores) */
+      rendaIndividual:parseMoeda(f.rendaIndividual.value), seguradora:f.seguradora.value,
       prazoMeses:Math.min(420,Number(f.prazoMeses.value)||420),
       sistemaAmortizacao:f.sistemaAmortizacao.value,
       prazoEntrada:Number(prazo), comissaoPct:COMISSAO[prazo], comissaoValor:u.valorVenda*COMISSAO[prazo],

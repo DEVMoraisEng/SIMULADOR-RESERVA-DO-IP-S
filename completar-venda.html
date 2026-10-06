@@ -663,20 +663,29 @@ function enviar(){
     if(!j || !j.ok) throw new Error((j&&j.erro)||'erro desconhecido');
     gravados=(j.gravados||[]).length;
     var chaves=Object.keys(ARQ).filter(function(ch){ return arquivosDe(ch).length && !(ch==='endConjuge' && cbEnd && cbEnd.checked); });
+    /* 06/10 — comprovantes de renda: cada documento (contracheques, carteira...) vai para a coluna DELE */
+    var LISTA=[];
+    chaves.forEach(function(ch){
+      var el=document.getElementById('doc-'+ch);
+      if(el && el.dataset.subs){
+        el.dataset.subs.split(',').forEach(function(sb){ var fs=(ARQ[ch]||{})[sb]||[]; if(fs.length) LISTA.push({ch:ch, envio:ch+':'+sb, files:fs}); });
+      } else LISTA.push({ch:ch, envio:(SINT[ch]?'outrosDocs':ch), files:arquivosDe(ch)});
+    });
+    chaves=LISTA;
     var i=0;
     function proximo(){
       if(i>=chaves.length) return Promise.resolve();
-      var ch=chaves[i++];
+      var item=chaves[i++], ch=item.ch;
       var nome=(document.getElementById('doc-'+ch)||{dataset:{}}).dataset.nome||ch;
       av.innerHTML='<b>Enviando documentos '+i+' de '+chaves.length+':</b> '+esc(nome)+'… não feche a página.';
-      return Promise.all(arquivosDe(ch).map(function(f){
+      return Promise.all(item.files.map(function(f){
         return lerBase64(f).then(function(b64){
           /* documento criado na tela: vai como "outros", com o nome dizendo de quem é */
           var nm = SINT[ch] ? SINT[ch]+'_'+f.name : f.name;
           return {nome:nm, tipo:f.type||'application/octet-stream', base64:b64};
         });
       })).then(function(anexos){
-        return apiPost({acao:'anexarVenda', pageId:ID, token:TOKEN, chave:(SINT[ch]?'outrosDocs':ch), anexos:anexos});
+        return apiPost({acao:'anexarVenda', pageId:ID, token:TOKEN, chave:item.envio, anexos:anexos});
       }).then(function(x){
         if(x && x.ok){ enviados+=(x.enviados||0); (x.falhas||[]).forEach(function(f){ falhas.push(f); }); }
         else falhas.push(nome+': '+((x&&x.erro)||'falhou'));

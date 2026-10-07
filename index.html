@@ -47,8 +47,9 @@
   /* Proposta ao lado de Simular na faixa de preço: quem já sabe o valor e a
      unidade não precisa passar pela simulação para propor. Cor diferente
      porque a ação é diferente — uma calcula, a outra compromete. */
-  .btn-prop{padding:7px 12px;border-radius:6px;border:1px solid var(--marrom);background:var(--branco);color:var(--marrom);font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;}
-  .btn-prop:hover{background:var(--marrom);color:#fff;}
+  /* 07/10/2026: botão PROPOSTA virou SUBIR PASTA, em verde */
+  .btn-prop{padding:7px 12px;border-radius:6px;border:1px solid #1E8449;background:#27AE60;color:#fff;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap;}
+  .btn-prop:hover{background:#1E8449;color:#fff;}
   .acoes{display:flex;gap:6px;justify-content:flex-end;}
   .vazio{padding:16px;font-size:13px;color:var(--texto-suave);}
   #modal .uns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
@@ -144,8 +145,8 @@
   #modal .un-chip .cta2{display:flex;gap:5px;margin-top:8px;}
   #modal .un-chip .cta2 button{flex:1;padding:5px 4px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;}
   #modal .un-chip .cta2 .s{background:var(--amarelo);color:var(--marrom);border:none;}
-  #modal .un-chip .cta2 .p{background:#fff;color:var(--marrom);border:1px solid var(--marrom);}
-  #modal .un-chip .cta2 .p:hover{background:var(--marrom);color:#fff;}
+  #modal .un-chip .cta2 .p{background:#27AE60;color:#fff;border:1px solid #1E8449;font-weight:800;}
+  #modal .un-chip .cta2 .p:hover{background:#1E8449;color:#fff;}
 </style>
 </head>
 <body>
@@ -390,9 +391,9 @@
       var a = '\''+x.tipo+'\',\''+x.unidade+'\'';
       var botoes = livre
         ? '<div class="cta2"><button class="s" onclick="event.stopPropagation();simular('+a+')">Simular</button>'+
-          '<button class="p" onclick="event.stopPropagation();proposta('+a+')">Proposta</button></div>'
+          '<button class="p" onclick="event.stopPropagation();proposta('+a+')">SUBIR PASTA</button></div>'
         : (res ? '<div class="cta2"><button class="s" onclick="event.stopPropagation();simular('+a+')">Simular</button>'+
-                 '<button class="p" onclick="event.stopPropagation();proposta('+a+')">Proposta</button></div>' : '');
+                 '<button class="p" onclick="event.stopPropagation();proposta('+a+')">SUBIR PASTA</button></div>' : '');
       return '<div class="un-chip'+(livre?' ok':' off')+'"'+(res?' style="opacity:.8"':'')+'><b>Un. '+x.unidade+'</b>'+
              '<small>'+(x.valorVenda?fmt(x.valorVenda):'—')+'<br>'+est+'</small>'+botoes+'</div>';
     }).join('');
@@ -419,7 +420,7 @@
              '<td class="tot">'+us.length+'</td>'+
              '<td><div class="acoes">'+
                '<button class="btn-sim" onclick="simular(\''+p.tipo+'\',\''+p.unidade+'\')">Simular</button>'+
-               '<button class="btn-prop" onclick="proposta(\''+p.tipo+'\',\''+p.unidade+'\')">Proposta</button>'+
+               '<button class="btn-prop" onclick="proposta(\''+p.tipo+'\',\''+p.unidade+'\')">SUBIR PASTA</button>'+
              '</div></td></tr>';
     }).join('');
   }

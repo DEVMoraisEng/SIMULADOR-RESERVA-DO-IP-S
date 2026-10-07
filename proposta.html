@@ -702,6 +702,9 @@
       <div class="campo"><label>Corretor<span class="obrig">*</span></label>
         <input type="text" name="vendedor" data-pad="1" required></div>
       <div class="campo"><label>CRECI</label><input type="text" name="creci" data-pad="1"></div>
+      <!-- 07/10/2026: CPF do corretor (vai para a proposta e, na venda, para o banco de vendas) -->
+      <div class="campo"><label>CPF do corretor<span class="obrig">*</span></label>
+        <input type="text" name="cpfCorretor" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" required></div>
       <div class="campo"><label>Imobiliária</label><input type="text" name="imobiliaria" data-pad="1"></div>
       <div class="campo"><label>E-mail do corretor<span class="obrig">*</span></label>
         <input type="email" name="email" required placeholder="email.do.corretor@exemplo.com">
@@ -2048,10 +2051,10 @@
     }).then(function(r){
       if(r && r.ok && r.lido){
         var f=F(), n=0, c=r.campos||{};
-        [['nome','vendedor'],['creci','creci'],['imobiliaria','imobiliaria']].forEach(function(p){
+        [['nome','vendedor'],['creci','creci'],['imobiliaria','imobiliaria'],['cpf','cpfCorretor']].forEach(function(p){
           var v=c[p[0]], el=f[p[1]];
           if(!v || !el || String(el.value||'').trim()) return;
-          el.value=padrao(v); el.classList.add('lido'); n++;
+          el.value=(p[1]==='cpfCorretor' ? fmtCpf(v) : padrao(v)); el.classList.add('lido'); n++;
         });
         ESTADO_CRECI={msg:'✓ CRECI lido — '+(n ? n+' campo(s) preenchido(s) no passo 5. Confira.' : 'os campos do corretor no passo 5 já estavam preenchidos.'), cls:'ok'};
       } else {
@@ -2320,7 +2323,7 @@
 
   /* ---------- máscaras ---------- */
   function ligarMascaras(){
-    ['cpf','cpfConjuge','cpfFiador1','cpfFiador2'].forEach(function(nome){
+    ['cpf','cpfConjuge','cpfFiador1','cpfFiador2','cpfCorretor'].forEach(function(nome){
       var el=F()[nome]; if(!el) return;
       el.addEventListener('input',function(e){
         e.target.value=fmtCpf(e.target.value);
@@ -2476,6 +2479,7 @@
       return erro('Esta unidade não está disponível para proposta.');
     }
     if(!f.vendedor.value.trim()) return erro('Informe o <b>corretor</b>.', f.vendedor);
+    if(f.cpfCorretor && !cpfValido(f.cpfCorretor.value)) return erro('Informe o <b>CPF do corretor</b> (inválido ou vazio).', f.cpfCorretor);   // 07/10
     var emailCorretor = String(f.email.value||'').trim();
     /* O navegador so valida type=email no submit nativo, e o envio aqui e
        por JavaScript. Sem esta linha, "felipe" (sem @) passava e o e-mail
@@ -2543,6 +2547,7 @@
       vendedor:padrao(f.vendedor.value), creci:padrao(f.creci.value),
       imobiliaria:padrao(f.imobiliaria.value), email:String(f.email.value).trim().toLowerCase(),
       celularCorretor:dig(f.celularCorretor.value),   // 06/10
+      cpfCorretor:(f.cpfCorretor ? fmtCpf(f.cpfCorretor.value) : ''),   // 07/10
       observacoes:padrao(f.observacoes.value),
       prazoEntrada:Number(prazoEscolhido())||0,
       comissaoPct:COMISSAO[prazoEscolhido()]||0,

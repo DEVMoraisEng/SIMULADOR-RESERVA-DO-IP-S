@@ -50,7 +50,8 @@
   /* 07/10/2026: botão PROPOSTA virou SUBIR PASTA, em verde */
   .btn-prop{padding:7px 12px;border-radius:6px;border:1px solid #1E8449;background:#27AE60;color:#fff;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap;}
   .btn-prop:hover{background:#1E8449;color:#fff;}
-  .acoes{display:flex;gap:6px;justify-content:flex-end;}
+  /* 07/10/2026: na tabela os botões quebram linha em vez de sair do quadro */
+  .acoes{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;}
   .vazio{padding:16px;font-size:13px;color:var(--texto-suave);}
   #modal .uns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
   .layout{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;}
@@ -109,7 +110,7 @@
   #pop img{width:100%;border-radius:6px;margin:8px 0;border:1px solid var(--borda);}
   #pop .acoes{display:flex;gap:8px;margin-top:8px;}
   #pop button{flex:1;padding:8px;border-radius:6px;border:none;font-size:12px;font-weight:700;cursor:pointer;}
-  #pop .b1{background:var(--amarelo);color:var(--marrom);} #pop .b2{background:#fff;color:var(--marrom);border:1px solid var(--borda);}
+  #pop .b1{background:var(--amarelo);color:var(--marrom);} #pop .b2{background:#27AE60;color:#fff;border:1px solid #1E8449;font-weight:800;}   /* 07/10: SUBIR PASTA em verde */
   #pop .x{position:absolute;top:6px;right:10px;cursor:pointer;color:var(--texto-suave);font-size:18px;}
   #pop .band{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:10px;display:none;}
   /* A faixa tinha o texto "EM BREVE!" preso no CSS, então unidade reservada
@@ -209,7 +210,7 @@
   <div id="popAvisoProp" style="display:none;margin-top:8px;font-size:11px;color:#1F6FB2;background:#EAF2FA;border:1px solid #BBD5EC;border-radius:6px;padding:6px 8px;"></div>
   <div class="acoes">
     <button class="b1" id="popSim">Fazer simulação</button>
-    <button class="b2" id="popProp">Enviar proposta</button>
+    <button class="b2" id="popProp">SUBIR PASTA</button>
   </div>
 </div>
 

@@ -142,6 +142,11 @@
   }
   .anexo label small{display:block;font-weight:400;font-size:11.5px;color:var(--texto-suave);margin-top:2px;}
   .anexo.pedido{background:#FFFBEF;border-left:3px solid var(--amarelo);padding-left:8px;}
+  /* 07/10/2026: documento que já veio anexado fica verde e o campo de anexar apagado */
+  .anexo.ja{background:#E3F5E8 !important;border-left:4px solid #27AE60 !important;padding-left:8px;}
+  .anexo.ja input[type=file]{opacity:.4;}
+  .anexo.ja input[type=file]:hover,.anexo.ja input[type=file]:focus{opacity:1;}
+  .ja-msg{display:inline-block;margin-top:5px;font-size:12px;font-weight:800;color:#fff;background:#27AE60;border-radius:5px;padding:3px 8px;}
   details.outros-docs{margin-top:10px;} details.outros-docs summary{cursor:pointer;font-weight:700;color:var(--marrom);font-size:13px;}
   #listaDependentes input,#listaDependentes select{width:100%;padding:7px 9px;border:1px solid var(--borda);border-radius:6px;font:inherit;font-size:13px;}
   @media(max-width:640px){ #listaDependentes .dep{grid-template-columns:1fr!important;} }
@@ -1727,16 +1732,17 @@
         var ja = d[4]==='espelhoConj' ? (PENDCONJ||[]).length : ((/^doc/.test(d[0]) ? PDEP[iC] : PDEND[iC])||[]).length;
         var gkE = d[4]==='espelhoConj' ? 'Cônjuge' : 'Comprador '+nC;
         if(!grupos[gkE]){ grupos[gkE]=[]; ordemG.push(gkE); }
-        grupos[gkE].push('<div class="anexo pedido"><label for="ax-'+d[0]+'">'+d[1]+'<span class="tag-doc">do '+gkE.toUpperCase()+'</span>'+
-          (ja?'<span class="tag-doc" style="background:#DDF2E3;color:#1D5433">✓ '+ja+' arquivo(s) já anexado(s)</span>':'')+'<small>'+d[2]+'</small></label>'+
+        grupos[gkE].push('<div class="anexo pedido'+(ja?' ja':'')+'"><label for="ax-'+d[0]+'">'+d[1]+'<span class="tag-doc">do '+gkE.toUpperCase()+'</span>'+
+          (ja?'<span class="tag-doc" style="background:#DDF2E3;color:#1D5433">✓ '+ja+' arquivo(s) já anexado(s)</span>':'')+'<small>'+d[2]+'</small>'+(ja?'<div class="ja-msg">✔ Documento já anexado, não é necessário anexar novamente.</div>':'')+'</label>'+
           '<input type="file" class="espelho" id="ax-'+d[0]+'" multiple accept="image/*,application/pdf" onchange="espelharArquivo(this,\''+d[0]+'\')"></div>');
         return '';
       }
-      var html='<div class="anexo'+(pedido?' pedido':'')+(ehCreci?' creci':'')+'">'+
+      var jaP1=p1Qtd(d[0]);   // 07/10: já anexado na página 1
+      var html='<div class="anexo'+(pedido?' pedido':'')+(ehCreci?' creci':'')+(jaP1?' ja':'')+'">'+
              '<label for="ax-'+d[0]+'">'+d[1]+
              (pedido?'<span class="tag-doc">'+(temDono?'do ':'pedido para ')+quem+'</span>':'')+
              (ehCreci?'<span class="tag-doc">para o corretor · opcional — se ficar sem, o passo 5 pede de novo</span>':'')+
-             '<small>'+d[2]+'</small>'+p1Marca(d[0])+'</label>'+
+             '<small>'+d[2]+'</small>'+p1Marca(d[0])+(jaP1?'<div class="ja-msg">✔ Documento já anexado, não é necessário anexar novamente.</div>':'')+'</label>'+
              '<input type="file" id="ax-'+d[0]+'" data-rotulo="'+d[1]+'" multiple onchange="resumoAnexos()'+(ehCreci?';lerCreci(this);atualizarCreciP5()':'')+'">'+
              (ehCreci?'<div class="lst" id="lst-creci" style="display:none"></div>':'')+'</div>';
       /* r47 (item 4) — o que não é pedido para ESTE cliente fica escondido

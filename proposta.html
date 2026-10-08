@@ -1880,7 +1880,7 @@
     var lista=arquivosAnexados();
     var total=lista.reduce(function(a,x){return a+x.arquivo.size;},0);
     var el=document.getElementById('anexoResumo');
-    if(!lista.length){ el.textContent='Nenhum arquivo selecionado ainda.'; el.style.color=''; return; }
+    if(!lista.length){ el.textContent='Nenhum arquivo selecionado ainda.'; el.style.color=''; try{ marcarGrandes(); }catch(e){} return; }
     var mb=(total/1048576).toFixed(1);
     var grandes=lista.filter(function(x){ return arqGrande(x.arquivo); }), dg=Object.keys(docsGrandes(lista));
     el.innerHTML=lista.length+' arquivo(s) · '+mb+' MB no total.';

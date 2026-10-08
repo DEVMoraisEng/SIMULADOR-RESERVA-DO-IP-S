@@ -174,6 +174,7 @@
   .lst{font-size:12.5px;margin-top:4px;}
   .lst.ok{color:#1D5433;font-weight:700;} .lst.err{color:#8A2E17;font-weight:800;display:block;margin-top:6px;padding:9px 12px;background:#FDECEA;border:1px solid #E2A493;border-left:4px solid #C0392B;border-radius:6px;font-size:13px;} .lst.lendo{color:#6B5A45;}
   input.lido{border-color:#8CC9A5 !important;background:#F3FAF6;}
+  .aviso-grande{margin-top:6px;padding:6px 9px;border-radius:6px;background:#FCECEA;border:1px solid #F1C4BE;color:#9B2C22;font-size:12px;line-height:1.35;}
   .p1ok{font-size:12px;color:#1D5433;font-weight:700;margin-top:3px;}
   .anexo.creci{background:#FFFBEF;border-left:3px solid var(--amarelo);padding-left:8px;}
 
@@ -670,7 +671,7 @@
   <section class="card" data-etapa="4" style="display:none">
     <h2>Anexos</h2>
     <div class="resumo" style="margin-bottom:18px">
-      Os documentos anexados nesta etapa seguem junto com a proposta (limite de <b>20 MB no total</b>).
+      Os documentos anexados nesta etapa seguem junto com a proposta (até <b>20 MB por arquivo</b> e por documento).
       Caso algum documento ainda não esteja disponível, marque <b>“Não anexar agora”</b>: ele poderá ser
       enviado posteriormente pelo <b>link de complemento da proposta</b>, que acompanha o e-mail de confirmação.
       Todos os dados e documentos são obrigatórios para a conclusão da análise.
@@ -1633,7 +1634,34 @@
   }
   /* Documentos que TODA análise pede, independentemente da renda. */
   var DOCS_SEMPRE=['docProponente','certidao','compEndereco'];
-  var LIMITE_ANEXOS=20*1024*1024;
+  /* 07/10/2026 — o limite NÃO é a soma de tudo: depois que a proposta é criada,
+     cada DOCUMENTO sobe numa chamada própria ao servidor, e cada arquivo vai ao
+     Notion em envio único. Limites reais: 20 MB por arquivo e 20 MB por
+     documento (soma dos arquivos daquela linha). O aviso aparece na linha. */
+  var LIMITE_ARQ=20*1024*1024, LIMITE_DOC=20*1024*1024;
+  function arqGrande(a){ return a && a.size>LIMITE_ARQ; }
+  function mbTxt(b){ return (b/1048576).toFixed(1).replace('.',',')+' MB'; }
+  /* documentos (rótulos) cuja soma passa do limite: {rotulo: bytes} */
+  function docsGrandes(lista){
+    var t={}; (lista||arquivosAnexados()).forEach(function(x){ t[x.rotulo]=(t[x.rotulo]||0)+x.arquivo.size; });
+    var out={}; Object.keys(t).forEach(function(k){ if(t[k]>LIMITE_DOC) out[k]=t[k]; }); return out;
+  }
+  function marcarGrandes(){
+    document.querySelectorAll('.aviso-grande').forEach(function(e){ e.remove(); });
+    var dg=docsGrandes();
+    document.querySelectorAll('input[type=file]:not(.espelho)').forEach(function(el){
+      if(!el.files.length) return;
+      var g=[]; for(var i=0;i<el.files.length;i++) if(arqGrande(el.files[i])) g.push(el.files[i]);
+      var txt='';
+      if(g.length) txt='⚠ '+g.map(function(a){ return '<b>'+esc_(a.name)+'</b> tem '+mbTxt(a.size); }).join(' · ')+
+        ' — o limite é <b>20 MB por arquivo</b>. Troque por um arquivo menor (foto ou PDF comprimido).';
+      else if(el.dataset.rotulo && dg[el.dataset.rotulo]) txt='⚠ Os arquivos deste documento somam <b>'+mbTxt(dg[el.dataset.rotulo])+
+        '</b> — o limite é <b>20 MB por documento</b>. Tire ou comprima algum arquivo desta linha.';
+      if(!txt) return;
+      var d=document.createElement('div'); d.className='aviso-grande'; d.innerHTML=txt;
+      el.insertAdjacentElement('afterend', d);
+    });
+  }
   /* A lista de documentos da vez: os fixos + um campo por dependente/2º
      comprador informado. */
   function docsDaVez(){
@@ -1854,9 +1882,11 @@
     var el=document.getElementById('anexoResumo');
     if(!lista.length){ el.textContent='Nenhum arquivo selecionado ainda.'; el.style.color=''; return; }
     var mb=(total/1048576).toFixed(1);
+    var grandes=lista.filter(function(x){ return arqGrande(x.arquivo); }), dg=Object.keys(docsGrandes(lista));
     el.innerHTML=lista.length+' arquivo(s) · '+mb+' MB no total.';
-    el.style.color = total>LIMITE_ANEXOS ? '#B0431F' : '';
-    if(total>LIMITE_ANEXOS) el.innerHTML+=' <b>Acima do limite de 20 MB — tire algum arquivo.</b>';
+    el.style.color = (grandes.length||dg.length) ? '#B0431F' : '';
+    if(grandes.length||dg.length) el.innerHTML+=' <b>Há arquivo ou documento acima de 20 MB — veja o aviso em vermelho na linha.</b>';
+    try{ marcarGrandes(); }catch(e){}
   }
   function lerBase64(arquivo){
     return new Promise(function(ok,err){
@@ -2256,7 +2286,14 @@
     if(n===4){
       var lista=arquivosAnexados();
       var total=lista.reduce(function(a,x){return a+x.arquivo.size;},0);
-      if(total>LIMITE_ANEXOS) return erro('Os anexos somam mais de 20 MB. Tire algum arquivo antes de continuar.');
+      var grandes=lista.filter(function(x){ return arqGrande(x.arquivo); });
+      if(grandes.length){ try{ marcarGrandes(); }catch(e){}
+        var g0=document.querySelector('.aviso-grande'); if(g0) g0.scrollIntoView({block:'center'});
+        return erro('Arquivo acima de 20 MB: '+grandes.map(function(x){ return '<b>'+esc_(x.arquivo.name)+'</b> ('+esc_(x.rotulo)+', '+mbTxt(x.arquivo.size)+')'; }).join('; ')+'. O limite é por arquivo.'); }
+      var dgE=docsGrandes(lista), dgK=Object.keys(dgE);
+      if(dgK.length){ try{ marcarGrandes(); }catch(e){}
+        var g1=document.querySelector('.aviso-grande'); if(g1) g1.scrollIntoView({block:'center'});
+        return erro('Documento acima de 20 MB somando os arquivos: '+dgK.map(function(k){ return '<b>'+esc_(k)+'</b> ('+mbTxt(dgE[k])+')'; }).join('; ')+'. Tire ou comprima algum arquivo dessa linha.'); }
       /* r46 — os documentos pedidos para ESTE cliente precisam vir anexados.
          Sem todos em mãos, o corretor marca a caixa e a proposta segue; o
          que faltar é juntado depois na página do Notion. */

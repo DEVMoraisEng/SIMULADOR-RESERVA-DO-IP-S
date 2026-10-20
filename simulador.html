@@ -52,6 +52,13 @@
   .prazo-opt input{display:none;}
   .prazo-opt b{display:block;font-size:16px;color:var(--marrom);}
   .prazo-opt small{color:var(--texto-suave);}
+  .secao-sim{margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--borda);font-weight:800;color:var(--marrom);font-size:14px;}
+  .estimativa{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:0 0 16px;}
+  .estimativa .it{border:1px solid var(--borda);border-radius:8px;padding:9px 11px;background:#FFFDF7;}
+  .estimativa .it small{display:block;font-size:11px;color:var(--texto-suave);font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
+  .estimativa .it b{font-size:16px;color:var(--marrom);}
+  .estimativa .it.destaque{background:#FBEEC8;border-color:#E7C56A;}
+  .estimativa .nota{grid-column:1/-1;font-size:11.5px;color:var(--texto-suave);}
   .sinal-opts{flex-wrap:wrap;}
   .sinal-opts .prazo-opt{flex:1 1 130px;}
   .produtos{display:flex;flex-direction:column;gap:8px;}
@@ -183,13 +190,8 @@
         <div class="campo"><label>Renda total (R$)<span class="obrig">*</span></label><input type="text" name="rendaIndividual" inputmode="numeric" placeholder="0,00" required>
           <span class="ajuda">Soma da renda de todos que compram: proponente, cônjuge e demais compradores.</span></div>
       </div>
-      <!-- r62 (item 2) — aviso do que falta no passo 1 -->
-      <div id="avisoPasso1" class="status erro" style="display:none"></div>
-      <div class="rodape"><span></span><button type="button" class="btn-primario" onclick="if(validarPasso1())irPara(2)">Próximo</button></div>
-    </section>
-
-    <section class="card etapa oculto" data-etapa="2">
-      <h2>Condições de financiamento</h2>
+      <!-- r96d (20/10/26) — condições de financiamento e FGTS no passo 1 (a base offline precisa delas) -->
+      <div class="secao-sim">Condições de financiamento</div>
       <div class="linha">
         <div class="campo">
           <label>Prazo do financiamento (meses)<span class="obrig">*</span></label>
@@ -215,6 +217,19 @@
         </div>
         <div class="campo"></div>
       </div>
+      <div class="linha">
+        <div class="campo"><label>FGTS disponível (R$)</label><input type="text" name="fgtsDisponivel" inputmode="numeric" placeholder="0,00"></div>
+        <div class="campo"><span class="ajuda" style="display:block;margin-top:26px">O <b>subsídio</b> não precisa ser informado: ele é apurado na simulação online e vem no e-mail.</span></div>
+      </div>
+      <!-- r62 (item 2) — aviso do que falta no passo 1 -->
+      <div id="avisoPasso1" class="status erro" style="display:none"></div>
+      <div class="rodape"><span></span><button type="button" class="btn-primario" onclick="if(validarPasso1())irPara(2)">Próximo</button></div>
+    </section>
+
+    <section class="card etapa oculto" data-etapa="2">
+      <h2>Financiamento e entrada</h2>
+      <!-- r96d (20/10/26) — financiamento estimado pela base offline e sinal = entrada mínima -->
+      <div id="estimativa" class="estimativa"><span class="ajuda">Calculando o financiamento estimado…</span></div>
       <div class="campo full" style="margin-bottom:16px;">
         <label>Prazo total da entrada<span class="obrig">*</span></label>
         <div class="prazo-opts">
@@ -225,17 +240,11 @@
         <div class="comissao-box"><span>Comissão do corretor</span><b id="comissaoTxt">—</b></div>
       </div>
       <div class="linha">
-        <!-- r41 (item 2) — subsídio não é mais digitado: quem diz é a CAIXA.
-             O valor apurado na simulação vai no e-mail. -->
-        <div class="campo"><label>FGTS disponível (R$)</label><input type="text" name="fgtsDisponivel" inputmode="numeric" placeholder="0,00"></div>
-        <div class="campo"><span class="ajuda" style="display:block;margin-top:26px">O <b>subsídio</b> não precisa ser informado: o valor apurado pela CAIXA vem no e-mail da simulação.</span></div>
-      </div>
-      <div class="linha">
         <div class="campo">
-          <label>Valor para entrada (R$)<span class="obrig">*</span></label>
+          <label>Valor para a entrada (cliente) (R$)<span class="obrig">*</span></label>
           <input type="text" name="valorEntrada" inputmode="numeric" placeholder="10.000,00" value="10.000,00">
-          <span class="ajuda">Mínimo <b>R$ 10.000,00</b> para cobrir o sinal do fluxo padrão.</span>
-          <div id="avisoEntradaMin" style="display:none;margin-top:6px;padding:8px 11px;border-radius:6px;background:#FBEDEA;border:1px solid #E2A493;color:#8A2E17;font-size:12px;">O valor para entrada precisa ser de pelo menos R$ 10.000,00.</div>
+          <span class="ajuda" id="ajudaEntradaMin">Mínimo: o valor do sinal desta unidade.</span>
+          <div id="avisoEntradaMin" style="display:none;margin-top:6px;padding:8px 11px;border-radius:6px;background:#FBEDEA;border:1px solid #E2A493;color:#8A2E17;font-size:12px;"></div>
         </div>
         <div class="campo" style="display:none">
           <label>Data de referência (teste)</label>
@@ -351,6 +360,8 @@
   </p>
 </main>
 
+<script src="fluxo-calc.js"></script>
+<script src="base-offline.js"></script>
 <script>
 
   // ===== BACKEND: Notion via Google Apps Script (sem Supabase) =====
@@ -480,6 +491,9 @@
     var f=document.getElementById('formSimulacao');
     var av=document.getElementById('avisoPasso1');
     var falta=faltaPerfilCaixa(f);
+    /* r96d — a estimativa do financiamento (base offline) precisa da data e da renda */
+    if(!falta && !f.dataNascimento.value) falta={msg:'Informe a <b>data de nascimento</b>.', campo:f.dataNascimento};
+    if(!falta && !(parseMoeda(f.rendaIndividual.value)>0)) falta={msg:'Informe a <b>renda total</b>.', campo:f.rendaIndividual};
     if(falta){
       av.style.display='block'; av.innerHTML=falta.msg;
       try{ falta.campo.scrollIntoView({block:'center',behavior:'smooth'}); falta.campo.focus({preventScroll:true}); }catch(e){}
@@ -494,6 +508,53 @@
   function atualizarComissao(){var u=unidadeAtual();if(!u)return;
     var p=(document.querySelector('[name="prazoEntrada"]:checked')||{}).value||'48';var pct=COMISSAO[p];
     document.getElementById('comissaoTxt').textContent=(pct*100).toLocaleString('pt-BR',{minimumFractionDigits:2})+'%  ·  R$ '+fmt(u.valorVenda*pct);}
+
+  /* =====================================================================
+     r96d (20/10/26) — FINANCIAMENTO ESTIMADO E ENTRADA MÍNIMA = SINAL
+     O passo 2 já mostra o financiamento estimado pela base offline (mesma
+     regra da nuvem), limitado a 80% da avaliação. Com ele e o FGTS (sem
+     subsídio, que só a simulação online apura) sai o SINAL da unidade, e o
+     valor para a entrada tem de ser pelo menos esse sinal — assim o sinal
+     fica sempre 100% abatido. Fora da base, a estimativa usa o teto de 80%.
+     ===================================================================== */
+  var EST={fin:0, sinal:10000, fonte:'', pronto:false};
+  var ENTRADA_EDITADA=false;
+  function sinalEscolhidoSim(){ return Number((document.querySelector('[name="sinalParcelas"]:checked')||{}).value)||4; }
+  function prazoEscolhidoSim(){ return Number((document.querySelector('[name="prazoEntrada"]:checked')||{}).value)||48; }
+  function estimar(){
+    var u=unidadeAtual(), f=document.getElementById('formSimulacao'), cx=document.getElementById('estimativa');
+    if(!u||!cx) return;
+    var teto=(u.avaliacao||0)*0.8;
+    var d={possuiImovelCidade:f.possuiImovelCidade.checked, jaBeneficiado:f.jaBeneficiado.checked, fgts3anos:f.fgts3anos.checked,
+           sistemaAmortizacao:f.sistemaAmortizacao.value, dataNascimento:f.dataNascimento.value,
+           rendaIndividual:parseMoeda(f.rendaIndividual.value), prazoMeses:Number(f.prazoMeses.value)||420};
+    function aplicar(fin, fonte){
+      var ref=f.dataSimulacao.value ? new Date(f.dataSimulacao.value+'T12:00:00') : new Date();
+      var fgts=parseMoeda(f.fgtsDisponivel.value);
+      var g=fpcGerar({preco:u.valorVenda, financiado:fin, fgts:fgts, subsidio:0, informado:0, nSinal:sinalEscolhidoSim(),
+                      prazoEntrada:prazoEscolhidoSim(), ano:ref.getFullYear(), mes:ref.getMonth()+1});
+      EST={fin:fin, sinal:g.sinaisTotal, fonte:fonte, pronto:true};
+      var it=function(r,v,cl){ return '<div class="it'+(cl?' '+cl:'')+'"><small>'+r+'</small><b>'+v+'</b></div>'; };
+      cx.innerHTML=it('Valor financiado (estimado)','R$ '+fmt(fin))+it('FGTS','R$ '+fmt(fgts))+
+        it('Entrada (sem subsídio)','R$ '+fmt(Math.max(0,u.valorVenda-fin-fgts)))+
+        it('Sinal = entrada mínima','R$ '+fmt(EST.sinal),'destaque')+
+        '<div class="nota">'+(fonte==='base' ? 'Financiamento estimado pela base de simulações, limitado a 80% da avaliação. '
+          : 'Fora da base de simulações: estimado pelo teto de 80% da avaliação. ')+
+        'O subsídio e o valor final são confirmados na simulação online.</div>';
+      document.getElementById('ajudaEntradaMin').innerHTML='Mínimo <b>R$ '+fmt(EST.sinal)+'</b> — valor do sinal desta unidade.';
+      var ve=f.valorEntrada;
+      if(!ENTRADA_EDITADA || parseMoeda(ve.value)<EST.sinal-0.005) ve.value=fmt(EST.sinal);
+      var avE=document.getElementById('avisoEntradaMin'); if(avE) avE.style.display='none';
+    }
+    EST.pronto=false;
+    cx.innerHTML='<span class="ajuda">Calculando o financiamento estimado…</span>';
+    BaseOffline.carregar().then(function(){
+      var fin, fonte='base';
+      try{ var v=BaseOffline.consultar(d); fin=teto ? Math.min(v.financiamento, teto) : v.financiamento; }
+      catch(e){ fin=teto; fonte='teto'; }
+      aplicar(Math.round(fin*100)/100, fonte);
+    }).catch(function(){ aplicar(Math.round(teto*100)/100, 'teto'); });
+  }
 
   var PROD_COM=['SBPE SFH - TR - AQUISIÇÃO DE IMÓVEL RESIDENCIAL NOVO'];
   /* r41 (itens 4 e 5) — Prócotista removido. Sobrou UMA linha em cada caso:
@@ -520,11 +581,13 @@
   }
 
   function exigirProduto(){
-    /* ITEM 15 — valor para entrada de no mínimo R$ 10.000 (são os sinais). */
+    /* r96d — valor para a entrada de no mínimo o SINAL desta unidade */
     var ve=parseMoeda(document.querySelector('[name="valorEntrada"]').value);
     var avE=document.getElementById('avisoEntradaMin');
-    if(ve<10000){
-      if(avE){ avE.style.display='block'; avE.scrollIntoView({behavior:'smooth',block:'center'}); }
+    if(!EST.pronto){ if(avE){ avE.style.display='block'; avE.innerHTML='Aguarde o cálculo do financiamento estimado.'; } return false; }
+    if(ve<EST.sinal-0.005){
+      if(avE){ avE.style.display='block'; avE.innerHTML='O valor para a entrada precisa ser de pelo menos <b>R$ '+fmt(EST.sinal)+'</b> (sinal desta unidade).';
+        avE.scrollIntoView({behavior:'smooth',block:'center'}); }
       return false;
     }
     if(avE) avE.style.display='none';
@@ -551,7 +614,7 @@
   function irPara(n){
     document.querySelectorAll('.etapa').forEach(function(el){el.classList.toggle('oculto',el.dataset.etapa!==String(n));});
     document.querySelectorAll('.passo').forEach(function(el){var p=Number(el.dataset.passo);el.classList.remove('ativo','concluido');if(p===n)el.classList.add('ativo');else if(p<n)el.classList.add('concluido');});
-    if(n===2){renderProdutos();atualizarComissao();}
+    if(n===2){renderProdutos();atualizarComissao();estimar();}
     window.scrollTo({top:0,behavior:'smooth'});
   }
 
@@ -764,8 +827,8 @@
     if(e.target.celularCorretor && e.target.celularCorretor.value.replace(/\D/g,'').length<10){   // 06/10
       mostrarStatus('erro','Informe o <b>celular do corretor</b> com DDD.');return;
     }
-    if(parseMoeda(e.target.valorEntrada.value)<10000){
-      mostrarStatus('erro','O <b>valor para entrada</b> precisa ser de pelo menos R$ 10.000,00 (passo 2).');return;
+    if(!EST.pronto || parseMoeda(e.target.valorEntrada.value)<EST.sinal-0.005){
+      mostrarStatus('erro','O <b>valor para a entrada</b> precisa ser de pelo menos R$ '+fmt(EST.sinal)+' — o sinal desta unidade (passo 2).');return;
     }
     /* r60 (item 1) — nome completo: pelo menos duas palavras */
     if(String(e.target.nomeCliente.value||'').trim().split(/\s+/).filter(function(p){
@@ -801,9 +864,11 @@
       /* ITEM 15 — os R$ 10.000 pagam os sinais e NÃO abatem a entrada. Vai
          para o worker só o EXCEDENTE (é o que abate o saldo); o valor
          digitado segue à parte, para o e-mail mostrar a conta inteira. */
-      valorEntrada:Math.max(0, parseMoeda(f.valorEntrada.value)-10000),
+      valorEntrada:Math.max(0, parseMoeda(f.valorEntrada.value)-EST.sinal),
       valorEntradaInformado:parseMoeda(f.valorEntrada.value),
-      valorEntradaSinais:Math.min(10000, parseMoeda(f.valorEntrada.value)),
+      valorEntradaSinais:Math.min(EST.sinal, parseMoeda(f.valorEntrada.value)),
+      /* r96d — estimativa da tela (base offline): se a CAIXA confirmar menos, o e-mail pede para refazer */
+      financiadoBase:EST.fin, sinalEstimado:EST.sinal, fonteEstimativa:EST.fonte,
       dataSimulacao:(f.dataSimulacao.value||''),
       modoSiop:(f.modoSiop ? f.modoSiop.value : ''),   /* r64 — teste ONLINE/OFFLINE */
       produtos:produtosSelecionados,
@@ -862,7 +927,11 @@
 
   document.getElementById('tipo').addEventListener('change',preencherUnidades);
   document.getElementById('unidade').addEventListener('change',aoTrocarUnidade);
-  document.querySelectorAll('[name="prazoEntrada"]').forEach(function(r){r.addEventListener('change',atualizarComissao);});
+  document.querySelectorAll('[name="prazoEntrada"]').forEach(function(r){r.addEventListener('change',function(){atualizarComissao();estimar();});});
+  /* r96d — forma do sinal muda os centavos do sinal; a entrada digitada à mão é respeitada */
+  document.querySelectorAll('[name="sinalParcelas"]').forEach(function(r){r.addEventListener('change',estimar);});
+  document.querySelector('[name="valorEntrada"]').addEventListener('input',function(){ ENTRADA_EDITADA=true; });
+  BaseOffline.carregar().catch(function(){});   // já baixa a base enquanto preenche o passo 1
   document.querySelector('[name="possuiImovelCidade"]').addEventListener('change',renderProdutos);
 
   // unidades.json local primeiro (instantâneo); Notion ao vivo em segundo plano

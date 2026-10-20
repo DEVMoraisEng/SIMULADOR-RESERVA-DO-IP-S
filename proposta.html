@@ -1147,7 +1147,7 @@
         esc(c.faltaEm.join(', ')) + '</b> (em vermelho abaixo).' + alt;
     } else {
       txt = 'O valor de entrada do cliente (<b>' + B(c.informado) + '</b>) é destinado ao <b>sinal</b> de <b>' + B(c.S) + '</b> (' + forma +
-        '). O sinal <b>já está pago com esse valor e não soma na entrada total</b>: ele aparece no quadro só para mostrar a destinação do valor de entrada.' +
+        '). O sinal foi <b>abatido</b> com esse valor: no fluxo ele vale <b>R$ 0,00</b> e aparece só para mostrar a destinação do valor de entrada.' +
         (c.exc > 0.005 ? ' Os <b>' + B(c.exc) + '</b> que passaram do sinal foram usados para <b>abater o pré-chaves e o pós-chaves</b>.' : '') + alt;
     }
     h += titulo('FLUXO DE PAGAMENTO — SINAL · PRÉ-CHAVES · PÓS-CHAVES') +
@@ -1157,18 +1157,17 @@
   
     var t = TAB + grupo('FLUXO DE PAGAMENTO — A PAGAR (entrada total)', B(c.aPagar), '#5A3A0B');
     /* SINAL — só para mostrar a destinação do valor de entrada */
-    t += grupo('1 · SINAL — ' + esc(forma), falta ? 'falta ' + B(c.falta) : 'já pago', '#2E8B57');
-    if(c.cobertos > 0.005) t += cheia('Sinal de <b>' + B(c.S) + '</b>: <b>' + B(c.cobertos) + '</b> pagos com o valor de entrada do cliente. ' +
-      'Essa parte <b>não soma na entrada total</b> — está aqui só para mostrar a destinação do valor de entrada.' +
-      (falta ? ' Só os <b>' + B(c.falta) + '</b> que faltam entram no valor a pagar.' : ''), VERDE);
+    /* r96c — sinal abatido vale R$ 0,00 no fluxo; só o que falta (se faltar) tem valor */
+    t += grupo('1 · SINAL — ' + esc(forma) + (c.cobertos > 0.005 ? (falta ? ' · abatido em parte' : ' · ABATIDO') : ''), B(c.falta), '#2E8B57');
+    if(c.cobertos > 0.005) t += cheia('Sinal de <b>' + B(c.S) + '</b> ' + (falta ? 'abatido em <b>' + B(c.cobertos) + '</b>' : '<b>abatido</b>') +
+      ' com o valor de entrada do cliente' + (falta ? '; só os <b>' + B(c.falta) + '</b> que faltam entram no fluxo.' : ': no fluxo ele vale <b>R$ 0,00</b> e aparece só para mostrar a destinação do valor de entrada.'), VERDE);
     c.sinalLinhas.forEach(function(x){
       var st, est;
-      if(x.falta <= 0.004){ st = '✓ já pago com o valor de entrada'; est = VERDE; }
-      else if(x.pago > 0.004){ st = '<b>⚠ ' + B(x.pago) + ' já pago · faltam ' + B(x.falta) + '</b> — o cliente paga nesta data'; est = VERM; }
+      if(x.falta <= 0.004){ st = '✓ abatido (' + B(x.valor) + ' pagos com o valor de entrada)'; est = VERDE; }
+      else if(x.pago > 0.004){ st = '<b>⚠ ' + B(x.pago) + ' abatido de ' + B(x.valor) + '</b> — o cliente paga o restante nesta data'; est = VERM; }
       else { st = '<b>⚠ o cliente paga nesta data</b>'; est = VERM; }
-      t += linha(esc(x.quando) + ' — ' + esc(fpLimpa_(x.desc)), B(x.valor), st, est);
+      t += linha(esc(x.quando) + ' — ' + esc(fpLimpa_(x.desc)), B(x.falta), st, est);
     });
-    if(falta) t += linha('<b>Restante do sinal a pagar</b>', '<b>' + B(c.falta) + '</b>', 'entra na entrada total', VERM);
     /* PRÉ-CHAVES */
     t += grupo('2 · PRÉ-CHAVES — durante a obra', B(c.P), '#1F6FB2');
     if(!c.pre.length) t += linha('Sem parcelas pré-chaves', '—', '');

@@ -52,6 +52,8 @@
   .prazo-opt input{display:none;}
   .prazo-opt b{display:block;font-size:16px;color:var(--marrom);}
   .prazo-opt small{color:var(--texto-suave);}
+  .sinal-opts{flex-wrap:wrap;}
+  .sinal-opts .prazo-opt{flex:1 1 130px;}
   .produtos{display:flex;flex-direction:column;gap:8px;}
   .produto{border:1px solid var(--borda);border-left:4px solid var(--borda);border-radius:6px;padding:11px 14px;font-size:13px;font-weight:700;color:var(--texto-suave);background:#fff;cursor:pointer;display:flex;align-items:center;gap:10px;transition:.12s;}
   .produto:hover{border-color:var(--marrom2);}
@@ -232,8 +234,7 @@
         <div class="campo">
           <label>Valor para entrada (R$)<span class="obrig">*</span></label>
           <input type="text" name="valorEntrada" inputmode="numeric" placeholder="10.000,00" value="10.000,00">
-          <span class="ajuda">Mínimo <b>R$ 10.000,00</b> — é o valor do <b>sinal</b>
-          (R$ 1.000 no ato + 3 × R$ 3.000).</span>
+          <span class="ajuda">Mínimo <b>R$ 10.000,00</b> para cobrir o sinal do fluxo padrão.</span>
           <div id="avisoEntradaMin" style="display:none;margin-top:6px;padding:8px 11px;border-radius:6px;background:#FBEDEA;border:1px solid #E2A493;color:#8A2E17;font-size:12px;">O valor para entrada precisa ser de pelo menos R$ 10.000,00.</div>
         </div>
         <div class="campo" style="display:none">
@@ -241,6 +242,17 @@
           <input type="date" name="dataSimulacao">
           <span class="ajuda">Em branco = hoje. Serve para conferir como o fluxo se reorganiza depois de 20/11/2026.</span>
         </div>
+      </div>
+      <!-- r96 (20/10/26) — forma de pagamento do sinal -->
+      <div class="campo full" style="margin-bottom:16px;">
+        <label>Como o cliente quer pagar o sinal<span class="obrig">*</span></label>
+        <div class="prazo-opts sinal-opts">
+          <label class="prazo-opt"><input type="radio" name="sinalParcelas" value="1"><b>1x</b><small>à vista, no ato da assinatura</small></label>
+          <label class="prazo-opt"><input type="radio" name="sinalParcelas" value="2"><b>2x</b><small>R$ 1.000 no ato + 30 dias</small></label>
+          <label class="prazo-opt"><input type="radio" name="sinalParcelas" value="3"><b>3x</b><small>R$ 1.000 no ato + 30 e 60 dias</small></label>
+          <label class="prazo-opt"><input type="radio" name="sinalParcelas" value="4" checked><b>4x</b><small>R$ 1.000 no ato + 30, 60 e 90 dias</small></label>
+        </div>
+        <span class="ajuda">Em <b>1x</b> o sinal inteiro é pago <b>no ato</b> da assinatura do contrato. A forma não muda o valor total do sinal.</span>
       </div>
       <!-- r64 — TESTE do sistema offline -->
       <div class="linha">
@@ -783,6 +795,8 @@
       prazoMeses:Math.min(420,Number(f.prazoMeses.value)||420),
       sistemaAmortizacao:f.sistemaAmortizacao.value,
       prazoEntrada:Number(prazo), comissaoPct:COMISSAO[prazo], comissaoValor:u.valorVenda*COMISSAO[prazo],
+      /* r96 — forma do sinal: 1 = à vista no ato; 2 a 4 = R$ 1.000 no ato + 30/60/90 dias */
+      sinalParcelas:Number((document.querySelector('[name="sinalParcelas"]:checked')||{}).value)||4,
       subsidio:0,   /* r41 — quem calcula o subsídio é a CAIXA */ fgtsDisponivel:parseMoeda(f.fgtsDisponivel.value),
       /* ITEM 15 — os R$ 10.000 pagam os sinais e NÃO abatem a entrada. Vai
          para o worker só o EXCEDENTE (é o que abate o saldo); o valor

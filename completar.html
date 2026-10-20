@@ -302,11 +302,17 @@ function simCamposHtml(){
   var pe=String(simLinkVal('prazoEntrada','48'));
   var ck=function(x){ return '<label class="check" style="display:flex;gap:8px;align-items:center;margin:4px 0"><input type="checkbox" id="sl-'+x[0]+'"'+(simLinkSim(x[0])?' checked':'')+' style="width:auto" onchange="verCreditoLink()"> '+x[1]+'</label>'; };
   return '<div id="boxCredLink" style="display:none">'+
+    /* r96 (20/10/26) — o crédito aprovado vem SÓ do print da tela de aprovação da CAIXA (lido por IA, sem edição) */
+    '<div class="campo" style="margin:6px 0 4px;padding:10px 12px;border:2px dashed #E7C56A;border-radius:8px;background:#FFFBEF">'+
+      '<label>Print da tela de aprovação da CAIXA<span class="obrig">*</span></label>'+
+      '<input type="file" id="printAprovacaoLink" accept="image/*,application/pdf" onchange="aoAprovacaoLink(this)">'+
+      '<div id="lst-printAprovacaoLink" class="lst"></div>'+
+      '<span class="ajuda">O <b>valor do crédito aprovado</b> é lido do print (campo "Valor Financiamento") e não pode ser editado.</span></div>'+
     '<div class="grade" style="margin-top:6px">'+
       '<div class="campo"><label>Saldo FGTS (R$)</label><input id="sl-saldoFgts" inputmode="decimal" value="'+simLinkBRL(simLinkVal('saldoFgts',''))+'"></div>'+
       '<div class="campo"><label>Subsídio (R$)</label><input id="sl-subsidio" inputmode="decimal" value="'+simLinkBRL(simLinkVal('subsidio',''))+'"></div>'+
       '<div class="campo"><label>Valor para entrada (R$)<span class="obrig">*</span></label><input id="sl-valorEntrada" inputmode="decimal" value="'+simLinkBRL(simLinkVal('valorEntrada',10000))+'">'+
-        '<span class="ajuda">Mínimo <b>R$ 10.000,00</b> — é o valor do <b>sinal</b> (R$ 1.000 no ato + 3 × R$ 3.000).</span></div>'+
+        '<span class="ajuda">Mínimo <b>R$ 10.000,00</b> para cobrir o sinal do fluxo padrão.</span></div>'+
       '<div class="campo"><label>Renda total (proponente + cônjuge + compradores) (R$)<span class="obrig">*</span></label><input id="sl-rendaTotal" inputmode="decimal" value="'+simLinkBRL(simLinkVal('rendaTotal',''))+'"></div>'+
     '</div>'+
     '<div id="slAviso" class="aviso" style="display:none;margin:8px 0"></div>'+
@@ -355,9 +361,43 @@ function simLinkColetar(simula){
   return o;
 }
 /* mesmo quadro de aviso do teto da proposta */
+/* r96 (20/10/26) — CRÉDITO APROVADO SÓ PELO PRINT DA CAIXA (mesmo leitor dos documentos) */
+var CRED_LINK={arquivo:null, ass:'', valor:0};
+function credOriginal(){ var c=((DADOS&&DADOS.campos)||[]).filter(function(x){ return x.id==='creditoAprovado'; })[0]; return simLinkNumTxt(c&&c.valor); }
+function aoAprovacaoLink(input){
+  var arq=input.files&&input.files[0], st=document.getElementById('lst-printAprovacaoLink'), cr=document.getElementById('c-creditoAprovado');
+  CRED_LINK={arquivo:arq||null, ass:'', valor:0};
+  if(cr){ cr.value=''; cr.classList.remove('lido'); }
+  resumoAnexos();
+  if(!arq){ st.className='lst'; st.textContent=''; verCreditoLink(); return; }
+  st.className='lst lendo'; st.textContent='Lendo o print da aprovação…';
+  prepararLeitura(arq).then(function(pre){
+    if(!pre) throw {sem:'Arquivo grande demais ou em formato que não dá para ler.'};
+    return apiPost({acao:'lerDocumento', tipo:'APROVACAO_CAIXA', quem:'proponente', arquivo:pre});
+  }).then(function(r){
+    if(CRED_LINK.arquivo!==arq) return;
+    var c=(r&&r.campos)||{}, v=Number(c.valorNumero)||0;
+    if(r && r.ok && r.lido && r.assinatura && v>0){
+      CRED_LINK.ass=r.assinatura; CRED_LINK.valor=v;
+      if(cr){ cr.value=v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); cr.classList.add('lido'); }
+      st.className='lst ok';
+      st.innerHTML='✓ Print lido — Valor Financiamento <b>'+brlL(v)+'</b>'+(c.cliente?' · '+esc(c.cliente):'')+'. Confira com o print.';
+    } else {
+      st.className='lst err';
+      st.innerHTML='Não consegui ler o <b>Valor Financiamento</b> neste arquivo. Anexe um print nítido da tela de aprovação da CAIXA.';
+    }
+    verCreditoLink();
+  }).catch(function(e){
+    if(CRED_LINK.arquivo!==arq) return;
+    st.className='lst err';
+    st.textContent=(e&&e.sem?e.sem+' ':'A leitura do print não respondeu agora. ')+'Anexe de novo — sem a leitura o crédito não é registrado.';
+    verCreditoLink();
+  });
+}
 function verCreditoLink(){
   var sel=document.getElementById('c-creditoAprovadoCaixa'), cr=document.getElementById('c-creditoAprovado');
   if(!sel||!cr) return;
+  cr.readOnly=true; cr.tabIndex=-1; cr.placeholder='lido do print da CAIXA';   // r96 — não é digitado
   if(!cr.dataset.ouvindo){
     cr.addEventListener('input', verCreditoLink); cr.dataset.ouvindo='1';
     /* 03/10 — valores em dinheiro (R$ 300.000,00): formata ao sair do campo e já na abertura */
@@ -819,6 +859,9 @@ function aoArquivo(input){
 
 function arquivos(){
   var out=[];
+  /* r96 — print da aprovação da CAIXA */
+  var selA=document.getElementById('c-creditoAprovadoCaixa');
+  if(CRED_LINK.arquivo && selA && selA.value==='SIM') out.push({rotulo:'Print da aprovação da CAIXA', arquivo:CRED_LINK.arquivo});
   document.querySelectorAll('#docs input[type=file]').forEach(function(el){
     for(var i=0;i<el.files.length;i++) out.push({rotulo:el.dataset.rotulo, arquivo:el.files[i]});
   });
@@ -875,7 +918,7 @@ function enviar(){
   var selC=document.getElementById('c-creditoAprovadoCaixa');
   if(selC && selC.value==='SIM'){
     var falta=[], aval=simLinkAval(), teto=aval*0.8, cred=simLinkNum('c-creditoAprovado');
-    if(!cred) falta.push('valor do crédito aprovado');
+    if(!cred || (Math.abs(cred-credOriginal())>0.5 && !CRED_LINK.ass)) falta.push('print da tela de aprovação da CAIXA (o crédito é lido dele)');
     if(!String((document.getElementById('c-correspondente')||{}).value||'').trim()) falta.push('correspondente');
     if(simLinkNum('sl-valorEntrada') < 10000) falta.push('valor para entrada (mínimo R$ 10.000,00)');
     if(!simLinkNum('sl-rendaTotal')) falta.push('renda total');
@@ -885,6 +928,7 @@ function enviar(){
     if(falta.length){ av.style.display='block'; av.className='aviso erro';
       av.innerHTML='Para registrar o crédito aprovado, informe: <b>'+falta.join(', ')+'</b>.'; return; }
     var sd=simLinkColetar(simula); Object.keys(sd).forEach(function(k){ campos[k]=sd[k]; });
+    campos.creditoAssinatura=CRED_LINK.ass;   // r96 — crédito lido do print
   }
 
 

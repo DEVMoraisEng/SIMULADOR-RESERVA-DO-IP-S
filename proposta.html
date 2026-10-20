@@ -172,6 +172,10 @@
   .prazo-opt small{color:var(--texto-suave);}
   .leitor{background:#FFFDF7;border:1px dashed var(--borda);border-radius:8px;padding:12px 14px;margin-bottom:14px;}
   .lst{font-size:12.5px;margin-top:4px;}
+  /* r96 — forma do sinal e print da aprovação */
+  .sinal-opts{flex-wrap:wrap;} .sinal-opts .prazo-opt{flex:1 1 130px;}
+  .anexo-aprov{display:block;margin:2px 0 6px;padding:9px 12px;border:2px dashed #E7C56A;border-radius:8px;background:#FFFBEF;color:var(--marrom);font-weight:700;font-size:13px;cursor:pointer;}
+  #printAprovacao{margin-bottom:6px;font-size:12px;}
   .lst.ok{color:#1D5433;font-weight:700;} .lst.err{color:#8A2E17;font-weight:800;display:block;margin-top:6px;padding:9px 12px;background:#FDECEA;border:1px solid #E2A493;border-left:4px solid #C0392B;border-radius:6px;font-size:13px;} .lst.lendo{color:#6B5A45;}
   input.lido{border-color:#8CC9A5 !important;background:#F3FAF6;}
   .aviso-grande{margin-top:6px;padding:6px 9px;border-radius:6px;background:#FCECEA;border:1px solid #F1C4BE;color:#9B2C22;font-size:12px;line-height:1.35;}
@@ -482,11 +486,25 @@
         <input type="text" name="subsidio" inputmode="numeric" placeholder="0,00"></div>
       <div class="campo"><label>Valor para entrada (R$)<span class="obrig">*</span></label>
         <input type="text" name="valorEntrada" inputmode="numeric" placeholder="10.000,00" value="10.000,00">
-        <span class="ajuda">Mínimo <b>R$ 10.000,00</b> — é o valor do <b>sinal</b> (R$ 1.000 no ato +
-        3 × R$ 3.000). O sinal pode ser <b>maior</b> conforme o crédito liberado e a análise da entrada.</span></div>
+        <span class="ajuda">Mínimo <b>R$ 10.000,00</b> para cobrir o sinal do fluxo padrão.</span></div>
       <div class="campo" id="boxCredito"><label>Crédito aprovado (R$)<span class="obrig">*</span></label>
-        <input type="text" name="creditoAprovado" inputmode="numeric" placeholder="0,00">
-        <span class="ajuda" id="ajudaCredito">O valor que o banco aprovou na análise.</span></div>
+        <!-- r96 (20/10/26) — o crédito vem SÓ do print da tela de aprovação da CAIXA (lido por IA, sem edição) -->
+        <label class="anexo-aprov" for="printAprovacao">📎 Anexar o print da tela de aprovação da CAIXA<span class="obrig">*</span></label>
+        <input type="file" id="printAprovacao" accept="image/*,application/pdf" onchange="aoAnexarAprovacao(this)">
+        <div id="lst-aprovacao" class="lst"></div>
+        <input type="text" name="creditoAprovado" inputmode="numeric" placeholder="lido do print" readonly tabindex="-1">
+        <span class="ajuda" id="ajudaCredito">O <b>Valor Financiamento</b> é lido do print automaticamente e não pode ser editado.</span></div>
+    </div>
+    <!-- r96 (20/10/26) — forma de pagamento do sinal -->
+    <div class="campo full" style="margin:4px 0 14px;">
+      <label>Como o cliente quer pagar o sinal<span class="obrig">*</span></label>
+      <div class="prazo-opts sinal-opts" id="sinalOpts">
+        <label class="prazo-opt"><input type="radio" name="sinalParcelas" value="1" onchange="montarFluxo()"><b>1x</b><small>à vista, no ato da assinatura</small></label>
+        <label class="prazo-opt"><input type="radio" name="sinalParcelas" value="2" onchange="montarFluxo()"><b>2x</b><small>R$ 1.000 no ato + 30 dias</small></label>
+        <label class="prazo-opt"><input type="radio" name="sinalParcelas" value="3" onchange="montarFluxo()"><b>3x</b><small>R$ 1.000 no ato + 30 e 60 dias</small></label>
+        <label class="prazo-opt"><input type="radio" name="sinalParcelas" value="4" onchange="montarFluxo()" checked><b>4x</b><small>R$ 1.000 no ato + 30, 60 e 90 dias</small></label>
+      </div>
+      <span class="ajuda">Em <b>1x</b> o sinal inteiro é pago <b>no ato</b> da assinatura do contrato. A forma não muda o valor total do sinal.</span>
     </div>
     <div id="avisoTeto" class="status processando" style="display:none;margin-bottom:10px"></div>
     <div class="linha">
@@ -887,106 +905,306 @@
     return Math.min(credito||0, teto);
   }
 
+  /* r96 (20/10/26) — mesma conta do worker e do Apps Script (fpcGerar, abaixo):
+     o valor de entrada paga primeiro o SINAL REAL e só o excedente abate o
+     fluxo; a forma do sinal (1x a 4x) vem dos botões do passo 2. */
+  function sinalEscolhido(){
+    var el=document.querySelector('#formProposta input[name="sinalParcelas"]:checked')||document.querySelector('input[name="sinalParcelas"]:checked');
+    return Number(el&&el.value)||4;
+  }
   function calcular(preco, credito, subsidio, fgts, entrada, dataRef, avaliacao){
     var financiado=financiadoReal(credito, avaliacao);
-    var bruta=(preco||0)-financiado;
-    var informado=entrada||0;
-    var paraSinais=Math.min(informado, VALOR_ENTRADA_MIN);     // paga os sinais
-    var excedente=Math.max(0, informado-VALOR_ENTRADA_MIN);     // abate a entrada
-    var recursos=(fgts||0)+(subsidio||0)+excedente;
-    var totalCalc=bruta-recursos;
-    var sobra = totalCalc<0 ? -totalCalc : 0;
-    /* r37 — O SINAL NUNCA É MENOR QUE R$ 10.000 (ato 1.000 + 3 × 3.000).
-       FGTS, subsídio e excedente abatem os DEMAIS itens da entrada. Se eles
-       deixariam a entrada abaixo de R$ 10.000 (ou zerada), o fluxo mantém o
-       sinal cheio e a diferença é DEVOLVIDA na assinatura com o banco. */
-    var devolucao = totalCalc<SINAIS_BASE ? SINAIS_BASE-Math.max(0,totalCalc) : 0;
-    var total=Math.max(totalCalc, SINAIS_BASE);
-
-    var ato=0, s3=0, g=0, t12=0, t1324=0, tpos=0;
-    if(total<=BASE_CHEIA+0.01){   // tolerância de centavos
-      ato=SINAL_ATO; s3=SINAL_MES;
-      g=(total-SINAIS_BASE)/(BASE_MEIO+BPOS);
-      t12=B12*g; t1324=B1324*g; tpos=BPOS*g;
-    } else {
-      ato=SINAL_ATO; tpos=BPOS;
-      g=(total-SINAL_ATO-BPOS)/(3*SINAL_MES+BASE_MEIO);
-      s3=SINAL_MES*g; t12=B12*g; t1324=B1324*g;
-    }
-    var fatorBaloes = total<=SINAIS_BASE ? 0 : g;
-
-    var meses=(dataRef.getFullYear()-2026)*12+((dataRef.getMonth()+1)-11);
-    var n1=Math.max(1,Math.min(12,12-Math.max(0,meses)));
-
-    // [quando, valor, descrição, grupo]
-    var fluxo=[];
-    if(ato>0.005)  fluxo.push(['Na assinatura', ato, 'Sinal / ato', 'sinal']);
-    if(s3>0.005){
-      fluxo.push(['30 dias', s3, 'Sinal 30 dias', 'sinal']);
-      fluxo.push(['60 dias', s3, 'Sinal 60 dias', 'sinal']);
-      fluxo.push(['90 dias', s3, 'Sinal 90 dias', 'sinal']);
-    }
-    if(t12/n1>0.005)   fluxo.push([n1+' X', t12/n1, 'Parcelas meses 1 a '+n1+' - DURANTE A OBRA', 'obra']);
-    if(t1324/12>0.005) fluxo.push(['12 X', t1324/12, 'Parcelas meses 13 a 24 - DURANTE A OBRA', 'obra']);
-    if(fatorBaloes>0) BALOES.forEach(function(b){
-      fluxo.push([b[0], b[1]*fatorBaloes, b[2], 'balao']);
-    });
-    if(tpos/24>0.005)  fluxo.push(['24 X', tpos/24, 'pós-chaves - PÓS A OBRA', 'pos']);
-
-    /* r42 — FECHAMENTO DE CENTAVOS.
-       Cada linha aparece arredondada em 2 casas, e 12 × R$ 1.380,18 não
-       devolve exatamente o valor da fatia: a soma do quadro ficava R$ 0,03
-       abaixo da entrada. Agora todas as linhas são arredondadas de fato e a
-       sobra/falta de centavos entra no ÚLTIMO balão (parcela única, onde
-       centavo nenhum se multiplica). */
-    (function fecharCentavos(){
-      function qtd(rot){ var m=String(rot).match(/^(\d+)\s*X$/i); return m?parseInt(m[1],10):1; }
-      var soma=0;
-      fluxo.forEach(function(x){
-        x[1]=Math.round(x[1]*100)/100;
-        soma+=x[1]*qtd(x[0]);
-      });
-      soma=Math.round(soma*100)/100;
-      var dif=Math.round((total-soma)*100)/100;
-      if(!dif) return;
-      // último balão; se não houver, a última linha de parcela única
-      var alvo=null;
-      for(var i=fluxo.length-1;i>=0;i--){
-        if(qtd(fluxo[i][0])===1 && fluxo[i][3]!=='sinal'){ alvo=fluxo[i]; break; }
-      }
-      if(!alvo){
-        for(var j=fluxo.length-1;j>=0;j--){ if(fluxo[j][3]!=='sinal'){ alvo=fluxo[j]; break; } }
-        if(!alvo) return;
-        alvo[1]=Math.round((alvo[1]+dif/qtd(alvo[0]))*100)/100;
-        return;
-      }
-      alvo[1]=Math.round((alvo[1]+dif)*100)/100;
-    })();
-
-    var sinaisTotal=ato+3*s3;
-    var cobertos=Math.min(paraSinais, sinaisTotal);
-    var faltaSinais=Math.max(0, sinaisTotal-cobertos);
-    var sobraSinais=Math.max(0, paraSinais-sinaisTotal);
-
-    return {total:total, fluxo:fluxo, n1:n1, bruta:bruta,
+    var g=fpcGerar({preco:preco, financiado:financiado, fgts:fgts, subsidio:subsidio, informado:entrada,
+                    nSinal:sinalEscolhido(), prazoEntrada:48, ano:dataRef.getFullYear(), mes:dataRef.getMonth()+1});
+    var rec=(fgts||0)+(subsidio||0)+g.excedente;
+    return {total:g.total, fluxo:g.fluxo, n1:g.n1, bruta:(preco||0)-financiado,
             financiado:financiado, credito:(credito||0),
             teto:tetoFinanciamento(avaliacao), avaliacao:(avaliacao||0),
             fgts:(fgts||0), subsidio:(subsidio||0),
-            entradaInformada:informado, paraSinais:paraSinais, excedente:excedente,
-            recursos:recursos, sobra:sobra,
-            sinaisTotal:sinaisTotal, sinaisCobertos:cobertos,
-            devolucao:devolucao, totalCalculado:totalCalc,
-            faltaSinais:faltaSinais, sobraSinais:sobraSinais,
-            saldoAposSinais:Math.max(0,total-sinaisTotal)};
+            entradaInformada:(entrada||0), paraSinais:g.sinaisCobertos, excedente:g.excedente,
+            recursos:rec, sobra:(g.totalCalculado<0?-g.totalCalculado:0),
+            sinaisTotal:g.sinaisTotal, sinaisCobertos:g.sinaisCobertos,
+            devolucao:g.devolucao, totalCalculado:g.totalCalculado,
+            faltaSinais:g.faltaSinais, sobraSinais:0, nSinal:g.nSinal,
+            saldoAposSinais:Math.max(0,g.total-g.sinaisTotal)};
+  }
+
+/* =====================================================================
+   * r96 (20/10/26) — FLUXO DA ENTRADA (mesma conta no worker, na simulação
+   * offline e na proposta)
+   *  • O valor de entrada do cliente paga primeiro o SINAL REAL da unidade
+   *    (R$ 10.000 no fluxo padrão; mais quando a entrada passa do padrão).
+   *    Só o que passar do sinal abate o restante do fluxo (pré e pós-chaves).
+   *  • Forma do sinal escolhida na simulação/proposta: 1x (à vista, no ato)
+   *    até 4x (R$ 1.000 no ato + 30/60/90 dias). O total do sinal não muda.
+   *  • Sinal nunca abaixo de R$ 10.000: se FGTS/subsídio deixariam a entrada
+   *    menor, a diferença é devolvida na assinatura com o banco.
+   * ------------------------------------------------------------------- */
+  var FPC_ATO = 1000, FPC_MES = 3000, FPC_SINAIS_BASE = 10000;
+  var FPC_BALOES = [['20/12/2027', 10000, 'Balão em dezembro/2027'], ['Entrega das chaves', 7000, 'Balão na entrega das chaves']];
+  var FPC_BALOES_BASE = 17000, FPC_M1A12 = 12 * 860, FPC_M13A24 = 12 * 330, FPC_POS_UNIT = 788.3332806666667;
+  var FPC_BASE_MEIO = FPC_BALOES_BASE + FPC_M1A12 + FPC_M13A24;
+  var FPC_BASE_CHEIA = FPC_SINAIS_BASE + FPC_BASE_MEIO + 24 * FPC_POS_UNIT;   // 60.200
+  var FPC_POS_PARCELAS = {24: 0, 36: 12, 48: 24};
+  
+  function fpcR2(v){ return Math.round((Number(v) || 0) * 100) / 100; }
+  function fpcQtd(q){ var m = String(q || '').match(/^(\d+)\s*X$/i); return m ? Number(m[1]) : 1; }
+  
+  /* o = {preco, financiado, fgts, subsidio, informado, nSinal (1..4), prazoEntrada, ano, mes (data de referência)} */
+  function fpcGerar(o){
+    var prazo = Number(o.prazoEntrada) || 48;
+    var nPos = FPC_POS_PARCELAS.hasOwnProperty(prazo) ? FPC_POS_PARCELAS[prazo] : 24;
+    var basePos = nPos * FPC_POS_UNIT, baseMeio = FPC_BASE_CHEIA - FPC_SINAIS_BASE - basePos;
+    var k = baseMeio / FPC_BASE_MEIO;
+    var bM1 = FPC_M1A12 * k, bM13 = FPC_M13A24 * k;
+    var nS = Math.max(1, Math.min(4, Math.round(Number(o.nSinal) || 4)));
+    var inf = Number(o.informado) || 0;
+    var B0 = (Number(o.preco) || 0) - (Number(o.financiado) || 0) - (Number(o.fgts) || 0) - (Number(o.subsidio) || 0);
+  
+    function sinalDe(T){
+      if(T <= FPC_BASE_CHEIA + 0.01) return FPC_SINAIS_BASE;
+      var g = (T - FPC_ATO - basePos) / (3 * FPC_MES + baseMeio);
+      return FPC_ATO + 3 * FPC_MES * g;
+    }
+    /* o valor de entrada paga o sinal real; só o excedente abate o fluxo */
+    var exc = 0, T = Math.max(B0, FPC_SINAIS_BASE);
+    for(var it = 0; it < 60; it++){
+      T = Math.max(B0 - exc, FPC_SINAIS_BASE);
+      var nv = Math.max(0, inf - sinalDe(T));
+      if(Math.abs(nv - exc) < 1e-7){ exc = nv; break; }
+      exc = nv;
+    }
+    T = Math.max(B0 - exc, FPC_SINAIS_BASE);
+    var calc = B0 - exc;
+    var devolucao = calc < FPC_SINAIS_BASE ? FPC_SINAIS_BASE - Math.max(0, calc) : 0;
+  
+    var ato, s3, g, t12, t1324, tpos;
+    if(T <= FPC_BASE_CHEIA + 0.01){
+      ato = FPC_ATO; s3 = FPC_MES;
+      g = (T - FPC_SINAIS_BASE) / (baseMeio + basePos);
+      t12 = bM1 * g; t1324 = bM13 * g; tpos = basePos * g;
+    } else {
+      ato = FPC_ATO; tpos = basePos;
+      g = (T - FPC_ATO - basePos) / (3 * FPC_MES + baseMeio);
+      s3 = FPC_MES * g; t12 = bM1 * g; t1324 = bM13 * g;
+    }
+    var fatorBaloes = T <= FPC_SINAIS_BASE ? 0 : g;
+    var meses = ((Number(o.ano) || 2026) - 2026) * 12 + ((Number(o.mes) || 11) - 11);
+    var n1 = Math.max(1, Math.min(12, 12 - Math.max(0, meses)));
+  
+    var S = ato + 3 * s3, fl = [];
+    if(nS === 1){
+      fl.push(['Na assinatura', S, 'Sinal à vista / ato', 'sinal']);
+    } else {
+      var cada = (S - FPC_ATO) / (nS - 1);
+      fl.push(['Na assinatura', FPC_ATO, 'Sinal / ato', 'sinal']);
+      [30, 60, 90].slice(0, nS - 1).forEach(function(d){ fl.push([d + ' dias', cada, 'Sinal ' + d + ' dias', 'sinal']); });
+    }
+    if(t12 / n1 > 0.005) fl.push([n1 + ' X', t12 / n1, 'Parcelas meses 1 a ' + n1 + ' - DURANTE A OBRA', 'obra']);
+    if(t1324 / 12 > 0.005) fl.push(['12 X', t1324 / 12, 'Parcelas meses 13 a 24 - DURANTE A OBRA', 'obra']);
+    if(fatorBaloes > 0) FPC_BALOES.forEach(function(b){ fl.push([b[0], b[1] * k * fatorBaloes, b[2], 'balao']); });
+    if(nPos && tpos / nPos > 0.005) fl.push([nPos + ' X', tpos / nPos, 'pós-chaves - PÓS A OBRA', 'pos']);
+  
+    /* fecha os centavos no último balão (ou na última linha que não é sinal) */
+    fl.forEach(function(x){ x[1] = fpcR2(x[1]); });
+    var soma = fpcR2(fl.reduce(function(s, x){ return s + x[1] * fpcQtd(x[0]); }, 0));
+    var dif = fpcR2(T - soma);
+    if(dif){
+      var alvo = -1, i;
+      for(i = fl.length - 1; i >= 0; i--) if(fl[i][3] !== 'sinal' && fpcQtd(fl[i][0]) === 1){ alvo = i; break; }
+      if(alvo < 0) for(i = fl.length - 1; i >= 0; i--) if(fl[i][3] !== 'sinal'){ alvo = i; break; }
+      if(alvo < 0) alvo = fl.length - 1;
+      if(alvo >= 0) fl[alvo][1] = fpcR2(fl[alvo][1] + dif / fpcQtd(fl[alvo][0]));
+    }
+    var sinaisTotal = fpcR2(fl.filter(function(x){ return x[3] === 'sinal'; })
+      .reduce(function(s, x){ return s + x[1] * fpcQtd(x[0]); }, 0));
+    var cobertos = fpcR2(Math.min(inf, sinaisTotal));
+    return {total: fpcR2(T), entradaCliente: fpcR2(B0), fluxo: fl, n1: n1, nPos: nPos, nSinal: nS,
+            devolucao: fpcR2(devolucao), totalCalculado: calc, excedente: fpcR2(Math.max(0, inf - sinaisTotal)),
+            sinaisTotal: sinaisTotal, sinaisCobertos: cobertos, faltaSinais: fpcR2(Math.max(0, sinaisTotal - cobertos))};
+  }
+
+  /* =====================================================================
+   * r96 (20/10/26) — COMPOSIÇÃO DO FLUXO DE PAGAMENTO + FLUXO DE PAGAMENTO
+   * (SINAL · PRÉ-CHAVES · PÓS-CHAVES) — mesmo bloco no e-mail da proposta,
+   * no e-mail da simulação (offline e worker), no portal e na tela da proposta.
+   * ---------------------------------------------------------------------
+   *  1) COMPOSIÇÃO: valor do imóvel − financiado − FGTS − subsídio − valor de
+   *     entrada do cliente = ENTRADA TOTAL (o que fica para pagar no fluxo).
+   *  2) FLUXO DE PAGAMENTO num quadro só: SINAL, PRÉ-CHAVES e PÓS-CHAVES.
+   *     O valor de entrada do cliente paga primeiro o SINAL (na ordem
+   *     ato → 30 → 60 → 90); o que passa do sinal abate o pré e o pós-chaves.
+   *     O sinal aparece para mostrar para onde foi o dinheiro: a parte paga
+   *     fica verde ("já abatido"); o que falta, em vermelho, com a data.
+   *  fpResumo_(o) faz a conta; fpHtml_(c, opc) monta o HTML (estilo inline,
+   *  serve para e-mail e tela). ES5 puro: roda no Apps Script e no navegador.
+   *  o = {preco, financiado, fgts, subsidio, informado, devolucao,
+   *       fluxo:[{quando, valor (número, por parcela), desc, grupo, i?, dilTxt?}]}
+   * ------------------------------------------------------------------- */
+  var FP_SINAL_PADRAO_ = 10000;
+  function fpR2_(v){ return Math.round((Number(v) || 0) * 100) / 100; }
+  function fpQtd_(q){ var m = String(q || '').match(/^(\d+)\s*X$/i); return m ? Number(m[1]) : 1; }
+  function fpEsc_(s){ return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function fpBrl_(v){
+    var n = fpR2_(v), neg = n < 0, s = Math.abs(n).toFixed(2).split('.');
+    return (neg ? '-' : '') + 'R$ ' + s[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + s[1];
+  }
+  function fpLimpa_(t){
+    return String(t || '').replace(/\s*-\s*DURANTE A OBRA/i, '').replace(/\s*-\s*P[OÓ]S A OBRA/i, '')
+      .replace(/\s*-\s*pago com o valor para entrada/i, '');
+  }
+  /* "À vista no ato" / "4x — R$ 1.000,00 no ato + 30, 60 e 90 dias" */
+  function fpFormaSinal_(sinais, B){
+    B = B || fpBrl_;
+    var n = sinais.length;
+    if(!n) return '';
+    if(n === 1) return 'à vista — 1x, no ato da assinatura';
+    var dias = sinais.slice(1).map(function(x){ return String(x.quando).replace(/\s*dias?/i, ''); });
+    var ult = dias.pop();
+    return n + 'x — ' + B(Number(sinais[0].valor)) + ' no ato + ' + (dias.length ? dias.join(', ') + ' e ' : '') + ult + ' dias';
+  }
+  
+  function fpResumo_(o){
+    var preco = Number(o.preco) || 0, fin = Number(o.financiado) || 0;
+    var fgts = Number(o.fgts) || 0, sub = Number(o.subsidio) || 0, inf = Number(o.informado) || 0;
+    var fluxo = (o.fluxo || []).filter(function(x){ return x && (Number(x.valor) || 0) > 0.004; });
+    var soma = function(arr){ return fpR2_(arr.reduce(function(s, x){ return s + Number(x.valor) * fpQtd_(x.quando); }, 0)); };
+    var sinais = fluxo.filter(function(x){ return x.grupo === 'sinal'; });
+    var pre = fluxo.filter(function(x){ return x.grupo === 'obra' || x.grupo === 'balao' || x.grupo === 'outro'; });
+    var pos = fluxo.filter(function(x){ return x.grupo === 'pos'; });
+    var S = soma(sinais), P = soma(pre), Q = soma(pos);
+    /* o valor de entrada paga o sinal primeiro; o que passa dele abate pré/pós */
+    var cobertos = fpR2_(Math.min(inf, S)), falta = fpR2_(Math.max(0, S - cobertos));
+    var exc = fpR2_(Math.max(0, inf - S));
+    var resta = cobertos, linhas = [], faltaEm = [];
+    sinais.forEach(function(x){
+      var v = fpR2_(Number(x.valor) * fpQtd_(x.quando)), p = fpR2_(Math.min(v, Math.max(0, resta)));
+      resta = fpR2_(resta - p);
+      var fl = fpR2_(v - p);
+      linhas.push({quando: x.quando, desc: x.desc, valor: v, pago: p, falta: fl});
+      if(fl > 0.004) faltaEm.push(x.quando);
+    });
+    var E = fpR2_(preco - fin - fgts - sub - inf);
+    var devol = fpR2_(o.devolucao);
+    return {preco: preco, fin: fin, fgts: fgts, sub: sub, informado: inf,
+            entradaCliente: fpR2_(preco - fin - fgts - sub), E: E, devol: devol,
+            sinais: sinais, pre: pre, pos: pos, S: S, P: P, Q: Q, total: fpR2_(S + P + Q),
+            cobertos: cobertos, falta: falta, exc: exc, sinalLinhas: linhas, faltaEm: faltaEm,
+            aPagar: fpR2_(falta + P + Q), nSinal: sinais.length};
+  }
+  
+  /* opc = {B (formatador), notaFinanciado, subsidioNota, mudou (array de i alterados), titulo} */
+  function fpHtml_(c, opc){
+    opc = opc || {};
+    var B = opc.B || fpBrl_, esc = fpEsc_;
+    var TD = 'border:1px solid #E7DCC7;padding:6px 10px';
+    var TAB = '<table style="border-collapse:collapse;width:100%;font-size:13px">';
+    var VERDE = 'background:#EAF6EF;color:#1D5433', VERM = 'background:#FDECEA;color:#8A2E17';
+    var mudou = opc.mudou || [];
+    function linha(c1, c2, c3, est){
+      est = est || '';
+      return '<tr><td style="' + TD + ';' + est + '">' + c1 + '</td>' +
+        '<td style="' + TD + ';text-align:right;white-space:nowrap;' + est + '">' + c2 + '</td>' +
+        '<td style="' + TD + ';color:#6B5A45;font-size:12px;' + est + '">' + (c3 || '') + '</td></tr>';
+    }
+    function grupo(t, v, cor){
+      return '<tr><td colspan="2" style="' + TD + ';background:' + cor + ';color:#fff;font-weight:800;font-size:12px">' + t + '</td>' +
+        '<td style="' + TD + ';background:' + cor + ';color:#fff;font-weight:800;text-align:right;white-space:nowrap">' + v + '</td></tr>';
+    }
+    function titulo(t){ return '<h3 style="color:#7A4A16;font-size:14px;margin:18px 0 6px">' + t + '</h3>'; }
+    function selo(t, cor){ return ' <span style="display:inline-block;background:' + cor + ';color:#fff;border-radius:9px;padding:1px 7px;font-size:10px;font-weight:800">' + t + '</span>'; }
+    function valorLinha(x){ var q = fpQtd_(x.quando); return (q > 1 ? q + ' × ' : '') + B(Number(x.valor)); }
+  
+    /* 1) COMPOSIÇÃO DO FLUXO DE PAGAMENTO */
+    var notaEnt = !c.informado ? 'não informado'
+      : (c.falta > 0.005 ? 'cobre ' + B(c.cobertos) + ' do sinal'
+        : 'paga o sinal (' + B(c.cobertos) + ')' + (c.exc > 0.005 ? ' e abate ' + B(c.exc) + ' do pré e pós-chaves' : ''));
+    var h = titulo('COMPOSIÇÃO DO FLUXO DE PAGAMENTO') + TAB +
+      linha('Valor do imóvel', B(c.preco), '') +
+      linha('(−) Valor financiado pela Caixa', B(c.fin), opc.notaFinanciado || '') +
+      linha('(−) FGTS', B(c.fgts), c.fgts ? 'titular + cônjuge' : 'sem FGTS informado') +
+      linha('(−) Subsídio', B(c.sub), opc.subsidioNota || (c.sub ? '' : 'sem subsídio')) +
+      linha('(−) Valor de entrada do cliente', B(c.informado), notaEnt, 'color:#7A4A16;font-weight:700') +
+      linha('<b>= ENTRADA TOTAL</b>', '<b>' + B(Math.max(0, c.E)) + '</b>',
+        'o que fica para pagar no fluxo abaixo (restante do sinal + pré-chaves + pós-chaves)', 'background:#FBEEC8;color:#5A3A0B') +
+      (c.devol > 0.005 ? linha('Diferença devolvida ao cliente', B(c.devol), 'no ato da assinatura do contrato com o banco', 'background:#FBEEC8;color:#7A4A16') : '') +
+      '</table>';
+  
+    /* 2) explicação do valor de entrada × sinal */
+    var forma = fpFormaSinal_(c.sinais, B), txt;
+    if(!c.informado){
+      txt = 'Nenhum valor de entrada foi informado. O sinal de <b>' + B(c.S) + '</b> (' + forma + ') é pago inteiro nas datas abaixo.';
+    } else if(c.falta > 0.005){
+      txt = 'O valor de entrada do cliente (<b>' + B(c.informado) + '</b>) vai primeiro para o <b>sinal</b>, que nesta unidade é de <b>' +
+        B(c.S) + '</b> (' + forma + '). Ele cobre <b>' + B(c.cobertos) + '</b>; <b>faltam ' + B(c.falta) + '</b>, que o cliente paga em: <b>' +
+        esc(c.faltaEm.join(', ')) + '</b> (em vermelho abaixo). Se quiser, o cliente pode <b>antecipar</b> essas parcelas.';
+    } else {
+      txt = 'O valor de entrada do cliente (<b>' + B(c.informado) + '</b>) vai primeiro para o <b>sinal</b> de <b>' + B(c.S) + '</b> (' + forma +
+        ') e <b>cobre o sinal inteiro</b>: o sinal já está abatido e aparece abaixo só para mostrar para onde foi esse valor. ' +
+        'O pagamento pode seguir as datas do sinal ou ser <b>antecipado</b>.' +
+        (c.exc > 0.005 ? ' Os <b>' + B(c.exc) + '</b> que passaram do sinal foram usados para <b>abater o pré-chaves e o pós-chaves</b>.' : '');
+    }
+    var ok = c.falta <= 0.005;
+    h += titulo('FLUXO DE PAGAMENTO — SINAL · PRÉ-CHAVES · PÓS-CHAVES') +
+      '<div style="margin:0 0 8px;padding:12px 14px;' + (ok ? VERDE + ';border:1px solid #8CC9A5;border-left:4px solid #2E8B57'
+        : 'background:#FFF4F1;color:#7A2A17;border:1px solid #E3A79B;border-left:4px solid #C0392B') +
+      ';border-radius:6px;font-size:13px;line-height:1.6">' + txt + '</div>';
+  
+    var t = TAB + grupo('FLUXO DE PAGAMENTO (sinal + pré-chaves + pós-chaves)', B(c.total), '#5A3A0B');
+    /* SINAL */
+    t += grupo('1 · SINAL — ' + esc(forma), B(c.S), '#2E8B57');
+    c.sinalLinhas.forEach(function(x){
+      var st, est;
+      if(x.falta <= 0.004){ st = '✓ já abatido pelo valor de entrada'; est = VERDE; }
+      else if(x.pago > 0.004){ st = '<b>⚠ ' + B(x.pago) + ' abatido · faltam ' + B(x.falta) + '</b> — o cliente paga nesta data'; est = VERM; }
+      else { st = '<b>⚠ o cliente paga nesta data</b>'; est = VERM; }
+      t += linha(esc(x.quando) + ' — ' + esc(fpLimpa_(x.desc)), B(x.valor), st, est);
+    });
+    if(c.cobertos > 0.005) t += linha('<b>Abatido pelo valor de entrada do cliente</b>', '<b>' + B(c.cobertos) + '</b>', '', VERDE);
+    if(c.falta > 0.005) t += linha('<b>Falta pagar do sinal</b>', '<b>' + B(c.falta) + '</b>', 'nas datas em vermelho', VERM);
+    /* PRÉ-CHAVES */
+    t += grupo('2 · PRÉ-CHAVES — durante a obra', B(c.P), '#1F6FB2');
+    if(!c.pre.length) t += linha('Sem parcelas pré-chaves', '—', '');
+    c.pre.forEach(function(x){
+      var m = x.i != null && mudou.indexOf(x.i) >= 0;
+      t += linha(esc(x.quando), valorLinha(x),
+        esc(fpLimpa_(x.desc)) + (x.grupo === 'balao' ? selo('BALÃO', '#A86018') : selo('DURANTE A OBRA', '#1F6FB2')) +
+        (m && x.dilTxt ? '<br><b style="color:#1D5433">' + esc(x.dilTxt) + '</b>' : ''), m ? VERDE + ';font-weight:700' : '');
+    });
+    /* PÓS-CHAVES */
+    t += grupo('3 · PÓS-CHAVES — depois da entrega', B(c.Q), '#5B4A8A');
+    if(!c.pos.length) t += linha('Sem parcelas pós-chaves neste prazo', '—', '');
+    c.pos.forEach(function(x){ t += linha(esc(x.quando), valorLinha(x), esc(fpLimpa_(x.desc)) + selo('PÓS A OBRA', '#5B4A8A')); });
+    /* abatimento e fechamento */
+    if(c.exc > 0.005) t += linha('Valor de entrada acima do sinal — abatido no pré e pós-chaves', B(c.exc),
+      'os valores acima já estão com esse abatimento', VERDE);
+    var CT = 'background:#FFFDF7;color:#5C4A1C';
+    t += linha('Total do fluxo (sinal + pré-chaves + pós-chaves)', B(c.total), '', CT) +
+      linha('(−) Sinal já pago com o valor de entrada', B(c.cobertos), '', CT) +
+      linha('<b>= A pagar no fluxo (entrada total)</b>', '<b>' + B(c.aPagar) + '</b>',
+        (c.falta > 0.005 ? 'restante do sinal + ' : '') + 'pré-chaves + pós-chaves', 'background:#FBEEC8;color:#5A3A0B') + '</table>';
+    h += t;
+  
+    if(c.S > FP_SINAL_PADRAO_ + 0.005){
+      h += '<div style="margin:12px 0;padding:12px 14px;background:#FDECEA;border:1px solid #E3A79B;border-radius:6px;color:#8A2E17;font-size:13px">' +
+        '<b>Sinal acima do padrão.</b> A entrada desta unidade ficou acima do fluxo padrão, então o sinal subiu para <b>' + B(c.S) +
+        '</b> (no fluxo padrão ele é de ' + B(FP_SINAL_PADRAO_) + ').</div>';
+    }
+    if(c.devol > 0.005){
+      h += '<div style="margin:12px 0;padding:12px 14px;background:#FBEEC8;border:1px solid #EFB700;border-radius:6px;color:#7A4A16;font-size:13px">' +
+        '<b>O sinal de R$ 10.000,00 é mantido.</b><br>FGTS e subsídio cobririam a entrada abaixo desse valor, mas o sinal nunca fica menor que ' +
+        'R$ 10.000,00. <b>A diferença de ' + B(c.devol) + ' será devolvida ao cliente no ato da assinatura do contrato com o banco.</b></div>';
+    }
+    h += '<p style="margin:8px 0 0;padding:8px 10px;background:#FBEEC8;border-left:3px solid #EFB700;font-size:12px;color:#7A4A16">' +
+      '<b>Atenção:</b> As parcelas e os valores do fluxo podem sofrer alteração de acordo com a data de assinatura do contrato.</p>';
+    return h;
   }
 
   /* Texto gravado em ESQUEMA ENTRADA (e lido pelo e-mail, pelo portal e pelo
      PDF). Formato: "quando: R$ x (descrição)" separados por ";". */
   function esquemaTexto(q){
     return q.fluxo.map(function(x){
-      var d=x[2];
-      if(x[3]==='sinal') d+=' - pago com o valor para entrada';
-      return x[0]+': '+brl(x[1])+' ('+d+')';
+      return x[0]+': '+brl(x[1])+' ('+x[2]+')';   // r96: sinal sem "pago com o valor para entrada"
     }).join('; ');
   }
 
@@ -1065,93 +1283,16 @@
     verBlocoSiop();
     alvo.dataset.esquema=esquemaTexto(q);
 
-    /* ---- ITEM 15: quadro dos sinais, em destaque ---- */
-    var linhaFalta = q.faltaSinais>0.005
-      ? '<tr class="falta"><td>⚠ Falta pagar do sinal</td><td class="num">'+brl(q.faltaSinais)+'</td></tr>'
-      : '<tr class="okk"><td>✓ Sinal coberto pelo valor para entrada</td><td class="num">'+brl(q.sinaisCobertos)+'</td></tr>';
-    var nota = q.faltaSinais>0.005
-      ? 'A entrada desta unidade está <b>acima do padrão</b>, então as parcelas do sinal de 30/60/90 dias subiram '+
-        '(ficaram em '+brl(q.sinaisTotal-SINAL_ATO>0?(q.sinaisTotal-SINAL_ATO)/3:0)+' cada). '+
-        'Os R$ 10.000 do valor para entrada não cobrem tudo: <b>faltam '+brl(q.faltaSinais)+'</b>. '+
-        'A proposta segue assim para a Morais decidir.'
-      : (q.sobraSinais>0.005
-        ? 'A entrada é pequena e os sinais somam só '+brl(q.sinaisTotal)+'. '+
-          'Do valor para entrada, <b>'+brl(q.sobraSinais)+'</b> não seriam necessários.'
-        : 'O valor para entrada é o valor do sinal (R$ 1.000 no ato + 3 × R$ 3.000).');
-    var quadroSinais =
-      '<div class="sinais"><div class="cab">SINAL × VALOR PARA ENTRADA</div><table>'+
-      '<tr><td>Sinal (ato + 30/60/90 dias)</td><td class="num">'+brl(q.sinaisTotal)+'</td></tr>'+
-      '<tr><td>(–) Valor para entrada destinado ao sinal</td><td class="num">'+brl(q.paraSinais)+'</td></tr>'+
-      linhaFalta+
-      (q.excedente>0.005 ? '<tr><td>Excedente do valor para entrada (acima de R$ 10.000) — abatido da entrada</td>'+
-        '<td class="num">'+brl(q.excedente)+'</td></tr>' : '')+
-      '</table><div class="nota">'+nota+'</div></div>';
-
-    if(resumo){
-      resumo.innerHTML='<div class="resumo" style="margin:10px 0 0">'+
-        '<b>Entrada total: '+brl(q.total)+'</b><br>'+
-        'Valor de venda '+brl(u.valorVenda)+' − financiado '+brl(q.financiado)+
-        (q.fgts?' − FGTS '+brl(q.fgts):'')+
-        (q.subsidio?' − subsídio '+brl(q.subsidio):'')+
-        (q.excedente?' − excedente do valor para entrada '+brl(q.excedente):'')+'.<br>'+
-        'Depois do sinal, ficam <b>'+brl(q.saldoAposSinais)+'</b> em parcelas durante a obra, balões e pós-chaves.'+
-        '</div>'+quadroSinais+avisoDevolucao(q);
-    }
-
-    var cab='<table class="tabfluxo">'+
-      '<tr><td>Valor de venda</td><td class="num">'+brl(u.valorVenda)+'</td><td></td></tr>'+
-      '<tr><td>(–) Valor financiado pela Caixa</td><td class="num">'+brl(q.financiado)+'</td>'+
-      '<td><small>'+(q.credito>q.teto&&q.teto?'limitado ao teto de 80% da avaliação':'crédito aprovado')+'</small></td></tr>'+
-      '<tr><td><b>= Entrada</b></td><td class="num">'+brl(q.bruta)+'</td><td></td></tr>'+
-      (q.fgts?'<tr><td>(–) FGTS (titular + cônjuge)</td><td class="num">'+brl(q.fgts)+'</td><td></td></tr>':'')+
-      (q.subsidio?'<tr><td>(–) Subsídio</td><td class="num">'+brl(q.subsidio)+'</td><td></td></tr>':'')+
-      (q.excedente?'<tr><td>(–) Valor para entrada acima de R$ 10.000</td><td class="num">'+brl(q.excedente)+
-        '</td><td><small>só o excedente abate</small></td></tr>':'')+
-      '<tr class="tot"><td>= ENTRADA TOTAL A PAGAR</td><td class="num">'+brl(q.total)+'</td>'+
-      '<td><small>'+(q.fluxo.length?'dividida no fluxo abaixo':'—')+'</small></td></tr>';
-
-    var grupos={sinal:'SINAL — abatido pelo valor para entrada (ato → 30 → 60 → 90 dias)', obra:'PARCELAS DURANTE A OBRA',
-                balao:'BALÕES', pos:'PÓS-CHAVES — PÓS A OBRA'};
-    var ultimo='';
-    /* r36 — abatimento do sinal, linha a linha, na ordem ato → 30 → 60 → 90 */
-    var restoS=q.paraSinais, ultS=-1, faltasS=[];
-    q.fluxo.forEach(function(x,i){
-      if(x[3]!=='sinal') return;
-      ultS=i;
-      var ab=Math.min(x[1],Math.max(0,restoS)); restoS-=ab;
-      x.abatido=ab; x.falta=Math.round((x[1]-ab)*100)/100;
-      if(x.falta>0.005) faltasS.push(x[0]);
-    });
-    var linhas=q.fluxo.map(function(x,idx){
-      var g='';
-      if(x[3]!==ultimo){ g='<tr class="grupo"><td colspan="3">'+grupos[x[3]]+'</td></tr>'; ultimo=x[3]; }
-      var tag = x[3]==='obra' ? '<span class="tag-obra">DURANTE A OBRA</span>'
-              : (x[3]==='pos' ? '<span class="tag-pos">PÓS A OBRA</span>'
-              : (x[3]==='sinal' ? '<span class="tag-sinal">VALOR P/ ENTRADA</span>' : ''));
-      var desc = x[2].replace(' - DURANTE A OBRA','').replace(' - PÓS A OBRA','');
-      var situ='', est='';
-      if(x[3]==='sinal'){
-        if(x.falta<=0.005) situ='<br><small style="color:#1D5433;font-weight:700">✓ abatido pelo valor para entrada</small>';
-        else {
-          est=' class="lfalta"';
-          situ = x.abatido>0.005
-            ? '<br><small style="color:#8A2E17;font-weight:800">⚠ abatido '+brl(x.abatido)+' · FALTA '+brl(x.falta)+'</small>'
-            : '<br><small style="color:#8A2E17;font-weight:800">⚠ FALTA '+brl(x.falta)+' — não coberto</small>';
-        }
-      }
-      var fecho='';
-      if(idx===ultS){
-        fecho = faltasS.length
-          ? '<tr class="lfalta"><td colspan="3"><b>⚠ O valor para entrada ('+brl(q.paraSinais)+') não cobre o sinal inteiro ('+
-            brl(q.sinaisTotal)+'). Faltam '+brl(q.faltaSinais)+', nas últimas parcelas do sinal: '+faltasS.join(', ')+'.</b></td></tr>'
-          : '<tr><td colspan="3"><small style="color:#1D5433;font-weight:700">✓ O valor para entrada ('+brl(q.paraSinais)+
-            ') abate todo o sinal ('+brl(q.sinaisTotal)+').</small></td></tr>';
-      }
-      return g+'<tr'+est+'><td>'+x[0]+'</td><td class="num">'+brl(x[1])+'</td><td><small>'+desc+'</small>'+tag+situ+'</td></tr>'+fecho;
-    }).join('');
-
-    var recado=avisoDevolucao(q);
-    alvo.innerHTML=cab+linhas+'</table>'+recado;
+    /* r96 (20/10/26) — COMPOSIÇÃO DO FLUXO DE PAGAMENTO + FLUXO DE PAGAMENTO
+       (sinal · pré-chaves · pós-chaves): o mesmo quadro do e-mail. */
+    var c=fpResumo_({preco:u.valorVenda, financiado:q.financiado, fgts:q.fgts, subsidio:q.subsidio,
+      informado:q.entradaInformada, devolucao:q.devolucao,
+      fluxo:q.fluxo.map(function(x){ return {quando:x[0], valor:x[1], desc:x[2], grupo:x[3]}; })});
+    var nota = q.credito>q.teto&&q.teto ? 'crédito de '+brl(q.credito)+' limitado a 80% da avaliação'
+             : (comCredito ? 'crédito aprovado (print da CAIXA)' : 'ESTIMATIVA — sem crédito aprovado (teto de 80%)');
+    if(resumo) resumo.innerHTML='<div class="quadro-fluxo">'+fpHtml_(c,{notaFinanciado:nota})+'</div>';
+    alvo.innerHTML='';
+    var det=alvo.closest('details'); if(det) det.style.display='none';
   }
 
   /* ITENS 12 e 13 — teto de 80% e de onde vem a parcela.
@@ -1290,6 +1431,49 @@
     if(com && (ap==='AUDICRED'||ap==='AMAZONAS')) return {correspondente:ap, preferido:''};
     return {correspondente:'', preferido:pr};
   }
+  /* r96 (20/10/26) — CRÉDITO APROVADO SÓ PELO PRINT DA CAIXA. O print é lido
+     (mesmo leitor dos documentos) e o "Valor Financiamento" entra no campo,
+     que fica travado. O servidor só aceita o valor com a assinatura da leitura. */
+  var PAPROV={arquivos:[], assinatura:'', valor:0};
+  function limparAprovacao(){
+    PAPROV={arquivos:[], assinatura:'', valor:0};
+    var f=F(); if(f.creditoAprovado){ f.creditoAprovado.value=''; f.creditoAprovado.classList.remove('lido'); }
+    var st=document.getElementById('lst-aprovacao'); if(st){ st.className='lst'; st.textContent=''; }
+  }
+  function aoAnexarAprovacao(input){
+    var arqs=Array.prototype.slice.call(input.files||[]);
+    limparAprovacao();
+    PAPROV.arquivos=arqs;
+    var st=document.getElementById('lst-aprovacao');
+    if(!arqs.length){ montarFluxo(); return; }
+    st.className='lst lendo'; st.textContent='Lendo o print da aprovação…';
+    prepararLeitura(arqs[0]).then(function(pre){
+      if(!pre) throw {semLeitura:'Arquivo grande demais ou em formato que não dá para ler.'};
+      return apiPost({acao:'lerDocumento', tipo:'APROVACAO_CAIXA', quem:'proponente', arquivo:pre});
+    }).then(function(r){
+      if(PAPROV.arquivos[0]!==arqs[0]) return;   // trocou o arquivo no meio da leitura
+      var c=(r&&r.campos)||{}, v=Number(c.valorNumero)||0;
+      if(r && r.ok && r.lido && r.assinatura && v>0){
+        PAPROV.valor=v; PAPROV.assinatura=r.assinatura;
+        var f=F();
+        f.creditoAprovado.value=v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+        f.creditoAprovado.classList.add('lido');
+        st.className='lst ok';
+        st.innerHTML='✓ Print lido — Valor Financiamento <b>'+brl(v)+'</b>'+
+          (c.cliente?' · '+esc_(c.cliente):'')+(c.resultado?' · '+esc_(c.resultado):'')+'. Confira com o print.';
+      } else {
+        st.className='lst err';
+        st.innerHTML='Não consegui ler o <b>Valor Financiamento</b> neste arquivo. Anexe um print nítido da tela de aprovação da CAIXA, '+
+          'com o campo "Valor Financiamento" à mostra.';
+      }
+      montarFluxo();
+    }).catch(function(e){
+      if(PAPROV.arquivos[0]!==arqs[0]) return;
+      st.className='lst err';
+      st.innerHTML=(e&&e.semLeitura?e.semLeitura+' ':'A leitura do print não respondeu agora. ')+'Tente anexar de novo — sem a leitura não dá para registrar o crédito aprovado.';
+      montarFluxo();
+    });
+  }
   function verCredito(){
     var com = F().creditoAprovadoCaixa.value==='SIM';
     document.getElementById('boxCredito').style.display = com ? '' : 'none';
@@ -1301,7 +1485,7 @@
       bs.style.display = com ? '' : 'none';
       if(!com) F().subsidio.value='';
     }
-    if(!com){ F().creditoAprovado.value=''; }
+    if(!com){ limparAprovacao(); var pa=document.getElementById('printAprovacao'); if(pa) pa.value=''; }
     verCorresp();
     if(F().maisDeUmComprador && F().maisDeUmComprador.checked) montarDependentes();   // asterisco do comprador
     montarFluxo();
@@ -1815,6 +1999,7 @@
     (raiz||document).querySelectorAll('input[type=file]').forEach(function(el){
       if(el.dataset.naCk) return;
       if(el.id==='ax-docCreci' || el.id==='ax5-creci' || el.id==='ax-outros') return;      // opcionais
+      if(el.id==='printAprovacao') return;   // r96 — o print da aprovação da CAIXA é obrigatório
       if(el.closest('#campos-proponente,#campos-conjuge')) return;                         // já têm "Não anexar agora" na lista
       el.dataset.naCk='1';
       var k=chaveNaoAnexar(el);
@@ -1834,6 +2019,9 @@
   }
   function arquivosAnexados(){
     var out=[];
+    /* r96 — print da tela de aprovação da CAIXA (crédito aprovado) */
+    if(F().creditoAprovadoCaixa.value==='SIM')
+      PAPROV.arquivos.forEach(function(a){ out.push({rotulo:'Print da aprovação da CAIXA', arquivo:a}); });
     /* r66 — o que foi anexado na página 1 (proponente / cônjuge) entra junto */
     ['proponente','conjuge','endereco'].forEach(function(q){
       if(q==='conjuge' && document.getElementById('boxConjuge').style.display==='none') return;
@@ -2225,8 +2413,8 @@
           }
         }
       }
-      if(f.creditoAprovadoCaixa.value==='SIM' && !moeda(f.creditoAprovado.value))
-        return erro('Informe o <b>crédito aprovado</b> pelo banco.', f.creditoAprovado);
+      if(f.creditoAprovadoCaixa.value==='SIM' && (!PAPROV.assinatura || !moeda(f.creditoAprovado.value)))
+        return erro('Anexe o <b>print da tela de aprovação da CAIXA</b> — o crédito aprovado é lido dele automaticamente.', document.getElementById('printAprovacao'));
       var u2=unidadeAtual(), teto2=(u2&&u2.avaliacao||0)*0.8;
       var vaiSimular = teto2>0 && (f.creditoAprovadoCaixa.value==='NAO' ||
                        moeda(f.creditoAprovado.value) >= teto2-0.5);
@@ -2382,7 +2570,7 @@
       var el=F()[nome]; if(!el) return;
       el.addEventListener('input',function(e){ e.target.value=fmtTel(e.target.value); });
     });
-    ['rendaAprovada','saldoFgts','subsidio','valorEntrada','creditoAprovado',
+    ['rendaAprovada','saldoFgts','subsidio','valorEntrada',
      'saldoFgtsConjuge','rendaAprovadaConjuge','parcelaFinanciamento']
       .forEach(function(nome){
         var el=F()[nome]; if(!el) return;
@@ -2582,6 +2770,8 @@
       parcelaFinanciamento:moeda(f.parcelaFinanciamento.value),
       saldoFgts:moeda(f.saldoFgts.value), subsidio:moeda(f.subsidio.value),
       valorEntrada:moeda(f.valorEntrada.value), creditoAprovado:moeda(f.creditoAprovado.value),
+      creditoAssinatura:(f.creditoAprovadoCaixa.value==='SIM' ? PAPROV.assinatura : ''),   // r96 — crédito lido do print
+      sinalParcelas:sinalEscolhido(),   // r96 — forma do sinal
       banco:padrao(f.banco.value), prazo:f.prazo.value, dataRef:f.dataRef.value,
       modoSiop:(f.modoSiop ? f.modoSiop.value : ''),   /* r64 — teste ONLINE/OFFLINE */
       sistemaAmortizacao:f.sistemaAmortizacao.value,

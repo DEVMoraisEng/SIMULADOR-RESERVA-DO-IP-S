@@ -1093,7 +1093,9 @@
             aPagar: fpR2_(falta + P + Q), nSinal: sinais.length};
   }
   
-  /* opc = {B (formatador), notaFinanciado, subsidioNota, mudou (array de i alterados), titulo} */
+  /* opc = {B (formatador), notaFinanciado, subsidioNota, mudou (array de i alterados)}
+     r96b — o quadro do fluxo soma só o que o cliente AINDA paga (= entrada total).
+     O sinal pago com o valor de entrada aparece só para mostrar a destinação. */
   function fpHtml_(c, opc){
     opc = opc || {};
     var B = opc.B || fpBrl_, esc = fpEsc_;
@@ -1101,12 +1103,14 @@
     var TAB = '<table style="border-collapse:collapse;width:100%;font-size:13px">';
     var VERDE = 'background:#EAF6EF;color:#1D5433', VERM = 'background:#FDECEA;color:#8A2E17';
     var mudou = opc.mudou || [];
+    var falta = c.falta > 0.005;
     function linha(c1, c2, c3, est){
       est = est || '';
       return '<tr><td style="' + TD + ';' + est + '">' + c1 + '</td>' +
         '<td style="' + TD + ';text-align:right;white-space:nowrap;' + est + '">' + c2 + '</td>' +
         '<td style="' + TD + ';color:#6B5A45;font-size:12px;' + est + '">' + (c3 || '') + '</td></tr>';
     }
+    function cheia(t, est){ return '<tr><td colspan="3" style="' + TD + ';font-size:12px;line-height:1.5;' + (est || '') + '">' + t + '</td></tr>'; }
     function grupo(t, v, cor){
       return '<tr><td colspan="2" style="' + TD + ';background:' + cor + ';color:#fff;font-weight:800;font-size:12px">' + t + '</td>' +
         '<td style="' + TD + ';background:' + cor + ';color:#fff;font-weight:800;text-align:right;white-space:nowrap">' + v + '</td></tr>';
@@ -1114,10 +1118,11 @@
     function titulo(t){ return '<h3 style="color:#7A4A16;font-size:14px;margin:18px 0 6px">' + t + '</h3>'; }
     function selo(t, cor){ return ' <span style="display:inline-block;background:' + cor + ';color:#fff;border-radius:9px;padding:1px 7px;font-size:10px;font-weight:800">' + t + '</span>'; }
     function valorLinha(x){ var q = fpQtd_(x.quando); return (q > 1 ? q + ' × ' : '') + B(Number(x.valor)); }
+    var compoe = (falta ? 'restante do sinal + ' : '') + 'pré-chaves + pós-chaves';
   
     /* 1) COMPOSIÇÃO DO FLUXO DE PAGAMENTO */
     var notaEnt = !c.informado ? 'não informado'
-      : (c.falta > 0.005 ? 'cobre ' + B(c.cobertos) + ' do sinal'
+      : (falta ? 'cobre ' + B(c.cobertos) + ' do sinal'
         : 'paga o sinal (' + B(c.cobertos) + ')' + (c.exc > 0.005 ? ' e abate ' + B(c.exc) + ' do pré e pós-chaves' : ''));
     var h = titulo('COMPOSIÇÃO DO FLUXO DE PAGAMENTO') + TAB +
       linha('Valor do imóvel', B(c.preco), '') +
@@ -1126,42 +1131,44 @@
       linha('(−) Subsídio', B(c.sub), opc.subsidioNota || (c.sub ? '' : 'sem subsídio')) +
       linha('(−) Valor de entrada do cliente', B(c.informado), notaEnt, 'color:#7A4A16;font-weight:700') +
       linha('<b>= ENTRADA TOTAL</b>', '<b>' + B(Math.max(0, c.E)) + '</b>',
-        'o que fica para pagar no fluxo abaixo (restante do sinal + pré-chaves + pós-chaves)', 'background:#FBEEC8;color:#5A3A0B') +
+        'o que fica para pagar no fluxo abaixo: ' + compoe, 'background:#FBEEC8;color:#5A3A0B') +
       (c.devol > 0.005 ? linha('Diferença devolvida ao cliente', B(c.devol), 'no ato da assinatura do contrato com o banco', 'background:#FBEEC8;color:#7A4A16') : '') +
       '</table>';
   
     /* 2) explicação do valor de entrada × sinal */
     var forma = fpFormaSinal_(c.sinais, B), txt;
+    var alt = c.nSinal === 1 ? ' O sinal foi escolhido <b>à vista</b>, no ato da assinatura.'
+      : ' Mesmo dividido, o sinal também pode ser pago <b>à vista</b>, no ato da assinatura, ou com as parcelas <b>antecipadas</b>.';
     if(!c.informado){
-      txt = 'Nenhum valor de entrada foi informado. O sinal de <b>' + B(c.S) + '</b> (' + forma + ') é pago inteiro nas datas abaixo.';
-    } else if(c.falta > 0.005){
-      txt = 'O valor de entrada do cliente (<b>' + B(c.informado) + '</b>) vai primeiro para o <b>sinal</b>, que nesta unidade é de <b>' +
-        B(c.S) + '</b> (' + forma + '). Ele cobre <b>' + B(c.cobertos) + '</b>; <b>faltam ' + B(c.falta) + '</b>, que o cliente paga em: <b>' +
-        esc(c.faltaEm.join(', ')) + '</b> (em vermelho abaixo). Se quiser, o cliente pode <b>antecipar</b> essas parcelas.';
+      txt = 'Nenhum valor de entrada foi informado: o sinal de <b>' + B(c.S) + '</b> (' + forma + ') entra inteiro no que o cliente paga.' + alt;
+    } else if(falta){
+      txt = 'O valor de entrada do cliente (<b>' + B(c.informado) + '</b>) é destinado ao <b>sinal</b>, que nesta unidade é de <b>' +
+        B(c.S) + '</b> (' + forma + '). Ele cobre <b>' + B(c.cobertos) + '</b>; os <b>' + B(c.falta) + '</b> que faltam entram na entrada total e o cliente paga em: <b>' +
+        esc(c.faltaEm.join(', ')) + '</b> (em vermelho abaixo).' + alt;
     } else {
-      txt = 'O valor de entrada do cliente (<b>' + B(c.informado) + '</b>) vai primeiro para o <b>sinal</b> de <b>' + B(c.S) + '</b> (' + forma +
-        ') e <b>cobre o sinal inteiro</b>: o sinal já está abatido e aparece abaixo só para mostrar para onde foi esse valor. ' +
-        'O pagamento pode seguir as datas do sinal ou ser <b>antecipado</b>.' +
-        (c.exc > 0.005 ? ' Os <b>' + B(c.exc) + '</b> que passaram do sinal foram usados para <b>abater o pré-chaves e o pós-chaves</b>.' : '');
+      txt = 'O valor de entrada do cliente (<b>' + B(c.informado) + '</b>) é destinado ao <b>sinal</b> de <b>' + B(c.S) + '</b> (' + forma +
+        '). O sinal <b>já está pago com esse valor e não soma na entrada total</b>: ele aparece no quadro só para mostrar a destinação do valor de entrada.' +
+        (c.exc > 0.005 ? ' Os <b>' + B(c.exc) + '</b> que passaram do sinal foram usados para <b>abater o pré-chaves e o pós-chaves</b>.' : '') + alt;
     }
-    var ok = c.falta <= 0.005;
     h += titulo('FLUXO DE PAGAMENTO — SINAL · PRÉ-CHAVES · PÓS-CHAVES') +
-      '<div style="margin:0 0 8px;padding:12px 14px;' + (ok ? VERDE + ';border:1px solid #8CC9A5;border-left:4px solid #2E8B57'
+      '<div style="margin:0 0 8px;padding:12px 14px;' + (!falta ? VERDE + ';border:1px solid #8CC9A5;border-left:4px solid #2E8B57'
         : 'background:#FFF4F1;color:#7A2A17;border:1px solid #E3A79B;border-left:4px solid #C0392B') +
       ';border-radius:6px;font-size:13px;line-height:1.6">' + txt + '</div>';
   
-    var t = TAB + grupo('FLUXO DE PAGAMENTO (sinal + pré-chaves + pós-chaves)', B(c.total), '#5A3A0B');
-    /* SINAL */
-    t += grupo('1 · SINAL — ' + esc(forma), B(c.S), '#2E8B57');
+    var t = TAB + grupo('FLUXO DE PAGAMENTO — A PAGAR (entrada total)', B(c.aPagar), '#5A3A0B');
+    /* SINAL — só para mostrar a destinação do valor de entrada */
+    t += grupo('1 · SINAL — ' + esc(forma), falta ? 'falta ' + B(c.falta) : 'já pago', '#2E8B57');
+    if(c.cobertos > 0.005) t += cheia('Sinal de <b>' + B(c.S) + '</b>: <b>' + B(c.cobertos) + '</b> pagos com o valor de entrada do cliente. ' +
+      'Essa parte <b>não soma na entrada total</b> — está aqui só para mostrar a destinação do valor de entrada.' +
+      (falta ? ' Só os <b>' + B(c.falta) + '</b> que faltam entram no valor a pagar.' : ''), VERDE);
     c.sinalLinhas.forEach(function(x){
       var st, est;
-      if(x.falta <= 0.004){ st = '✓ já abatido pelo valor de entrada'; est = VERDE; }
-      else if(x.pago > 0.004){ st = '<b>⚠ ' + B(x.pago) + ' abatido · faltam ' + B(x.falta) + '</b> — o cliente paga nesta data'; est = VERM; }
+      if(x.falta <= 0.004){ st = '✓ já pago com o valor de entrada'; est = VERDE; }
+      else if(x.pago > 0.004){ st = '<b>⚠ ' + B(x.pago) + ' já pago · faltam ' + B(x.falta) + '</b> — o cliente paga nesta data'; est = VERM; }
       else { st = '<b>⚠ o cliente paga nesta data</b>'; est = VERM; }
       t += linha(esc(x.quando) + ' — ' + esc(fpLimpa_(x.desc)), B(x.valor), st, est);
     });
-    if(c.cobertos > 0.005) t += linha('<b>Abatido pelo valor de entrada do cliente</b>', '<b>' + B(c.cobertos) + '</b>', '', VERDE);
-    if(c.falta > 0.005) t += linha('<b>Falta pagar do sinal</b>', '<b>' + B(c.falta) + '</b>', 'nas datas em vermelho', VERM);
+    if(falta) t += linha('<b>Restante do sinal a pagar</b>', '<b>' + B(c.falta) + '</b>', 'entra na entrada total', VERM);
     /* PRÉ-CHAVES */
     t += grupo('2 · PRÉ-CHAVES — durante a obra', B(c.P), '#1F6FB2');
     if(!c.pre.length) t += linha('Sem parcelas pré-chaves', '—', '');
@@ -1175,14 +1182,11 @@
     t += grupo('3 · PÓS-CHAVES — depois da entrega', B(c.Q), '#5B4A8A');
     if(!c.pos.length) t += linha('Sem parcelas pós-chaves neste prazo', '—', '');
     c.pos.forEach(function(x){ t += linha(esc(x.quando), valorLinha(x), esc(fpLimpa_(x.desc)) + selo('PÓS A OBRA', '#5B4A8A')); });
-    /* abatimento e fechamento */
     if(c.exc > 0.005) t += linha('Valor de entrada acima do sinal — abatido no pré e pós-chaves', B(c.exc),
       'os valores acima já estão com esse abatimento', VERDE);
-    var CT = 'background:#FFFDF7;color:#5C4A1C';
-    t += linha('Total do fluxo (sinal + pré-chaves + pós-chaves)', B(c.total), '', CT) +
-      linha('(−) Sinal já pago com o valor de entrada', B(c.cobertos), '', CT) +
-      linha('<b>= A pagar no fluxo (entrada total)</b>', '<b>' + B(c.aPagar) + '</b>',
-        (c.falta > 0.005 ? 'restante do sinal + ' : '') + 'pré-chaves + pós-chaves', 'background:#FBEEC8;color:#5A3A0B') + '</table>';
+    t += linha('<b>= A pagar no fluxo (entrada total)</b>', '<b>' + B(c.aPagar) + '</b>',
+      (falta ? 'restante do sinal ' + B(c.falta) + ' + ' : '') + 'pré-chaves ' + B(c.P) + ' + pós-chaves ' + B(c.Q),
+      'background:#FBEEC8;color:#5A3A0B') + '</table>';
     h += t;
   
     if(c.S > FP_SINAL_PADRAO_ + 0.005){

@@ -4,7 +4,7 @@
  * no e-mail da simulação (offline e worker), no portal e na tela da proposta.
  * ---------------------------------------------------------------------
  *  1) COMPOSIÇÃO: valor do imóvel − financiado − FGTS − subsídio − valor de
- *     entrada do cliente = ENTRADA TOTAL (o que fica para pagar no fluxo).
+ *     entrada do cliente = ENTRADA RESTANTE (o que fica para pagar no fluxo).
  *  2) FLUXO DE PAGAMENTO num quadro só: SINAL, PRÉ-CHAVES e PÓS-CHAVES.
  *     O valor de entrada do cliente paga primeiro o SINAL (na ordem
  *     ato → 30 → 60 → 90); o que passa do sinal abate o pré e o pós-chaves.
@@ -105,7 +105,7 @@ function fpHtml_(c, opc){
     linha2('(−) FGTS', B(c.fgts)) +
     linha2('(−) Subsídio', B(c.sub)) +
     linha2('(−) Valor para o sinal', B(c.informado), '', 'color:#7A4A16;font-weight:700') +
-    linha2('<b>= ENTRADA TOTAL</b>', '<b>' + B(Math.max(0, c.E)) + '</b>', '', 'background:#FBEEC8;color:#5A3A0B') +
+    linha2('<b>= ENTRADA RESTANTE</b>', '<b>' + B(Math.max(0, c.E)) + '</b>', '', 'background:#FBEEC8;color:#5A3A0B') +
     (c.devol > 0.005 ? linha2('Diferença devolvida ao cliente', B(c.devol), 'no ato da assinatura do contrato com o banco', 'background:#FBEEC8;color:#7A4A16') : '') +
     '</table>';
   /* r96f — opc.parte: 'composicao' ou 'fluxo' devolve só aquela parte (a tela
@@ -123,7 +123,7 @@ function fpHtml_(c, opc){
       'O valor para o sinal informado (<b>' + B(c.informado) + '</b>) é menor que o sinal mínimo: faça uma nova simulação com valor para o sinal de no mínimo <b>' + B(c.S) + '</b>.</div>';
   }
   var forma = fpFormaSinal_(c.sinais, B) + (c.nSinal > 1 ? ' (ou à vista)' : '');
-  var t = TAB + grupo('FLUXO DE PAGAMENTO — A PAGAR (entrada total)', B(c.aPagar), '#5A3A0B');
+  var t = TAB + grupo('FLUXO DE PAGAMENTO — A PAGAR (entrada restante)', B(c.aPagar), '#5A3A0B');
   t += grupo('1 · SINAL — ' + esc(forma) + (c.cobertos > 0.005 ? (falta ? ' · abatido em parte' : ' · ABATIDO') : ''), B(c.falta), '#2E8B57');
   c.sinalLinhas.forEach(function(x){
     var st, est;
@@ -143,7 +143,7 @@ function fpHtml_(c, opc){
   t += grupo('3 · PÓS-CHAVES — depois da entrega', B(c.Q), '#5B4A8A');
   if(!c.pos.length) t += linha('Sem parcelas pós-chaves neste prazo', '—', '');
   c.pos.forEach(function(x){ t += linha(esc(x.quando), valorLinha(x), esc(fpLimpa_(x.desc)) + selo('PÓS A OBRA', '#5B4A8A')); });
-  t += linha('<b>= A pagar no fluxo (entrada total)</b>', '<b>' + B(c.aPagar) + '</b>',
+  t += linha('<b>= A pagar no fluxo (entrada restante)</b>', '<b>' + B(c.aPagar) + '</b>',
     (falta ? 'restante do sinal ' + B(c.falta) + ' + ' : '') + 'pré-chaves ' + B(c.P) + ' + pós-chaves ' + B(c.Q),
     'background:#FBEEC8;color:#5A3A0B') + '</table>';
   return h + t;

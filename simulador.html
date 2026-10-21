@@ -23,7 +23,8 @@
   .passos{display:flex;gap:6px;margin-bottom:24px;}
   .passo{flex:1;text-align:center;padding:10px 6px;font-size:13px;font-weight:600;color:var(--texto-suave);background:var(--branco);border:1px solid var(--borda);border-radius:6px;}
   .passo.ativo{background:var(--marrom);border-color:var(--marrom);color:#fff;}
-  .passo.concluido{background:#FBEEC8;border-color:var(--amarelo);color:var(--marrom);}
+  .passo.concluido{background:#FBEEC8;border-color:var(--amarelo);color:var(--marrom);cursor:pointer;}
+  .passo.concluido:hover{filter:brightness(.96);text-decoration:underline;}
   .card{background:var(--branco);border:1px solid var(--borda);border-radius:10px;padding:26px;}
   .card h2{margin-top:0;font-size:16px;color:var(--marrom);border-bottom:2px solid var(--amarelo);padding-bottom:12px;margin-bottom:20px;}
   .linha{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
@@ -147,9 +148,9 @@
 
 <main>
   <div class="passos">
-    <div class="passo ativo" data-passo="1">1. Unidade e perfil</div>
-    <div class="passo" data-passo="2">2. Condições</div>
-    <div class="passo" data-passo="3">3. Enviar</div>
+    <div class="passo ativo" data-passo="1" onclick="voltarPasso(1)">1. Unidade e perfil</div>
+    <div class="passo" data-passo="2" onclick="voltarPasso(2)">2. Condições</div>
+    <div class="passo" data-passo="3" onclick="voltarPasso(3)">3. Enviar</div>
   </div>
 
   <form id="formSimulacao">
@@ -223,7 +224,7 @@
         <!-- r96g — subsídio opcional junto do FGTS: se a simulação online apontou subsídio, o
              corretor informa aqui e roda de novo para ver o novo sinal -->
         <div class="campo"><label>Subsídio (R$)</label><input type="text" name="subsidio" inputmode="numeric" placeholder="0,00">
-          <span class="ajuda">Opcional. Se a simulação online apontou subsídio, informe aqui para ver o novo sinal.</span></div>
+          <span class="ajuda">Opcional.</span></div>
       </div>
       <!-- r62 (item 2) — aviso do que falta no passo 1 -->
       <div id="avisoPasso1" class="status erro" style="display:none"></div>
@@ -236,6 +237,17 @@
            · 3) composição do fluxo · 4) prazo de parcelamento · 5) forma do sinal · 6) fluxo de pagamento
            · 7) diluição dos balões -->
       <div class="secao-sim">1. Financiamento</div>
+      <!-- r96k (21/10/26) — CRÉDITO APROVADO: o corretor informa o valor financiado aprovado
+           pela CAIXA (até 80% da avaliação) e o e-mail sai com ele, sem rodar no sistema online -->
+      <label class="check" style="margin:0 0 10px"><input type="checkbox" name="creditoAprovadoSim" onchange="credSimMudou()"> Cliente já tem <b>crédito aprovado</b> na CAIXA</label>
+      <div class="linha" id="boxCredSim" style="display:none">
+        <div class="campo"><label>Valor financiado aprovado (R$)<span class="obrig">*</span></label>
+          <input type="text" name="creditoAprovadoValor" inputmode="numeric" placeholder="0,00">
+          <span class="ajuda" id="ajudaCredSim">Máximo: 80% da avaliação.</span></div>
+        <div class="campo"><label>1ª prestação aprovada (R$)</label>
+          <input type="text" name="creditoAprovadoParcela" inputmode="numeric" placeholder="0,00">
+          <span class="ajuda">Opcional. Em branco, o e-mail traz a prestação estimada.</span></div>
+      </div>
       <!-- r96d (20/10/26) — financiamento estimado pela base offline e sinal = entrada mínima -->
       <div id="estimativa" class="estimativa"><span class="ajuda">Calculando o financiamento estimado…</span></div>
       <div class="campo full" style="margin-bottom:16px;">
@@ -284,7 +296,7 @@
       </div>
       <div class="secao-sim">6. Fluxo de pagamento</div>
       <div id="fluxoSim" style="margin-bottom:6px"><span class="ajuda">Aguardando o cálculo do financiamento…</span></div>
-      <span class="ajuda" style="display:block;margin-bottom:16px">Prévia com o financiamento estimado. O valor final e o subsídio saem na simulação online.</span>
+      <span class="ajuda" id="notaFluxoSim" style="display:block;margin-bottom:16px">Este é o fluxo que vai no e-mail.</span>
       <div class="secao-sim">7. Diluição dos balões</div>
       <div id="diluirSim" style="margin-bottom:16px"><span class="ajuda">Sem balões neste fluxo.</span></div>
       <!-- r64 — TESTE do sistema offline -->
@@ -309,7 +321,7 @@
 
     <section class="card etapa oculto" data-etapa="3">
       <h2>Enviar simulação</h2>
-      <div class="resumo">Vamos simular na CAIXA as linhas selecionadas e enviar o resultado por e-mail, no papel timbrado da Morais, com o fluxo de entrada e a comissão. O processamento leva alguns minutos.</div><br>
+      <div class="resumo" id="resumoEnvio">Vamos simular na CAIXA as linhas selecionadas e enviar o resultado por e-mail, no papel timbrado da Morais, com o fluxo de entrada e a comissão. O processamento leva alguns minutos.</div><br>
       <div class="linha">
         <div class="campo"><label>Corretor<span class="obrig">*</span></label><input type="text" name="corretor" data-padrao="texto" required></div>
         <div class="campo"><label>Imobiliária</label><input type="text" name="imobiliaria" data-padrao="texto"></div>
@@ -546,20 +558,23 @@
     var d={possuiImovelCidade:f.possuiImovelCidade.checked, jaBeneficiado:f.jaBeneficiado.checked, fgts3anos:f.fgts3anos.checked,
            sistemaAmortizacao:f.sistemaAmortizacao.value, dataNascimento:f.dataNascimento.value,
            rendaIndividual:parseMoeda(f.rendaIndividual.value), prazoMeses:Number(f.prazoMeses.value)||420};
+    /* r96k — crédito aprovado: o valor informado (até 80% da avaliação) é o financiado */
+    var cred=credSimValor();
     function aplicar(fin, fonte){
+      if(cred>0){ fin=cred; fonte='credito'; }
       var ref=f.dataSimulacao.value ? new Date(f.dataSimulacao.value+'T12:00:00') : new Date();
       var fgts=parseMoeda(f.fgtsDisponivel.value), sub=parseMoeda(f.subsidio.value);   // r96f — subsídio opcional
       var g=fpcGerar({preco:u.valorVenda, financiado:fin, fgts:fgts, subsidio:sub, informado:0, nSinal:sinalEscolhidoSim(),
                       prazoEntrada:prazoEscolhidoSim(), ano:ref.getFullYear(), mes:ref.getMonth()+1});
       EST={fin:fin, sinal:g.sinalMinimo, max:Math.max(10000, Math.round((u.valorVenda-fin-fgts-sub)*100)/100), fonte:fonte, pronto:true};
       var it=function(r,v,cl){ return '<div class="it'+(cl?' '+cl:'')+'"><small>'+r+'</small><b>'+v+'</b></div>'; };
-      cx.innerHTML=it('Valor financiado (estimado)','R$ '+fmt(fin))+it('FGTS','R$ '+fmt(fgts))+
+      cx.innerHTML=it(fonte==='credito'?'Valor financiado (crédito aprovado)':'Valor financiado (estimado)','R$ '+fmt(fin))+it('FGTS','R$ '+fmt(fgts))+
         (sub>0 ? it('Subsídio','R$ '+fmt(sub)) : '')+
-        it('Entrada antes do valor do cliente','R$ '+fmt(Math.max(0,u.valorVenda-fin-fgts-sub)))+
+        it('Entrada total','R$ '+fmt(Math.max(0,u.valorVenda-fin-fgts-sub)))+
         it('Sinal mínimo','R$ '+fmt(EST.sinal),'destaque')+
-        '<div class="nota">'+(fonte==='base' ? 'Financiamento estimado pela base de simulações, limitado a 80% da avaliação. '
-          : 'Fora da base de simulações: estimado pelo teto de 80% da avaliação. ')+
-        'O subsídio e o valor final são confirmados na simulação online.</div>';
+        '<div class="nota">'+(fonte==='credito' ? 'Crédito aprovado informado pelo corretor (até 80% da avaliação): o e-mail sai com este valor, sem nova simulação na CAIXA.'
+          : fonte==='base' ? 'Financiamento estimado pela base de simulações, limitado a 80% da avaliação.'
+          : 'Fora da base de simulações: estimado pelo teto de 80% da avaliação.')+'</div>';
       document.getElementById('ajudaEntradaMin').innerHTML='Todo este valor vai para o sinal. Mínimo <b>R$ '+fmt(EST.sinal)+'</b> (sinal mínimo desta unidade), máximo <b>R$ '+fmt(EST.max)+'</b> (a entrada inteira).';
       var ve=f.valorEntrada;
       if(!ENTRADA_EDITADA || parseMoeda(ve.value)<EST.sinal-0.005) ve.value=fmt(EST.sinal);
@@ -567,6 +582,7 @@
       pintarFluxoSim();
     }
     EST.pronto=false;
+    if(cred>0){ aplicar(cred, 'credito'); return; }
     cx.innerHTML='<span class="ajuda">Calculando o financiamento estimado…</span>';
     BaseOffline.carregar().then(function(){
       var fin, fonte='base';
@@ -592,7 +608,7 @@
                     prazoEntrada:prazoEscolhidoSim(), ano:ref.getFullYear(), mes:ref.getMonth()+1, diluir:DIL_SIM});
     var c=fpResumo_({preco:u.valorVenda, financiado:EST.fin, fgts:fgts, subsidio:sub, informado:inf, devolucao:g.devolucao,
       fluxo:g.fluxo.map(function(x,i){ return {quando:x[0], valor:x[1], desc:x[2], grupo:x[3], i:i, dilTxt:x[4]||''}; })});
-    var nota=EST.fonte==='base' ? 'estimado pela base de simulações' : 'estimado pelo teto de 80% da avaliação';
+    var nota=EST.fonte==='credito' ? 'crédito aprovado' : (EST.fonte==='base' ? 'estimado pela base de simulações' : 'estimado pelo teto de 80% da avaliação');
     /* r96f — composição (3), fluxo (6) e diluição (7) em lugares separados do passo 2 */
     cComp.innerHTML=fpHtml_(c, {parte:'composicao', notaFinanciado:nota});
     cFl.innerHTML=fpHtml_(c, {parte:'fluxo', mudou:DiluirUI.mudou(g.fluxo)});
@@ -628,6 +644,12 @@
     var ve=parseMoeda(document.querySelector('[name="valorEntrada"]').value);
     var avE=document.getElementById('avisoEntradaMin');
     if(!EST.pronto){ if(avE){ avE.style.display='block'; avE.innerHTML='Aguarde o cálculo do financiamento estimado.'; } return false; }
+    var fCred=document.getElementById('formSimulacao');
+    if(fCred.creditoAprovadoSim.checked && !(parseMoeda(fCred.creditoAprovadoValor.value)>0)){
+      var ajC=document.getElementById('ajudaCredSim');
+      if(ajC){ ajC.innerHTML='Informe o <b>valor financiado aprovado</b> (ou desmarque o crédito aprovado).'; ajC.style.color='#B0431F'; }
+      fCred.creditoAprovadoValor.focus(); return false;
+    }
     if(ve<EST.sinal-0.005 || ve>EST.max+0.005){
       if(avE){ avE.style.display='block'; avE.innerHTML = ve<EST.sinal-0.005
           ? 'O valor para o sinal precisa ser de pelo menos <b>R$ '+fmt(EST.sinal)+'</b> (sinal mínimo desta unidade).'
@@ -654,6 +676,37 @@
     if(!rel){ f.servidorPublico.checked=false; f.creditoSalarioCaixa.checked=false; }
     var av1=document.getElementById('avisoPasso1');
     if(av1 && av1.style.display==='block' && !faltaPerfilCaixa(f)) av1.style.display='none';
+  }
+
+  /* r96k — clicar numa etapa já feita volta para ela */
+  function voltarPasso(n){
+    var at=document.querySelector('.passo.ativo'), a=at ? Number(at.dataset.passo) : 1;
+    if(n<a) irPara(n);
+  }
+  /* r96k — crédito aprovado: até 80% da avaliação; acima disso volta para os 80% */
+  function credSimValor(){
+    var f=document.getElementById('formSimulacao'), u=unidadeAtual();
+    if(!f.creditoAprovadoSim.checked) return 0;
+    var v=parseMoeda(f.creditoAprovadoValor.value);
+    if(!(v>0)) return 0;
+    var teto=u ? Math.round((u.avaliacao||0)*0.8*100)/100 : 0;
+    var aj=document.getElementById('ajudaCredSim');
+    if(teto && v>teto+0.005){
+      v=teto; f.creditoAprovadoValor.value=fmt(teto);
+      if(aj){ aj.innerHTML='Acima de 80% da avaliação: ajustado para <b>R$ '+fmt(teto)+'</b>.'; aj.style.color='#B0431F'; }
+    } else if(aj){ aj.innerHTML='Máximo: 80% da avaliação'+(teto?' (<b>R$ '+fmt(teto)+'</b>)':'')+'.'; aj.style.color=''; }
+    return v;
+  }
+  var TM_CRED=null;
+  function credSimMudou(){
+    var f=document.getElementById('formSimulacao'), on=f.creditoAprovadoSim.checked;
+    document.getElementById('boxCredSim').style.display=on?'':'none';
+    if(!on){ f.creditoAprovadoValor.value=''; f.creditoAprovadoParcela.value=''; }
+    var r=document.getElementById('resumoEnvio');
+    if(r) r.innerHTML = on
+      ? 'Com <b>crédito aprovado</b> não há nova simulação na CAIXA: o resultado sai por e-mail em seguida, no papel timbrado da Morais, com o valor financiado aprovado, o fluxo de entrada e a comissão.'
+      : 'Vamos simular na CAIXA as linhas selecionadas e enviar o resultado por e-mail, no papel timbrado da Morais, com o fluxo de entrada e a comissão. O processamento leva alguns minutos.';
+    clearTimeout(TM_CRED); TM_CRED=setTimeout(estimar,250);
   }
 
   function irPara(n){
@@ -908,7 +961,7 @@
       prazoEntrada:Number(prazo), comissaoPct:COMISSAO[prazo], comissaoValor:u.valorVenda*COMISSAO[prazo],
       /* r96 — forma do sinal: 1 = à vista no ato; 2 a 4 = R$ 1.000 no ato + 30/60/90 dias */
       sinalParcelas:Number((document.querySelector('[name="sinalParcelas"]:checked')||{}).value)||4,
-      subsidio:parseMoeda(f.subsidio.value),   /* r96f — opcional (o da simulação online prevalece) */ fgtsDisponivel:parseMoeda(f.fgtsDisponivel.value),
+      subsidio:parseMoeda(f.subsidio.value),   /* r96f — opcional; r96k: vale o informado aqui */ fgtsDisponivel:parseMoeda(f.fgtsDisponivel.value),
       /* ITEM 15 — os R$ 10.000 pagam os sinais e NÃO abatem a entrada. Vai
          para o worker só o EXCEDENTE (é o que abate o saldo); o valor
          digitado segue à parte, para o e-mail mostrar a conta inteira. */
@@ -918,6 +971,10 @@
       valorEntradaSinais:parseMoeda(f.valorEntrada.value),
       /* r96d — estimativa da tela (base offline): se a CAIXA confirmar menos, o e-mail pede para refazer */
       financiadoBase:EST.fin, sinalEstimado:EST.sinal, fonteEstimativa:EST.fonte,
+      /* r96k — crédito aprovado: o Apps Script manda o e-mail com este valor, sem rodar na CAIXA */
+      creditoAprovadoCaixa:(EST.fonte==='credito' ? 'SIM' : 'NAO'),
+      creditoAprovado:(EST.fonte==='credito' ? EST.fin : 0),
+      parcelaAprovada:(EST.fonte==='credito' ? parseMoeda(f.creditoAprovadoParcela.value) : 0),
       diluicao:DIL_SIM.slice(),   /* r96e — % de cada balão diluído nas parcelas pré-chaves */
       dataSimulacao:(f.dataSimulacao.value||''),
       modoSiop:(f.modoSiop ? f.modoSiop.value : ''),   /* r64 — teste ONLINE/OFFLINE */
@@ -984,6 +1041,8 @@
   /* r96f — subsídio informado muda o sinal (entrada mínima): recalcula tudo */
   var TM_SUB=null;
   document.querySelector('[name="subsidio"]').addEventListener('input',function(){ clearTimeout(TM_SUB); TM_SUB=setTimeout(estimar,250); });
+  document.querySelector('[name="creditoAprovadoValor"]').addEventListener('input',function(){ clearTimeout(TM_CRED); TM_CRED=setTimeout(estimar,600); });
+  document.querySelector('[name="creditoAprovadoValor"]').addEventListener('blur',function(){ clearTimeout(TM_CRED); estimar(); });
   BaseOffline.carregar().catch(function(){});   // já baixa a base enquanto preenche o passo 1
   document.querySelector('[name="possuiImovelCidade"]').addEventListener('change',renderProdutos);
 

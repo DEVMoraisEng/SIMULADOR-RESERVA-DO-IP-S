@@ -220,7 +220,10 @@
       </div>
       <div class="linha">
         <div class="campo"><label>FGTS disponível (R$)</label><input type="text" name="fgtsDisponivel" inputmode="numeric" placeholder="0,00"></div>
-        <div class="campo"><span class="ajuda" style="display:block;margin-top:26px">O <b>subsídio</b> não precisa ser informado: ele é apurado na simulação online e vem no e-mail.</span></div>
+        <!-- r96g — subsídio opcional junto do FGTS: se a simulação online apontou subsídio, o
+             corretor informa aqui e roda de novo para ver o novo sinal -->
+        <div class="campo"><label>Subsídio (R$)</label><input type="text" name="subsidio" inputmode="numeric" placeholder="0,00">
+          <span class="ajuda">Opcional. Se a simulação online apontou subsídio, informe aqui para ver o novo sinal.</span></div>
       </div>
       <!-- r62 (item 2) — aviso do que falta no passo 1 -->
       <div id="avisoPasso1" class="status erro" style="display:none"></div>
@@ -248,13 +251,6 @@
           <input type="text" name="valorEntrada" inputmode="numeric" placeholder="10.000,00" value="10.000,00">
           <span class="ajuda" id="ajudaEntradaMin">Mínimo: o valor do sinal desta unidade.</span>
           <div id="avisoEntradaMin" style="display:none;margin-top:6px;padding:8px 11px;border-radius:6px;background:#FBEDEA;border:1px solid #E2A493;color:#8A2E17;font-size:12px;"></div>
-        </div>
-        <!-- r96f — subsídio opcional: se a simulação online apontou subsídio, o corretor
-             informa aqui e roda de novo para ver o novo sinal -->
-        <div class="campo">
-          <label>Subsídio (R$)</label>
-          <input type="text" name="subsidio" inputmode="numeric" placeholder="0,00">
-          <span class="ajuda">Opcional. Se a simulação online apontou subsídio, informe aqui para ver o novo sinal.</span>
         </div>
         <div class="campo" style="display:none">
           <label>Data de referência (teste)</label>

@@ -67,7 +67,7 @@ function fpResumo_(o){
           aPagar: fpR2_(falta + P + Q), nSinal: sinais.length};
 }
 
-/* opc = {B (formatador), notaFinanciado, mudou (array de i alterados),
+/* opc = {B (formatador), notaFinanciado, mudou (array de i alterados), parte ('composicao'|'fluxo'),
           refazer (simulação: avisa quando o valor de entrada não cobre o sinal), financiadoBase}
    r96d — quadro limpo: só a composição e o fluxo, sem textos de explicação.
    O sinal pago com o valor de entrada vale R$ 0,00 no fluxo ("ABATIDO"). */
@@ -108,6 +108,10 @@ function fpHtml_(c, opc){
     linha2('<b>= ENTRADA TOTAL</b>', '<b>' + B(Math.max(0, c.E)) + '</b>', '', 'background:#FBEEC8;color:#5A3A0B') +
     (c.devol > 0.005 ? linha2('Diferença devolvida ao cliente', B(c.devol), 'no ato da assinatura do contrato com o banco', 'background:#FBEEC8;color:#7A4A16') : '') +
     '</table>';
+  /* r96f — opc.parte: 'composicao' ou 'fluxo' devolve só aquela parte (a tela
+     da simulação/proposta mostra as duas em lugares diferentes) */
+  if(opc.parte === 'composicao') return h;
+  if(opc.parte === 'fluxo') h = '';
 
   /* 2) FLUXO DE PAGAMENTO */
   h += titulo('FLUXO DE PAGAMENTO — SINAL · PRÉ-CHAVES · PÓS-CHAVES');

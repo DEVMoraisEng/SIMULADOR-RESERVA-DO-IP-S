@@ -165,6 +165,7 @@
   .anexo input[type=file]{font-size:12px;max-width:290px;}
   /* r66 — leitura de documentos, prazo/comissão e CRECI */
   .prazo-opts{display:flex;gap:10px;flex-wrap:wrap;}
+  #composicaoProp h3,#resumoEntrada h3{display:none}
   .prazo-opt{flex:1;min-width:120px;border:1px solid var(--borda);border-radius:8px;padding:12px;text-align:center;cursor:pointer;background:#fff;}
   .prazo-opt:has(input:checked){border-color:var(--marrom);background:#FBEEC8;}
   .prazo-opt input{display:none;}
@@ -479,43 +480,6 @@
         <span class="ajuda">O FGTS do cônjuge entra na entrada junto com o do proponente. A renda e a origem dos demais compradores ficam no card de cada um.</span></div>
     </div>
 
-    <div class="secao">Recursos para a entrada</div>
-    <div class="linha">
-      <!-- r41 (item 9) — sem crédito aprovado o subsídio some: quem diz é a CAIXA -->
-      <div class="campo" id="boxSubsidio"><label>Subsídio (R$)</label>
-        <input type="text" name="subsidio" inputmode="numeric" placeholder="0,00"></div>
-      <div class="campo"><label>Valor para a entrada (cliente) (R$)<span class="obrig">*</span></label>
-        <input type="text" name="valorEntrada" inputmode="numeric" placeholder="10.000,00" value="10.000,00">
-        <span class="ajuda" id="ajudaEntradaMinP">Mínimo: o valor do sinal desta unidade.</span></div>
-      <div class="campo" id="boxCredito"><label>Crédito aprovado (R$)<span class="obrig">*</span></label>
-        <!-- r96 (20/10/26) — o crédito vem SÓ do print da tela de aprovação da CAIXA (lido por IA, sem edição) -->
-        <label class="anexo-aprov" for="printAprovacao">📎 Anexar o print da tela de aprovação da CAIXA<span class="obrig">*</span></label>
-        <input type="file" id="printAprovacao" accept="image/*,application/pdf" onchange="aoAnexarAprovacao(this)">
-        <div id="lst-aprovacao" class="lst"></div>
-        <input type="text" name="creditoAprovado" inputmode="numeric" placeholder="lido do print" readonly tabindex="-1">
-        <span class="ajuda" id="ajudaCredito">O <b>Valor Financiamento</b> é lido do print automaticamente e não pode ser editado.</span></div>
-    </div>
-    <!-- r96 (20/10/26) — forma de pagamento do sinal -->
-    <div class="campo full" style="margin:4px 0 14px;">
-      <label>Como o cliente quer pagar o sinal<span class="obrig">*</span></label>
-      <div class="prazo-opts sinal-opts" id="sinalOpts">
-        <label class="prazo-opt"><input type="radio" name="sinalParcelas" value="1" onchange="montarFluxo()"><b>1x</b><small>à vista, no ato da assinatura</small></label>
-        <label class="prazo-opt"><input type="radio" name="sinalParcelas" value="2" onchange="montarFluxo()"><b>2x</b><small>R$ 1.000 no ato + 30 dias</small></label>
-        <label class="prazo-opt"><input type="radio" name="sinalParcelas" value="3" onchange="montarFluxo()"><b>3x</b><small>R$ 1.000 no ato + 30 e 60 dias</small></label>
-        <label class="prazo-opt"><input type="radio" name="sinalParcelas" value="4" onchange="montarFluxo()" checked><b>4x</b><small>R$ 1.000 no ato + 30, 60 e 90 dias</small></label>
-      </div>
-      <span class="ajuda">Em <b>1x</b> o sinal inteiro é pago <b>no ato</b> da assinatura do contrato. A forma não muda o valor total do sinal.</span>
-    </div>
-    <div id="avisoTeto" class="status processando" style="display:none;margin-bottom:10px"></div>
-    <div class="linha">
-      <div class="campo"><label>Valor financiado (R$)</label>
-        <input type="text" id="valorFinanciado" readonly>
-        <span class="ajuda">Crédito aprovado, limitado ao teto de 80% da avaliação.</span></div>
-      <div class="campo" id="boxParcela"><label>Parcela do financiamento (R$)<span class="obrig" id="obrigParcela">*</span></label>
-        <input type="text" name="parcelaFinanciamento" inputmode="numeric" placeholder="0,00">
-        <span class="ajuda" id="ajudaParcela"></span></div>
-    </div>
-
     <div class="secao">Análise</div>
     <div class="linha">
       <div class="campo"><label>Banco</label><input type="text" name="banco" value="CEF FGTS" data-pad="1"></div>
@@ -593,25 +557,74 @@
       </div>
     </div>
 
-    <div class="secao">Prazo da entrada e comissão</div>
+    <!-- r96f (21/10/26) — ORDEM: 1) financiamento · 2) valor para a entrada · 3) composição do fluxo
+         · 4) prazo de parcelamento · 5) forma do sinal · 6) fluxo de pagamento · 7) diluição dos balões -->
+    <div class="secao">1. Financiamento</div>
+    <div class="linha">
+      <div class="campo" id="boxCredito"><label>Crédito aprovado (R$)<span class="obrig">*</span></label>
+        <!-- r96 (20/10/26) — o crédito vem SÓ do print da tela de aprovação da CAIXA (lido por IA, sem edição) -->
+        <label class="anexo-aprov" for="printAprovacao">📎 Anexar o print da tela de aprovação da CAIXA<span class="obrig">*</span></label>
+        <input type="file" id="printAprovacao" accept="image/*,application/pdf" onchange="aoAnexarAprovacao(this)">
+        <div id="lst-aprovacao" class="lst"></div>
+        <input type="text" name="creditoAprovado" inputmode="numeric" placeholder="lido do print" readonly tabindex="-1">
+        <span class="ajuda" id="ajudaCredito">O <b>Valor Financiamento</b> é lido do print automaticamente e não pode ser editado.</span></div>
+    </div>
+    <div id="avisoTeto" class="status processando" style="display:none;margin-bottom:10px"></div>
+    <div class="linha">
+      <div class="campo"><label>Valor financiado (R$)</label>
+        <input type="text" id="valorFinanciado" readonly>
+        <span class="ajuda">Crédito aprovado, limitado ao teto de 80% da avaliação.</span></div>
+      <div class="campo" id="boxParcela"><label>Parcela do financiamento (R$)<span class="obrig" id="obrigParcela">*</span></label>
+        <input type="text" name="parcelaFinanciamento" inputmode="numeric" placeholder="0,00">
+        <span class="ajuda" id="ajudaParcela"></span></div>
+    </div>
+
+    <div class="secao">2. Valor para a entrada</div>
+    <div class="linha">
+      <div class="campo"><label>Valor para a entrada (cliente) (R$)<span class="obrig">*</span></label>
+        <input type="text" name="valorEntrada" inputmode="numeric" placeholder="10.000,00" value="10.000,00">
+        <span class="ajuda" id="ajudaEntradaMinP">Mínimo: o valor do sinal desta unidade.</span></div>
+      <!-- r41 (item 9) — sem crédito aprovado o subsídio some: quem diz é a CAIXA -->
+      <div class="campo" id="boxSubsidio"><label>Subsídio (R$)</label>
+        <input type="text" name="subsidio" inputmode="numeric" placeholder="0,00"></div>
+    </div>
+
+    <div class="secao">3. Composição do fluxo de pagamento</div>
+    <div id="composicaoProp"><span class="ajuda">Preencha o financiamento para montar a composição.</span></div>
+
+    <div class="secao">4. Prazo de parcelamento da entrada</div>
     <div class="linha">
       <div class="campo full" style="margin-bottom:16px;">
-        <label>Prazo total da entrada<span class="obrig">*</span></label>
+        <label>Prazo de parcelamento da entrada<span class="obrig">*</span></label>
         <div class="prazo-opts" id="prazoOpts">
-          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="24" onchange="atualizarComissao()"><b class="prazo-n" data-base="24">24 meses</b><small>comissão 5,00%</small></label>
-          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="36" onchange="atualizarComissao()"><b class="prazo-n" data-base="36">36 meses</b><small>comissão 4,75%</small></label>
-          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="48" onchange="atualizarComissao()"><b class="prazo-n" data-base="48">48 meses</b><small>comissão 4,50%</small></label>
+          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="24" onchange="atualizarComissao();montarFluxo()"><b class="prazo-n" data-base="24">24 meses</b><small>comissão 5,00%</small></label>
+          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="36" onchange="atualizarComissao();montarFluxo()"><b class="prazo-n" data-base="36">36 meses</b><small>comissão 4,75%</small></label>
+          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="48" onchange="atualizarComissao();montarFluxo()"><b class="prazo-n" data-base="48">48 meses</b><small>comissão 4,50%</small></label>
         </div>
         <div class="comissao-box"><span>Comissão do corretor</span><b id="comissaoTxt">Escolha o prazo</b></div>
       </div>
     </div>
 
-    <!-- ITEM 15 — resumo da entrada e o quadro dos sinais sempre à vista; o
-         fluxo completo fica recolhido (é o mesmo que vai no e-mail). -->
-    <div id="diluirProp"></div>
+    <div class="secao">5. Sinal</div>
+    <!-- r96 (20/10/26) — forma de pagamento do sinal -->
+    <div class="campo full" style="margin:4px 0 14px;">
+      <label>Como o cliente quer pagar o sinal<span class="obrig">*</span></label>
+      <div class="prazo-opts sinal-opts" id="sinalOpts">
+        <label class="prazo-opt"><input type="radio" name="sinalParcelas" value="1" onchange="montarFluxo()"><b>1x</b><small>à vista, no ato da assinatura</small></label>
+        <label class="prazo-opt"><input type="radio" name="sinalParcelas" value="2" onchange="montarFluxo()"><b>2x</b><small>R$ 1.000 no ato + 30 dias</small></label>
+        <label class="prazo-opt"><input type="radio" name="sinalParcelas" value="3" onchange="montarFluxo()"><b>3x</b><small>R$ 1.000 no ato + 30 e 60 dias</small></label>
+        <label class="prazo-opt"><input type="radio" name="sinalParcelas" value="4" onchange="montarFluxo()" checked><b>4x</b><small>R$ 1.000 no ato + 30, 60 e 90 dias</small></label>
+      </div>
+      <span class="ajuda">Em <b>1x</b> o sinal inteiro é pago <b>no ato</b> da assinatura do contrato. A forma não muda o valor total do sinal.</span>
+    </div>
+
+    <div class="secao">6. Fluxo de pagamento</div>
     <div id="resumoEntrada"></div>
     <details class="fluxo-det"><summary>Ver o fluxo de pagamento completo</summary>
       <div id="fluxo"></div></details>
+
+    <div class="secao">7. Diluição dos balões</div>
+    <div id="diluirProp"></div>
     <!-- r61 (item 2) — o fluxo na tela vem sempre acompanhado do aviso -->
     <div class="aviso-fluxo">
       <b>⚠ Fluxo estimado — não é garantido.</b> Estes valores são uma simulação feita com os dados
@@ -922,7 +935,7 @@
   function calcular(preco, credito, subsidio, fgts, entrada, dataRef, avaliacao){
     var financiado=financiadoReal(credito, avaliacao);
     var g=fpcGerar({preco:preco, financiado:financiado, fgts:fgts, subsidio:subsidio, informado:entrada,
-                    nSinal:sinalEscolhido(), prazoEntrada:48, ano:dataRef.getFullYear(), mes:dataRef.getMonth()+1,
+                    nSinal:sinalEscolhido(), prazoEntrada:Number(prazoEscolhido())||48, ano:dataRef.getFullYear(), mes:dataRef.getMonth()+1,
                     diluir:DIL_PROP});   // r96e — balões diluídos pelo corretor
     var rec=(fgts||0)+(subsidio||0)+g.excedente;
     return {total:g.total, fluxo:g.fluxo, fluxoOriginal:g.fluxoOriginal, diluicao:g.diluicao, n1:g.n1, bruta:(preco||0)-financiado,
@@ -1182,6 +1195,9 @@
       linha2('<b>= ENTRADA TOTAL</b>', '<b>' + B(Math.max(0, c.E)) + '</b>', '', 'background:#FBEEC8;color:#5A3A0B') +
       (c.devol > 0.005 ? linha2('Diferença devolvida ao cliente', B(c.devol), 'no ato da assinatura do contrato com o banco', 'background:#FBEEC8;color:#7A4A16') : '') +
       '</table>';
+    /* r96f — opc.parte: 'composicao' ou 'fluxo' devolve só aquela parte */
+    if(opc.parte === 'composicao') return h;
+    if(opc.parte === 'fluxo') h = '';
   
     /* 2) FLUXO DE PAGAMENTO */
     h += titulo('FLUXO DE PAGAMENTO — SINAL · PRÉ-CHAVES · PÓS-CHAVES');
@@ -1312,7 +1328,8 @@
     if(!u || (comCredito && !credito)){
       alvo.innerHTML='<span class="ajuda">Informe o crédito aprovado para montar o fluxo da entrada.</span>';
       alvo.dataset.esquema=''; if(resumo) resumo.innerHTML=''; ULTIMO_CALCULO=null;
-      var dz0=document.getElementById('diluirProp'); if(dz0) dz0.innerHTML=''; return;
+      var dz0=document.getElementById('diluirProp'); if(dz0) dz0.innerHTML='';
+      var cp0=document.getElementById('composicaoProp'); if(cp0) cp0.innerHTML='<span class="ajuda">Preencha o financiamento para montar a composição.</span>'; return;
     }
     var dtxt=f.dataRef.value;
     var d=dtxt?new Date(dtxt+'T12:00:00'):new Date();
@@ -1320,7 +1337,7 @@
     /* r96d — ENTRADA MÍNIMA = SINAL: com financiamento, FGTS e subsídio já se sabe o
        sinal; o valor para a entrada é preenchido com ele (e nunca pode ficar abaixo) */
     var g0=fpcGerar({preco:u.valorVenda, financiado:financiadoReal(credito, u.avaliacao), fgts:fgtsTotal,
-                     subsidio:moeda(f.subsidio.value), informado:0, nSinal:sinalEscolhido(), prazoEntrada:48,
+                     subsidio:moeda(f.subsidio.value), informado:0, nSinal:sinalEscolhido(), prazoEntrada:Number(prazoEscolhido())||48,
                      ano:d.getFullYear(), mes:d.getMonth()+1});
     SINAL_MIN=g0.sinaisTotal;
     var ajE=document.getElementById('ajudaEntradaMinP');
@@ -1341,11 +1358,14 @@
       informado:q.entradaInformada, devolucao:q.devolucao,
       fluxo:q.fluxo.map(function(x,i){ return {quando:x[0], valor:x[1], desc:x[2], grupo:x[3], i:i, dilTxt:x[4]||''}; })});
     var dz=document.getElementById('diluirProp');
-    if(dz) dz.innerHTML=DiluirUI.html({fluxo:q.fluxo, fluxoOriginal:q.fluxoOriginal}, DIL_PROP, 'dilProp');
+    if(dz) dz.innerHTML=DiluirUI.html({fluxo:q.fluxo, fluxoOriginal:q.fluxoOriginal}, DIL_PROP, 'dilProp') || '<span class="ajuda">Sem balões neste fluxo.</span>';
     var nota = q.credito>q.teto&&q.teto ? 'crédito de '+brl(q.credito)+' limitado a 80% da avaliação'
              : (comCredito ? 'crédito aprovado (print da CAIXA)'
                : (ESTP.fonte==='base' ? 'ESTIMATIVA — sem crédito aprovado (base de simulações)' : 'ESTIMATIVA — sem crédito aprovado (teto de 80%)'));
-    if(resumo) resumo.innerHTML='<div class="quadro-fluxo">'+fpHtml_(c,{notaFinanciado:nota, mudou:DiluirUI.mudou(q.fluxo)})+'</div>';
+    /* r96f — composição (3) e fluxo (6) em lugares separados do passo 2 */
+    var cp=document.getElementById('composicaoProp');
+    if(cp) cp.innerHTML='<div class="quadro-fluxo">'+fpHtml_(c,{parte:'composicao', notaFinanciado:nota})+'</div>';
+    if(resumo) resumo.innerHTML='<div class="quadro-fluxo">'+fpHtml_(c,{parte:'fluxo', mudou:DiluirUI.mudou(q.fluxo)})+'</div>';
     alvo.innerHTML='';
     var det=alvo.closest('details'); if(det) det.style.display='none';
   }

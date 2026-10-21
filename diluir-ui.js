@@ -60,7 +60,7 @@ var DiluirUI = (function(){
     }).join('');
     return '<div class="dil-box"><div class="dil-tit">Diluir balões nas parcelas pré-chaves</div>' +
       '<div class="dil-sub">Escolha quanto de cada balão vai para as parcelas durante a obra. O total da entrada não muda; ' +
-      'as linhas alteradas ficam em verde no fluxo abaixo.</div>' + linhas + '</div>';
+      'as linhas alteradas ficam em verde no fluxo de pagamento.</div>' + linhas + '</div>';
   }
   function mudou(fluxo){
     var out = [];

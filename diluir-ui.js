@@ -1,5 +1,5 @@
 /* =====================================================================
- * r96e (21/10/26) — DILUIR OS BALÕES NAS PARCELAS PRÉ-CHAVES (0/25/50/75%)
+ * r96e (21/10/26) — DILUIR OS BALÕES NAS PARCELAS PRÉ-CHAVES (0/25/50/75/100%)
  * ---------------------------------------------------------------------
  * Botões por balão com a PRÉVIA ao vivo (como fica o balão e as parcelas),
  * na simulação e na proposta. A conta é a do fpcGerar (fluxo-calc.js) com
@@ -14,7 +14,7 @@
  *   DiluirUI.mudou(fluxo) -> índices das linhas alteradas (para o fpHtml_)
  * =================================================================== */
 var DiluirUI = (function(){
-  var OPC = [0, 25, 50, 75];
+  var OPC = [0, 25, 50, 75, 100];
   function brl(v){
     var s = (Math.round((Number(v) || 0) * 100) / 100).toFixed(2).split('.');
     return 'R$ ' + s[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + s[1];

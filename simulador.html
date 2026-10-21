@@ -232,7 +232,7 @@
 
     <section class="card etapa oculto" data-etapa="2">
       <h2>Financiamento e entrada</h2>
-      <!-- r96f (21/10/26) — ORDEM DO PASSO 2: 1) financiamento · 2) valor para a entrada (e subsídio)
+      <!-- r96f (21/10/26) — ORDEM DO PASSO 2: 1) financiamento · 2) valor para o sinal
            · 3) composição do fluxo · 4) prazo de parcelamento · 5) forma do sinal · 6) fluxo de pagamento
            · 7) diluição dos balões -->
       <div class="secao-sim">1. Financiamento</div>
@@ -244,10 +244,10 @@
         <span class="ajuda" id="produtosAjuda"></span>
         <div id="produtosAviso" style="display:none;margin-top:8px;padding:9px 12px;border-radius:6px;background:#FBEDEA;border:1px solid #E2A493;color:#8A2E17;font-size:13px;">Selecione ao menos uma linha de financiamento.</div>
       </div>
-      <div class="secao-sim">2. Valor para a entrada</div>
+      <div class="secao-sim">2. Valor para o sinal</div>
       <div class="linha">
         <div class="campo">
-          <label>Valor para a entrada (cliente) (R$)<span class="obrig">*</span></label>
+          <label>Valor para o Sinal (R$)<span class="obrig">*</span></label>
           <input type="text" name="valorEntrada" inputmode="numeric" placeholder="10.000,00" value="10.000,00">
           <span class="ajuda" id="ajudaEntradaMin">Mínimo: o valor do sinal desta unidade.</span>
           <div id="avisoEntradaMin" style="display:none;margin-top:6px;padding:8px 11px;border-radius:6px;background:#FBEDEA;border:1px solid #E2A493;color:#8A2E17;font-size:12px;"></div>
@@ -551,16 +551,16 @@
       var fgts=parseMoeda(f.fgtsDisponivel.value), sub=parseMoeda(f.subsidio.value);   // r96f — subsídio opcional
       var g=fpcGerar({preco:u.valorVenda, financiado:fin, fgts:fgts, subsidio:sub, informado:0, nSinal:sinalEscolhidoSim(),
                       prazoEntrada:prazoEscolhidoSim(), ano:ref.getFullYear(), mes:ref.getMonth()+1});
-      EST={fin:fin, sinal:g.sinaisTotal, fonte:fonte, pronto:true};
+      EST={fin:fin, sinal:g.sinalMinimo, max:Math.max(10000, Math.round((u.valorVenda-fin-fgts-sub)*100)/100), fonte:fonte, pronto:true};
       var it=function(r,v,cl){ return '<div class="it'+(cl?' '+cl:'')+'"><small>'+r+'</small><b>'+v+'</b></div>'; };
       cx.innerHTML=it('Valor financiado (estimado)','R$ '+fmt(fin))+it('FGTS','R$ '+fmt(fgts))+
         (sub>0 ? it('Subsídio','R$ '+fmt(sub)) : '')+
         it('Entrada antes do valor do cliente','R$ '+fmt(Math.max(0,u.valorVenda-fin-fgts-sub)))+
-        it('Sinal = entrada mínima','R$ '+fmt(EST.sinal),'destaque')+
+        it('Sinal mínimo','R$ '+fmt(EST.sinal),'destaque')+
         '<div class="nota">'+(fonte==='base' ? 'Financiamento estimado pela base de simulações, limitado a 80% da avaliação. '
           : 'Fora da base de simulações: estimado pelo teto de 80% da avaliação. ')+
         'O subsídio e o valor final são confirmados na simulação online.</div>';
-      document.getElementById('ajudaEntradaMin').innerHTML='Mínimo <b>R$ '+fmt(EST.sinal)+'</b> — valor do sinal desta unidade.';
+      document.getElementById('ajudaEntradaMin').innerHTML='Todo este valor vai para o sinal. Mínimo <b>R$ '+fmt(EST.sinal)+'</b> (sinal mínimo desta unidade), máximo <b>R$ '+fmt(EST.max)+'</b> (a entrada inteira).';
       var ve=f.valorEntrada;
       if(!ENTRADA_EDITADA || parseMoeda(ve.value)<EST.sinal-0.005) ve.value=fmt(EST.sinal);
       var avE=document.getElementById('avisoEntradaMin'); if(avE) avE.style.display='none';
@@ -628,8 +628,10 @@
     var ve=parseMoeda(document.querySelector('[name="valorEntrada"]').value);
     var avE=document.getElementById('avisoEntradaMin');
     if(!EST.pronto){ if(avE){ avE.style.display='block'; avE.innerHTML='Aguarde o cálculo do financiamento estimado.'; } return false; }
-    if(ve<EST.sinal-0.005){
-      if(avE){ avE.style.display='block'; avE.innerHTML='O valor para a entrada precisa ser de pelo menos <b>R$ '+fmt(EST.sinal)+'</b> (sinal desta unidade).';
+    if(ve<EST.sinal-0.005 || ve>EST.max+0.005){
+      if(avE){ avE.style.display='block'; avE.innerHTML = ve<EST.sinal-0.005
+          ? 'O valor para o sinal precisa ser de pelo menos <b>R$ '+fmt(EST.sinal)+'</b> (sinal mínimo desta unidade).'
+          : 'O valor para o sinal não pode passar de <b>R$ '+fmt(EST.max)+'</b> (a entrada inteira desta unidade).';
         avE.scrollIntoView({behavior:'smooth',block:'center'}); }
       return false;
     }
@@ -871,7 +873,10 @@
       mostrarStatus('erro','Informe o <b>celular do corretor</b> com DDD.');return;
     }
     if(!EST.pronto || parseMoeda(e.target.valorEntrada.value)<EST.sinal-0.005){
-      mostrarStatus('erro','O <b>valor para a entrada</b> precisa ser de pelo menos R$ '+fmt(EST.sinal)+' — o sinal desta unidade (passo 2).');return;
+      mostrarStatus('erro','O <b>valor para o sinal</b> precisa ser de pelo menos R$ '+fmt(EST.sinal)+' — o sinal mínimo desta unidade (passo 2).');return;
+    }
+    if(parseMoeda(e.target.valorEntrada.value)>EST.max+0.005){
+      mostrarStatus('erro','O <b>valor para o sinal</b> não pode passar de R$ '+fmt(EST.max)+' — a entrada inteira desta unidade (passo 2).');return;
     }
     /* r60 (item 1) — nome completo: pelo menos duas palavras */
     if(String(e.target.nomeCliente.value||'').trim().split(/\s+/).filter(function(p){
@@ -907,9 +912,10 @@
       /* ITEM 15 — os R$ 10.000 pagam os sinais e NÃO abatem a entrada. Vai
          para o worker só o EXCEDENTE (é o que abate o saldo); o valor
          digitado segue à parte, para o e-mail mostrar a conta inteira. */
-      valorEntrada:Math.max(0, parseMoeda(f.valorEntrada.value)-EST.sinal),
+      /* r96i — TODO o valor do cliente vai para o sinal: não há mais excedente */
+      valorEntrada:0,
       valorEntradaInformado:parseMoeda(f.valorEntrada.value),
-      valorEntradaSinais:Math.min(EST.sinal, parseMoeda(f.valorEntrada.value)),
+      valorEntradaSinais:parseMoeda(f.valorEntrada.value),
       /* r96d — estimativa da tela (base offline): se a CAIXA confirmar menos, o e-mail pede para refazer */
       financiadoBase:EST.fin, sinalEstimado:EST.sinal, fonteEstimativa:EST.fonte,
       diluicao:DIL_SIM.slice(),   /* r96e — % de cada balão diluído nas parcelas pré-chaves */

@@ -1,9 +1,8 @@
 /* =====================================================================
  * r96 (20/10/26) — FLUXO DA ENTRADA (mesma conta no worker, na simulação
  * offline e na proposta)
- *  • O valor de entrada do cliente paga primeiro o SINAL REAL da unidade
- *    (R$ 10.000 no fluxo padrão; mais quando a entrada passa do padrão).
- *    Só o que passar do sinal abate o restante do fluxo (pré e pós-chaves).
+ *  • r96i: TODO o valor do cliente vai para o SINAL (mínimo = sinal do fluxo
+ *    padrão da unidade). O restante da entrada vai para pré e pós-chaves.
  *  • Forma do sinal escolhida na simulação/proposta: 1x (à vista, no ato)
  *    até 4x (R$ 1.000 no ato + 30/60/90 dias). O total do sinal não muda.
  *  • Sinal nunca abaixo de R$ 10.000: se FGTS/subsídio deixariam a entrada
@@ -20,7 +19,13 @@ function fpcR2(v){ return Math.round((Number(v) || 0) * 100) / 100; }
 function fpcQtd(q){ var m = String(q || '').match(/^(\d+)\s*X$/i); return m ? Number(m[1]) : 1; }
 
 /* o = {preco, financiado, fgts, subsidio, informado, nSinal (1..4), prazoEntrada, ano, mes (data de referência),
-        diluir: [% 1º balão, % 2º balão] (0/25/50/75)} */
+        diluir: [% 1º balão, % 2º balão] (0/25/50/75/100)}
+   r96i (21/10/26) — TODO O VALOR DO CLIENTE VAI PARA O SINAL ("Valor para o sinal").
+   O sinal mínimo é o do fluxo padrão da unidade; o cliente pode dar mais. O ato é
+   sempre R$ 1.000 (em 1x o sinal inteiro é no ato) e o resto do sinal se divide
+   em 30/60/90 dias. O que sobra da entrada (imóvel − financiado − FGTS − subsídio
+   − sinal) vai para o pré-chaves (parcelas + balões) e o pós-chaves, na mesma
+   proporção do fluxo padrão. */
 function fpcGerar(o){
   var prazo = Number(o.prazoEntrada) || 48;
   var nPos = FPC_POS_PARCELAS.hasOwnProperty(prazo) ? FPC_POS_PARCELAS[prazo] : 24;
@@ -36,39 +41,32 @@ function fpcGerar(o){
     var g = (T - FPC_ATO - basePos) / (3 * FPC_MES + baseMeio);
     return FPC_ATO + 3 * FPC_MES * g;
   }
-  /* o valor de entrada paga o sinal real; só o excedente abate o fluxo */
-  var exc = 0, T = Math.max(B0, FPC_SINAIS_BASE);
-  for(var it = 0; it < 60; it++){
-    T = Math.max(B0 - exc, FPC_SINAIS_BASE);
-    var nv = Math.max(0, inf - sinalDe(T));
-    if(Math.abs(nv - exc) < 1e-7){ exc = nv; break; }
-    exc = nv;
-  }
-  T = Math.max(B0 - exc, FPC_SINAIS_BASE);
-  var calc = B0 - exc;
-  var devolucao = calc < FPC_SINAIS_BASE ? FPC_SINAIS_BASE - Math.max(0, calc) : 0;
+  /* sinal mínimo = o do fluxo padrão; o sinal é o valor do cliente (nunca passa da entrada) */
+  var T0 = Math.max(B0, FPC_SINAIS_BASE);
+  var Smin = fpcR2(sinalDe(T0));
+  var S = (inf >= Smin - 0.004) ? fpcR2(Math.min(inf, T0)) : Smin;
+  var R = fpcR2(Math.max(0, B0 - S));
+  var devolucao = B0 < FPC_SINAIS_BASE ? FPC_SINAIS_BASE - Math.max(0, B0) : 0;
 
-  var ato, s3, g, t12, t1324, tpos;
-  if(T <= FPC_BASE_CHEIA + 0.01){
-    ato = FPC_ATO; s3 = FPC_MES;
-    g = (T - FPC_SINAIS_BASE) / (baseMeio + basePos);
-    t12 = bM1 * g; t1324 = bM13 * g; tpos = basePos * g;
-  } else {
-    ato = FPC_ATO; tpos = basePos;
-    g = (T - FPC_ATO - basePos) / (3 * FPC_MES + baseMeio);
-    s3 = FPC_MES * g; t12 = bM1 * g; t1324 = bM13 * g;
-  }
-  var fatorBaloes = T <= FPC_SINAIS_BASE ? 0 : g;
+  /* o restante da entrada: pré-chaves e pós-chaves na proporção do fluxo padrão */
+  var g, tpos, baseResto = baseMeio + basePos;
+  if(R <= baseResto + 0.01){ g = baseResto ? R / baseResto : 0; tpos = basePos * g; }
+  else { g = baseMeio ? (R - basePos) / baseMeio : 0; tpos = basePos; }
+  var t12 = bM1 * g, t1324 = bM13 * g;
+  var fatorBaloes = R > 0.005 ? g : 0;
   var meses = ((Number(o.ano) || 2026) - 2026) * 12 + ((Number(o.mes) || 11) - 11);
   var n1 = Math.max(1, Math.min(12, 12 - Math.max(0, meses)));
 
-  var S = ato + 3 * s3, fl = [];
+  var fl = [];
   if(nS === 1){
     fl.push(['Na assinatura', S, 'Sinal à vista / ato', 'sinal']);
   } else {
-    var cada = (S - FPC_ATO) / (nS - 1);
+    var cada = fpcR2((S - FPC_ATO) / (nS - 1));
     fl.push(['Na assinatura', FPC_ATO, 'Sinal / ato', 'sinal']);
-    [30, 60, 90].slice(0, nS - 1).forEach(function(d){ fl.push([d + ' dias', cada, 'Sinal ' + d + ' dias', 'sinal']); });
+    [30, 60, 90].slice(0, nS - 1).forEach(function(d, j){
+      var v = (j === nS - 2) ? fpcR2(S - FPC_ATO - cada * (nS - 2)) : cada;   // centavos no último
+      fl.push([d + ' dias', v, 'Sinal ' + d + ' dias', 'sinal']);
+    });
   }
   if(t12 / n1 > 0.005) fl.push([n1 + ' X', t12 / n1, 'Parcelas meses 1 a ' + n1 + ' - DURANTE A OBRA', 'obra']);
   if(t1324 / 12 > 0.005) fl.push(['12 X', t1324 / 12, 'Parcelas meses 13 a 24 - DURANTE A OBRA', 'obra']);
@@ -77,38 +75,29 @@ function fpcGerar(o){
 
   /* fecha os centavos no último balão (ou na última linha que não é sinal) */
   fl.forEach(function(x){ x[1] = fpcR2(x[1]); });
-  /* r96e — o excedente é medido sobre o sinal JÁ ARREDONDADO: assim a
-     ENTRADA TOTAL e o "a pagar" do fluxo batem no centavo */
-  var sR = fpcR2(fl.filter(function(x){ return x[3] === 'sinal'; }).reduce(function(s, x){ return s + x[1] * fpcQtd(x[0]); }, 0));
-  T = Math.max(B0 - Math.max(0, inf - sR), FPC_SINAIS_BASE);
+  var T = fpcR2(S + R);
   var soma = fpcR2(fl.reduce(function(s, x){ return s + x[1] * fpcQtd(x[0]); }, 0));
   var dif = fpcR2(T - soma);
   if(dif){
     var alvo = -1, i;
     for(i = fl.length - 1; i >= 0; i--) if(fl[i][3] !== 'sinal' && fpcQtd(fl[i][0]) === 1){ alvo = i; break; }
     if(alvo < 0) for(i = fl.length - 1; i >= 0; i--) if(fl[i][3] !== 'sinal'){ alvo = i; break; }
-    if(alvo < 0) alvo = fl.length - 1;
     if(alvo >= 0) fl[alvo][1] = fpcR2(fl[alvo][1] + dif / fpcQtd(fl[alvo][0]));
   }
-  /* r96e (21/10/26) — DILUIR OS BALÕES NAS PARCELAS PRÉ-CHAVES (0/25/50/75%).
-     Mesma regra do portal: o 1º balão (dez/2027) vai para o 1º bloco de
-     parcelas pré-chaves e o balão das chaves para o 2º, pela quantidade de
-     parcelas do bloco. O total não muda: os centavos ficam no balão.
-     Cada linha alterada recebe o texto da diluição em x[4]. */
+  /* r96e — balões diluídos nas parcelas pré-chaves; o texto da linha vai em x[4] */
   var fluxoOriginal = fl.map(function(x){ return x.slice(0, 4); });
   var dil = fpcDiluir(fl, o.diluir);
-  var sinaisTotal = fpcR2(fl.filter(function(x){ return x[3] === 'sinal'; })
-    .reduce(function(s, x){ return s + x[1] * fpcQtd(x[0]); }, 0));
-  var cobertos = fpcR2(Math.min(inf, sinaisTotal));
-  return {total: fpcR2(T), entradaCliente: fpcR2(B0), fluxo: fl, n1: n1, nPos: nPos, nSinal: nS,
-          devolucao: fpcR2(devolucao), totalCalculado: calc, excedente: fpcR2(Math.max(0, inf - sinaisTotal)),
-          sinaisTotal: sinaisTotal, sinaisCobertos: cobertos, faltaSinais: fpcR2(Math.max(0, sinaisTotal - cobertos)),
+  var cobertos = fpcR2(Math.min(inf, S));
+  return {total: T, entradaCliente: fpcR2(B0), fluxo: fl, n1: n1, nPos: nPos, nSinal: nS,
+          devolucao: fpcR2(devolucao), totalCalculado: B0 - Math.max(0, inf - S), excedente: fpcR2(Math.max(0, inf - S)),
+          sinaisTotal: S, sinalMinimo: Smin, sinaisCobertos: cobertos, faltaSinais: fpcR2(Math.max(0, S - cobertos)),
           fluxoOriginal: fluxoOriginal, diluicao: dil};
 }
 
-/* diluir = [% do 1º balão, % do 2º balão] (0, 25, 50 ou 75). Altera fl e
-   devolve os % aplicados. */
-var FPC_DIL_OPC = [0, 25, 50, 75];
+/* diluir = [% do 1º balão, % do 2º balão] (0, 25, 50, 75 ou 100). Altera fl e
+   devolve os % aplicados. Em 100% o balão some (fica só o centavo que não
+   divide igual pelas parcelas, se houver). */
+var FPC_DIL_OPC = [0, 25, 50, 75, 100];
 function fpcBrlTxt(v){
   var s = fpcR2(v).toFixed(2).split('.');
   return 'R$ ' + s[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + s[1];
@@ -122,7 +111,7 @@ function fpcDiluir(fl, diluir){
     if(!pct || !obras.length){ pcts.push(0); return; }
     var ai = obras[Math.min(b, obras.length - 1)], fb = fl[bi], fa = fl[ai];
     var qtd = fpcQtd(fa[0]), vb = fb[1], va = fa[1];
-    var add = fpcR2(vb * pct / 100 / qtd);
+    var add = pct === 100 ? Math.floor(vb / qtd * 100 + 1e-6) / 100 : fpcR2(vb * pct / 100 / qtd);
     if(add <= 0){ pcts.push(0); return; }
     fa[1] = fpcR2(va + add);
     fb[1] = fpcR2(vb - add * qtd);
@@ -130,5 +119,16 @@ function fpcDiluir(fl, diluir){
     fb[4] = '↻ ' + pct + '% diluído nas parcelas (era ' + fpcBrlTxt(vb) + ')';
     pcts.push(pct);
   });
+  /* 100%: os centavos que não dividem igual pelas parcelas vão para o outro balão
+     (se ele não foi diluído 100%), para não sobrar um balão de centavos */
+  var resto = 0, ultimo100 = -1, alvoResto = -1;
+  baloes.forEach(function(bi, b){
+    if(pcts[b] === 100){ resto = fpcR2(resto + fl[bi][1]); fl[bi][1] = 0; ultimo100 = bi; }
+    else if(fl[bi][1] > 0.004) alvoResto = bi;
+  });
+  if(resto > 0.004){
+    if(alvoResto >= 0) fl[alvoResto][1] = fpcR2(fl[alvoResto][1] + resto);
+    else fl[ultimo100][1] = resto;
+  }
   return pcts;
 }

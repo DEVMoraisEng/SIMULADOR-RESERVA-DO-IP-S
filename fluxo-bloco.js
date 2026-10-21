@@ -104,7 +104,7 @@ function fpHtml_(c, opc){
     linha2('(−) Valor financiado pela Caixa', B(c.fin), opc.notaFinanciado || '') +
     linha2('(−) FGTS', B(c.fgts)) +
     linha2('(−) Subsídio', B(c.sub)) +
-    linha2('(−) Valor para a entrada (cliente)', B(c.informado), '', 'color:#7A4A16;font-weight:700') +
+    linha2('(−) Valor para o sinal', B(c.informado), '', 'color:#7A4A16;font-weight:700') +
     linha2('<b>= ENTRADA TOTAL</b>', '<b>' + B(Math.max(0, c.E)) + '</b>', '', 'background:#FBEEC8;color:#5A3A0B') +
     (c.devol > 0.005 ? linha2('Diferença devolvida ao cliente', B(c.devol), 'no ato da assinatura do contrato com o banco', 'background:#FBEEC8;color:#7A4A16') : '') +
     '</table>';
@@ -120,7 +120,7 @@ function fpHtml_(c, opc){
     h += '<div style="margin:0 0 8px;padding:12px 14px;background:#FDECEA;border:2px solid #C0392B;border-radius:6px;color:#8A2E17;font-size:13px;line-height:1.6">' +
       '<b>REFAÇA A SIMULAÇÃO.</b> ' + (menor ? 'O financiamento confirmado pela CAIXA (<b>' + B(c.fin) + '</b>) ficou menor que o estimado (<b>' +
       B(opc.financiadoBase) + '</b>) e o sinal subiu para <b>' + B(c.S) + '</b>. ' : 'O sinal desta unidade ficou em <b>' + B(c.S) + '</b>. ') +
-      'O valor para a entrada informado (<b>' + B(c.informado) + '</b>) não cobre o sinal: faça uma nova simulação com valor para a entrada de no mínimo <b>' + B(c.S) + '</b>.</div>';
+      'O valor para o sinal informado (<b>' + B(c.informado) + '</b>) é menor que o sinal mínimo: faça uma nova simulação com valor para o sinal de no mínimo <b>' + B(c.S) + '</b>.</div>';
   }
   var forma = fpFormaSinal_(c.sinais, B) + (c.nSinal > 1 ? ' (ou à vista)' : '');
   var t = TAB + grupo('FLUXO DE PAGAMENTO — A PAGAR (entrada total)', B(c.aPagar), '#5A3A0B');

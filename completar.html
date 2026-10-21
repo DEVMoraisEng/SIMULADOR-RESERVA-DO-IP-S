@@ -441,8 +441,11 @@ function aoAprovacaoLink(input){
     if(r && r.ok && r.lido && r.assinatura && v>0){
       CRED_LINK.ass=r.assinatura; CRED_LINK.valor=v;
       if(cr){ cr.value=v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); cr.classList.add('lido'); }
+      /* r96k — a Prestação do print vai para a parcela do financiamento */
+      var pr=simLinkNumTxt(c.prestacao), pf=document.getElementById('c-parcelaFinanciamento');
+      if(pr>0 && pf){ pf.value=pr.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); pf.classList.add('lido'); }
       st.className='lst ok';
-      st.innerHTML='✓ Print lido — Valor Financiamento <b>'+brlL(v)+'</b>'+(c.cliente?' · '+esc(c.cliente):'')+'. Confira com o print.';
+      st.innerHTML='✓ Print lido — Valor Financiamento <b>'+brlL(v)+'</b>'+(pr>0?' · Prestação <b>'+brlL(pr)+'</b>':'')+(c.cliente?' · '+esc(c.cliente):'')+'. Confira com o print.';
     } else {
       st.className='lst err';
       st.innerHTML='Não consegui ler o <b>Valor Financiamento</b> neste arquivo. Anexe um print nítido da tela de aprovação da CAIXA.';

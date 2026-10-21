@@ -54,6 +54,11 @@
   .prazo-opt b{display:block;font-size:16px;color:var(--marrom);}
   .prazo-opt small{color:var(--texto-suave);}
   .secao-sim{margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--borda);font-weight:800;color:var(--marrom);font-size:14px;}
+  .anexo-aprov{display:block;margin:0 0 6px;padding:9px 12px;border:2px dashed #E7C56A;border-radius:8px;background:#FFFBEF;color:var(--marrom);font-weight:700;font-size:13px;cursor:pointer;}
+  #printCredSim{display:none;}
+  .lst{font-size:12.5px;margin:0 0 10px;} .lst.ok{color:#1D5433;font-weight:700;} .lst.lendo{color:#6B5A45;}
+  .lst.err{color:#8A2E17;font-weight:700;padding:8px 11px;background:#FDECEA;border:1px solid #E2A493;border-radius:6px;}
+  input.lido{border-color:#8CC9A5 !important;background:#F3FAF6;}
   .estimativa{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:0 0 16px;}
   .estimativa .it{border:1px solid var(--borda);border-radius:8px;padding:9px 11px;background:#FFFDF7;}
   .estimativa .it small{display:block;font-size:11px;color:var(--texto-suave);font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
@@ -240,6 +245,11 @@
       <!-- r96k (21/10/26) — CRÉDITO APROVADO: o corretor informa o valor financiado aprovado
            pela CAIXA (até 80% da avaliação) e o e-mail sai com ele, sem rodar no sistema online -->
       <label class="check" style="margin:0 0 10px"><input type="checkbox" name="creditoAprovadoSim" onchange="credSimMudou()"> Cliente já tem <b>crédito aprovado</b> na CAIXA</label>
+      <div id="boxCredPrintSim" style="display:none">
+        <label class="anexo-aprov" for="printCredSim">📎 Anexar o print da tela de aprovação da CAIXA (preenche o valor financiado e a prestação)</label>
+        <input type="file" id="printCredSim" accept="image/*,application/pdf" onchange="aoPrintCredSim(this)">
+        <div id="lst-printCredSim" class="lst"></div>
+      </div>
       <div class="linha" id="boxCredSim" style="display:none">
         <div class="campo"><label>Valor financiado aprovado (R$)<span class="obrig">*</span></label>
           <input type="text" name="creditoAprovadoValor" inputmode="numeric" placeholder="0,00">
@@ -701,12 +711,74 @@
   function credSimMudou(){
     var f=document.getElementById('formSimulacao'), on=f.creditoAprovadoSim.checked;
     document.getElementById('boxCredSim').style.display=on?'':'none';
-    if(!on){ f.creditoAprovadoValor.value=''; f.creditoAprovadoParcela.value=''; }
+    document.getElementById('boxCredPrintSim').style.display=on?'':'none';
+    if(!on){ f.creditoAprovadoValor.value=''; f.creditoAprovadoParcela.value='';
+      f.creditoAprovadoValor.classList.remove('lido'); f.creditoAprovadoParcela.classList.remove('lido');
+      var stP=document.getElementById('lst-printCredSim'); if(stP){ stP.className='lst'; stP.textContent=''; } }
     var r=document.getElementById('resumoEnvio');
     if(r) r.innerHTML = on
       ? 'Com <b>crédito aprovado</b> não há nova simulação na CAIXA: o resultado sai por e-mail em seguida, no papel timbrado da Morais, com o valor financiado aprovado, o fluxo de entrada e a comissão.'
       : 'Vamos simular na CAIXA as linhas selecionadas e enviar o resultado por e-mail, no papel timbrado da Morais, com o fluxo de entrada e a comissão. O processamento leva alguns minutos.';
     clearTimeout(TM_CRED); TM_CRED=setTimeout(estimar,250);
+  }
+
+  /* r96k — print da tela de aprovação da CAIXA: o mesmo leitor da proposta preenche o valor
+     financiado e a prestação (os dois continuam editáveis). Crédito acima dos 80% da avaliação:
+     o financiado fica nos 80% e a prestação vai junto, na mesma proporção. */
+  function lerBase64Sim(arq){
+    return new Promise(function(ok,err){ var r=new FileReader();
+      r.onload=function(){ ok(String(r.result).split(',')[1]||''); }; r.onerror=function(){ err(new Error('falha')); }; r.readAsDataURL(arq); });
+  }
+  function prepararLeituraSim(file){
+    return new Promise(function(ok){
+      var t=file.type||'';
+      if(t==='application/pdf'){
+        if(file.size>6*1024*1024) return ok(null);
+        return lerBase64Sim(file).then(function(b){ ok({nome:file.name, tipo:t, base64:b}); }).catch(function(){ ok(null); });
+      }
+      if(t.indexOf('image/')!==0) return ok(null);
+      var img=new Image(), url=URL.createObjectURL(file);
+      img.onload=function(){
+        var s=Math.min(1, 1800/Math.max(img.width,img.height));
+        var c=document.createElement('canvas'); c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        URL.revokeObjectURL(url);
+        ok({nome:file.name.replace(/\.[^.]+$/,'')+'.jpg', tipo:'image/jpeg', base64:c.toDataURL('image/jpeg',0.85).split(',')[1]});
+      };
+      img.onerror=function(){ URL.revokeObjectURL(url); ok(null); };
+      img.src=url;
+    });
+  }
+  var PRINT_SIM=null;
+  function aoPrintCredSim(input){
+    var arq=input.files&&input.files[0], st=document.getElementById('lst-printCredSim'), f=document.getElementById('formSimulacao');
+    PRINT_SIM=arq||null;
+    if(!arq){ st.className='lst'; st.textContent=''; return; }
+    st.className='lst lendo'; st.textContent='Lendo o print da aprovação…';
+    prepararLeituraSim(arq).then(function(pre){
+      if(!pre) throw {sem:'Arquivo grande demais ou em formato que não dá para ler.'};
+      return apiPost({acao:'lerDocumento', tipo:'APROVACAO_CAIXA', quem:'proponente', arquivo:pre});
+    }).then(function(r){
+      if(PRINT_SIM!==arq) return;
+      var c=(r&&r.campos)||{}, v=Number(c.valorNumero)||parseMoeda(c.valorFinanciamento), pr=parseMoeda(c.prestacao);
+      if(!(r && r.ok && v>0)){
+        st.className='lst err';
+        st.innerHTML='Não consegui ler o <b>Valor Financiamento</b> neste arquivo. Anexe um print nítido da tela de aprovação ou digite os valores abaixo.';
+        return;
+      }
+      var u=unidadeAtual(), teto=u ? Math.round((u.avaliacao||0)*0.8*100)/100 : 0, prU=pr;
+      if(teto && v>teto+0.005 && pr>0) prU=Math.round(pr*teto/v*100)/100;
+      f.creditoAprovadoValor.value=fmt(v); f.creditoAprovadoValor.classList.add('lido');
+      if(prU>0){ f.creditoAprovadoParcela.value=fmt(prU); f.creditoAprovadoParcela.classList.add('lido'); }
+      st.className='lst ok';
+      st.innerHTML='✓ Print lido — Valor Financiamento <b>R$ '+fmt(v)+'</b>'+(pr>0?' · Prestação <b>R$ '+fmt(pr)+'</b>':'')+
+        (prU!==pr ? ' (acima dos 80%: prestação levada para <b>R$ '+fmt(prU)+'</b>)' : '')+'. Confira com o print.';
+      clearTimeout(TM_CRED); estimar();
+    }).catch(function(e){
+      if(PRINT_SIM!==arq) return;
+      st.className='lst err';
+      st.innerHTML=(e&&e.sem?e.sem+' ':'A leitura do print não respondeu agora. ')+'Anexe de novo ou digite os valores abaixo.';
+    });
   }
 
   function irPara(n){

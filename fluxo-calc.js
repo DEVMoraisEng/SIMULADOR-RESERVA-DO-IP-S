@@ -19,7 +19,8 @@ var FPC_POS_PARCELAS = {24: 0, 36: 12, 48: 24};
 function fpcR2(v){ return Math.round((Number(v) || 0) * 100) / 100; }
 function fpcQtd(q){ var m = String(q || '').match(/^(\d+)\s*X$/i); return m ? Number(m[1]) : 1; }
 
-/* o = {preco, financiado, fgts, subsidio, informado, nSinal (1..4), prazoEntrada, ano, mes (data de referência)} */
+/* o = {preco, financiado, fgts, subsidio, informado, nSinal (1..4), prazoEntrada, ano, mes (data de referência),
+        diluir: [% 1º balão, % 2º balão] (0/25/50/75)} */
 function fpcGerar(o){
   var prazo = Number(o.prazoEntrada) || 48;
   var nPos = FPC_POS_PARCELAS.hasOwnProperty(prazo) ? FPC_POS_PARCELAS[prazo] : 24;
@@ -76,6 +77,10 @@ function fpcGerar(o){
 
   /* fecha os centavos no último balão (ou na última linha que não é sinal) */
   fl.forEach(function(x){ x[1] = fpcR2(x[1]); });
+  /* r96e — o excedente é medido sobre o sinal JÁ ARREDONDADO: assim a
+     ENTRADA TOTAL e o "a pagar" do fluxo batem no centavo */
+  var sR = fpcR2(fl.filter(function(x){ return x[3] === 'sinal'; }).reduce(function(s, x){ return s + x[1] * fpcQtd(x[0]); }, 0));
+  T = Math.max(B0 - Math.max(0, inf - sR), FPC_SINAIS_BASE);
   var soma = fpcR2(fl.reduce(function(s, x){ return s + x[1] * fpcQtd(x[0]); }, 0));
   var dif = fpcR2(T - soma);
   if(dif){
@@ -85,10 +90,45 @@ function fpcGerar(o){
     if(alvo < 0) alvo = fl.length - 1;
     if(alvo >= 0) fl[alvo][1] = fpcR2(fl[alvo][1] + dif / fpcQtd(fl[alvo][0]));
   }
+  /* r96e (21/10/26) — DILUIR OS BALÕES NAS PARCELAS PRÉ-CHAVES (0/25/50/75%).
+     Mesma regra do portal: o 1º balão (dez/2027) vai para o 1º bloco de
+     parcelas pré-chaves e o balão das chaves para o 2º, pela quantidade de
+     parcelas do bloco. O total não muda: os centavos ficam no balão.
+     Cada linha alterada recebe o texto da diluição em x[4]. */
+  var fluxoOriginal = fl.map(function(x){ return x.slice(0, 4); });
+  var dil = fpcDiluir(fl, o.diluir);
   var sinaisTotal = fpcR2(fl.filter(function(x){ return x[3] === 'sinal'; })
     .reduce(function(s, x){ return s + x[1] * fpcQtd(x[0]); }, 0));
   var cobertos = fpcR2(Math.min(inf, sinaisTotal));
   return {total: fpcR2(T), entradaCliente: fpcR2(B0), fluxo: fl, n1: n1, nPos: nPos, nSinal: nS,
           devolucao: fpcR2(devolucao), totalCalculado: calc, excedente: fpcR2(Math.max(0, inf - sinaisTotal)),
-          sinaisTotal: sinaisTotal, sinaisCobertos: cobertos, faltaSinais: fpcR2(Math.max(0, sinaisTotal - cobertos))};
+          sinaisTotal: sinaisTotal, sinaisCobertos: cobertos, faltaSinais: fpcR2(Math.max(0, sinaisTotal - cobertos)),
+          fluxoOriginal: fluxoOriginal, diluicao: dil};
+}
+
+/* diluir = [% do 1º balão, % do 2º balão] (0, 25, 50 ou 75). Altera fl e
+   devolve os % aplicados. */
+var FPC_DIL_OPC = [0, 25, 50, 75];
+function fpcBrlTxt(v){
+  var s = fpcR2(v).toFixed(2).split('.');
+  return 'R$ ' + s[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + s[1];
+}
+function fpcDiluir(fl, diluir){
+  var pcts = [], obras = [], baloes = [];
+  fl.forEach(function(x, i){ if(x[3] === 'obra') obras.push(i); else if(x[3] === 'balao') baloes.push(i); });
+  baloes.forEach(function(bi, b){
+    var pct = Math.round(Number((diluir || [])[b]) || 0);
+    if(FPC_DIL_OPC.indexOf(pct) < 0) pct = 0;
+    if(!pct || !obras.length){ pcts.push(0); return; }
+    var ai = obras[Math.min(b, obras.length - 1)], fb = fl[bi], fa = fl[ai];
+    var qtd = fpcQtd(fa[0]), vb = fb[1], va = fa[1];
+    var add = fpcR2(vb * pct / 100 / qtd);
+    if(add <= 0){ pcts.push(0); return; }
+    fa[1] = fpcR2(va + add);
+    fb[1] = fpcR2(vb - add * qtd);
+    fa[4] = (fa[4] ? fa[4] + ' · ' : '') + '↻ + ' + fpcBrlTxt(add) + ' por parcela — ' + pct + '% do ' + fb[2].replace(/^Balão/, 'balão') + ' (era ' + fpcBrlTxt(va) + ')';
+    fb[4] = '↻ ' + pct + '% diluído nas parcelas (era ' + fpcBrlTxt(vb) + ')';
+    pcts.push(pct);
+  });
+  return pcts;
 }

@@ -263,6 +263,13 @@
         </div>
         <span class="ajuda">Em <b>1x</b> o sinal inteiro é pago <b>no ato</b> da assinatura do contrato. A forma não muda o valor total do sinal.</span>
       </div>
+      <!-- r96e (21/10/26) — fluxo de pagamento já na tela, com a diluição dos balões ao vivo -->
+      <div class="campo full" id="boxFluxoSim" style="margin-bottom:16px;display:none">
+        <label>Fluxo de pagamento</label>
+        <div id="diluirSim"></div>
+        <div id="fluxoSim"></div>
+        <span class="ajuda">Prévia com o financiamento estimado. O valor final e o subsídio saem na simulação online.</span>
+      </div>
       <!-- r64 — TESTE do sistema offline -->
       <div class="linha">
         <div class="campo" style="display:none">
@@ -361,6 +368,8 @@
 </main>
 
 <script src="fluxo-calc.js"></script>
+<script src="fluxo-bloco.js"></script>
+<script src="diluir-ui.js"></script>
 <script src="base-offline.js"></script>
 <script>
 
@@ -545,6 +554,7 @@
       var ve=f.valorEntrada;
       if(!ENTRADA_EDITADA || parseMoeda(ve.value)<EST.sinal-0.005) ve.value=fmt(EST.sinal);
       var avE=document.getElementById('avisoEntradaMin'); if(avE) avE.style.display='none';
+      pintarFluxoSim();
     }
     EST.pronto=false;
     cx.innerHTML='<span class="ajuda">Calculando o financiamento estimado…</span>';
@@ -554,6 +564,28 @@
       catch(e){ fin=teto; fonte='teto'; }
       aplicar(Math.round(fin*100)/100, fonte);
     }).catch(function(){ aplicar(Math.round(teto*100)/100, 'teto'); });
+  }
+
+  /* r96e (21/10/26) — FLUXO DE PAGAMENTO NA TELA + DILUIÇÃO DOS BALÕES.
+     O corretor já vê o fluxo (mesmo quadro do e-mail) e escolhe quanto de
+     cada balão vai para as parcelas pré-chaves (0/25/50/75%). A escolha vai
+     no pedido (diluicao) e o e-mail sai com o fluxo diluído. */
+  var DIL_SIM=[0,0];
+  function dilSim(b,o){ DIL_SIM[b]=o; pintarFluxoSim(); }
+  function pintarFluxoSim(){
+    var box=document.getElementById('boxFluxoSim'), u=unidadeAtual(), f=document.getElementById('formSimulacao');
+    if(!box) return;
+    if(!EST.pronto || !u){ box.style.display='none'; return; }
+    var ref=f.dataSimulacao.value ? new Date(f.dataSimulacao.value+'T12:00:00') : new Date();
+    var fgts=parseMoeda(f.fgtsDisponivel.value), inf=parseMoeda(f.valorEntrada.value);
+    var g=fpcGerar({preco:u.valorVenda, financiado:EST.fin, fgts:fgts, subsidio:0, informado:inf, nSinal:sinalEscolhidoSim(),
+                    prazoEntrada:prazoEscolhidoSim(), ano:ref.getFullYear(), mes:ref.getMonth()+1, diluir:DIL_SIM});
+    var c=fpResumo_({preco:u.valorVenda, financiado:EST.fin, fgts:fgts, subsidio:0, informado:inf, devolucao:g.devolucao,
+      fluxo:g.fluxo.map(function(x,i){ return {quando:x[0], valor:x[1], desc:x[2], grupo:x[3], i:i, dilTxt:x[4]||''}; })});
+    document.getElementById('diluirSim').innerHTML=DiluirUI.html(g, DIL_SIM, 'dilSim');
+    document.getElementById('fluxoSim').innerHTML=fpHtml_(c, {mudou:DiluirUI.mudou(g.fluxo),
+      notaFinanciado: EST.fonte==='base' ? 'estimado pela base de simulações' : 'estimado pelo teto de 80% da avaliação'});
+    box.style.display='block';
   }
 
   var PROD_COM=['SBPE SFH - TR - AQUISIÇÃO DE IMÓVEL RESIDENCIAL NOVO'];
@@ -869,6 +901,7 @@
       valorEntradaSinais:Math.min(EST.sinal, parseMoeda(f.valorEntrada.value)),
       /* r96d — estimativa da tela (base offline): se a CAIXA confirmar menos, o e-mail pede para refazer */
       financiadoBase:EST.fin, sinalEstimado:EST.sinal, fonteEstimativa:EST.fonte,
+      diluicao:DIL_SIM.slice(),   /* r96e — % de cada balão diluído nas parcelas pré-chaves */
       dataSimulacao:(f.dataSimulacao.value||''),
       modoSiop:(f.modoSiop ? f.modoSiop.value : ''),   /* r64 — teste ONLINE/OFFLINE */
       produtos:produtosSelecionados,
@@ -930,7 +963,7 @@
   document.querySelectorAll('[name="prazoEntrada"]').forEach(function(r){r.addEventListener('change',function(){atualizarComissao();estimar();});});
   /* r96d — forma do sinal muda os centavos do sinal; a entrada digitada à mão é respeitada */
   document.querySelectorAll('[name="sinalParcelas"]').forEach(function(r){r.addEventListener('change',estimar);});
-  document.querySelector('[name="valorEntrada"]').addEventListener('input',function(){ ENTRADA_EDITADA=true; });
+  document.querySelector('[name="valorEntrada"]').addEventListener('input',function(){ ENTRADA_EDITADA=true; setTimeout(pintarFluxoSim,0); });
   BaseOffline.carregar().catch(function(){});   // já baixa a base enquanto preenche o passo 1
   document.querySelector('[name="possuiImovelCidade"]').addEventListener('change',renderProdutos);
 

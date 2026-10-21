@@ -738,17 +738,14 @@ function vendaPintar(){
   } else av.style.display='none';
   var COM={24:0.05,36:0.0475,48:0.045}, pz=vPrazo();
   document.getElementById('v-comissao').innerHTML='Comissão do corretor: <b>'+(COM[pz]*100).toLocaleString('pt-BR',{minimumFractionDigits:2})+'% · '+brlL(c.preco*COM[pz])+'</b>';
-  var fluxo, informado, devol, mudouI=[];
-  var salvo = !mudou && v.esquema ? vendaFluxoSalvo(v.esquema) : null;
-  if(salvo && salvo.length){ fluxo=salvo; informado=Number(v.valorEntrada)||0; devol=0; }
-  else {
-    fluxo=c.g.fluxo.map(function(x, i){ return {quando:x[0], valor:x[1], desc:x[2], grupo:x[3], i:i, dilTxt:x[4]||''}; });
-    informado=c.inf; devol=c.g.devolucao; mudouI=DiluirUI.mudou(c.g.fluxo);
-  }
-  var r=fpResumo_({preco:c.preco, financiado:c.F.fin, fgts:c.fgts, subsidio:c.sub, informado:informado, devolucao:devol, fluxo:fluxo});
+  /* r96i — o quadro mostra SEMPRE o fluxo refeito com os valores da tela: mais sinal = entrada
+     menor = parcelas menores (e o contrário), nunca abaixo do sinal mínimo */
+  var fluxo=c.g.fluxo.map(function(x, i){ return {quando:x[0], valor:x[1], desc:x[2], grupo:x[3], i:i, dilTxt:x[4]||''}; });
+  var r=fpResumo_({preco:c.preco, financiado:c.F.fin, fgts:c.fgts, subsidio:c.sub, informado:c.inf, devolucao:c.g.devolucao, fluxo:fluxo});
+  var difSalvo = !mudou && v.esquema && vendaEsquema(c.g.fluxo).replace(/\s+/g,' ') !== String(v.esquema).replace(/\s+/g,' ');
   document.getElementById('vComp').innerHTML=fpHtml_(r, {parte:'composicao', notaFinanciado:c.F.nota, B:brlL});
-  document.getElementById('vFluxo').innerHTML=(salvo && salvo.length ? '<div class="ajuda" style="margin:0 0 6px">Fluxo gravado na proposta. Ao alterar qualquer valor acima ele é refeito.</div>' : '')+
-    fpHtml_(r, {parte:'fluxo', mudou:mudouI, B:brlL});
+  document.getElementById('vFluxo').innerHTML=(difSalvo ? '<div class="ajuda" style="margin:0 0 6px">Fluxo pelos valores acima. A proposta só passa a usar este fluxo quando você alterar algum valor e clicar em <b>Enviar para a Morais</b>.</div>' : '')+
+    fpHtml_(r, {parte:'fluxo', mudou:DiluirUI.mudou(c.g.fluxo), B:brlL});
   document.getElementById('vDil').innerHTML=DiluirUI.html(c.g, VDIL, 'vDilEscolher') || '<span class="ajuda">Sem balões neste fluxo.</span>';
   try{ atualizarTrava(); }catch(e){}
 }

@@ -74,7 +74,43 @@ var BaseOffline = (function(){
         produto: cel(l, 'produto').trim().replace(/^CC(?=SBPE)/, '')
       };
     });
+    trocarSbpePorClasseMedia(idx);
     return {idx: idx, total: ok};
+  }
+
+  /* r97a (24/10/2026) — TRAVA DOS 70%.
+     Perfil FGTS (sem imóvel) nunca é SBPE: até a faixa 4 é NPMCMV/PMCMV e a
+     CAIXA financia 80% do imóvel novo. A geração b2 gravou pontos do PRICE
+     (renda 9.650 a 12.000) no SBPE, com 70%. Ponto SBPE no perfil FGTS é
+     trocado pelo ponto Classe Média da MESMA idade (renda mais próxima), com
+     a prestação limitada a 30% da renda. Mesma regra do worker
+     (base_offline.py) e da nuvem (NuvemOffline.gs). */
+  function semAcento(s){
+    return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+  }
+  function trocarSbpePorClasseMedia(idx){
+    Object.keys(idx).forEach(function(chave){
+      if(chave.split('|')[0] !== 'FGTS') return;
+      var porIdade = idx[chave];
+      Object.keys(porIdade).forEach(function(idade){
+        var pontos = porIdade[idade];
+        var refs = Object.keys(pontos).map(Number).filter(function(r){
+          return semAcento(pontos[r].produto).indexOf('CLASSE MEDIA') >= 0;
+        });
+        if(!refs.length) return;
+        Object.keys(pontos).map(Number).forEach(function(renda){
+          if(semAcento(pontos[renda].produto).indexOf('SBPE') < 0) return;
+          var rRef = refs.reduce(function(m, r){ return Math.abs(r - renda) < Math.abs(m - renda) ? r : m; }, refs[0]);
+          var novo = copia(pontos[rRef]), teto = renda * 0.30;
+          if(teto > 0 && novo.prestacao > teto){
+            novo.financiamento = r2(novo.financiamento * teto / novo.prestacao);
+            novo.prestacao = r2(teto);
+          }
+          novo.comprometimento = renda ? r2(novo.prestacao / renda * 100) : null;
+          pontos[renda] = novo;
+        });
+      });
+    });
   }
 
   function carregar(){

@@ -669,8 +669,18 @@ function mostrarAba(a){
   document.getElementById('btAbaVenda').classList.toggle('on', a==='venda');
   try{ window.scrollTo({top:document.querySelector('.abas').offsetTop-8, behavior:'smooth'}); }catch(e){}
 }
-function vPrazo(){ var el=document.querySelector('input[name="vPrazo"]:checked'); return Number(el&&el.value)||48; }
-function vSinal(){ var el=document.querySelector('input[name="vSinal"]:checked'); return Number(el&&el.value)||4; }
+/* r97a (24/10/2026) — sem a aba "Dados da venda" aberta não existem os botões vPrazo/vSinal e o
+   link mandava 48 meses / sinal em 4x, trocando o que o corretor escolheu na proposta. Agora, sem
+   botão marcado, vale o que está gravado na proposta. */
+function prazoNormal(n){ n=Number(n)||0; if(!n) return 0; return n<=24 ? 24 : (n<=36 ? 36 : 48); }
+function vPrazo(){ var el=document.querySelector('input[name="vPrazo"]:checked');
+  if(el) return Number(el.value)||48;
+  return prazoNormal(vendaDados().prazoEntrada) || prazoNormal(simLinkVal('prazoEntrada',0)) ||
+         prazoNormal(DADOS && DADOS.prazoEntrada) || 48; }
+function vSinal(){ var el=document.querySelector('input[name="vSinal"]:checked');
+  if(el) return Number(el.value)||4;
+  return Number(vendaDados().sinalParcelas) || Number(simLinkVal('sinalParcelas',0)) ||
+         Number(DADOS && DADOS.sinalParcelas) || 4; }
 function vendaMoeda(id, v){ var el=document.getElementById(id); if(!el) return;
   el.value = (Number(v)||0) ? Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : ''; }
 function vendaIniciar(){

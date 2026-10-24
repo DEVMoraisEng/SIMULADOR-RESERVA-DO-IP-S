@@ -306,7 +306,7 @@
     </div>
 
     <div class="resumo" style="margin-bottom:18px">
-      <b>3 QUARTOS SENDO 1 SUÍTE — MCMV FAIXA 3</b> · 70,27 m² · entrega 15/10/2028<br>
+      <b>3 QUARTOS SENDO 1 SUÍTE — <span id="faixaMcmv">MCMV</span></b> · 70,27 m² · entrega 15/10/2028<br>
       Rua RPB 24, Quadra 269, Lote 03, 75257-005, Setor Parque dos Buritis, Senador Canedo – GO<br>
       <span>Memorial de Incorporação registrado sob R-3 da matrícula nº 64.602, Registro de Imóveis de Senador Canedo/GO.</span>
     </div>
@@ -527,7 +527,7 @@
         <!-- r46 (item 4) — % de agravamento do seguro removido -->
       </div>
       <div class="checks" style="margin-top:4px">
-        <label class="check"><input type="checkbox" name="possuiImovelCidade" onchange="renderProdutos()"> Possui algum imóvel</label>
+        <label class="check"><input type="checkbox" name="possuiImovelCidade" onchange="renderProdutos();atualizarFaixaMcmv()"> Possui algum imóvel</label>
         <label class="check"><input type="checkbox" name="fgts3anos" onchange="montarAnexos();montarFluxo();"> Tem 3 anos de FGTS</label>
         <label class="check"><input type="checkbox" name="maisDeUmComprador" onchange="verDependentes()"> Mais de um comprador ou dependente</label>
         <!-- r47 (item 3) — quantos e quem são: cada pessoa ganha nome, CPF,
@@ -539,7 +539,7 @@
                  style="width:90px;margin:4px 0 8px" onchange="montarDependentes()">
           <div id="listaDependentes"></div>
         </div>
-        <label class="check"><input type="checkbox" name="jaBeneficiado" onchange="verSiopSub()"> Já foi beneficiado com subsídio FGTS/União</label>
+        <label class="check"><input type="checkbox" name="jaBeneficiado" onchange="verSiopSub();atualizarFaixaMcmv()"> Já foi beneficiado com subsídio FGTS/União</label>
         <div class="campo" id="boxConcessaoProp" style="display:none;margin:2px 0 8px 26px;max-width:260px">
           <label>Data da concessão do benefício</label>
           <input type="date" name="dataConcessaoBeneficio">
@@ -1586,6 +1586,26 @@
         if(tp && tp.value==='COMPRADOR' && r) t+=moeda(r.value);
       });
     document.getElementById('rendaTotal').value = brl(t);
+    atualizarFaixaMcmv(t);
+  }
+  /* r97a (24/10/2026) — faixa do MCMV pela RENDA TOTAL (limites de 22/04/2026:
+     1 até 3.200 · 2 até 5.000 · 3 até 9.600 · 4 até 13.000). Antes era fixo "FAIXA 3". */
+  function faixaMcmv(renda){
+    renda=Number(renda)||0;
+    if(!(renda>0)) return '';
+    if(renda<=3200) return 'FAIXA 1';
+    if(renda<=5000) return 'FAIXA 2';
+    if(renda<=9600) return 'FAIXA 3';
+    if(renda<=13000) return 'FAIXA 4';
+    return '';
+  }
+  function atualizarFaixaMcmv(renda){
+    var el=document.getElementById('faixaMcmv'); if(!el) return;
+    var f=document.getElementById('formProposta');
+    var sbpe=f && ((f.possuiImovelCidade&&f.possuiImovelCidade.checked) || (f.jaBeneficiado&&f.jaBeneficiado.checked));
+    if(renda===undefined) renda=moeda((document.getElementById('rendaTotal')||{}).value);
+    var fx=faixaMcmv(renda);
+    el.textContent = sbpe ? 'SBPE' : (fx ? 'MCMV '+fx : (Number(renda)>13000 ? 'SBPE' : 'MCMV'));
   }
   function verConjuge(){
     var v=F().estadoCivil.value, casado=(v==='CASADO'||v==='UNIAO ESTAVEL');

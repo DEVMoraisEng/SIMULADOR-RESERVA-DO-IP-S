@@ -82,6 +82,13 @@
   .v-opt{flex:1;min-width:110px;border:1px solid var(--borda);border-radius:8px;padding:10px;text-align:center;cursor:pointer;background:#fff;font-size:13px}
   .v-opt input{display:none} .v-opt b{display:block;font-size:15px;color:var(--marrom)} .v-opt small{color:var(--texto-suave)}
   .v-opt:has(input:checked){border-color:var(--marrom);background:#FBEEC8}
+  /* 27/10/2026 — quadro da UNIDADE (tipo, número e valor) com opção de trocar */
+  .un-box{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
+  .un-item{flex:1;min-width:120px;border:1px solid var(--borda);border-radius:8px;padding:10px 12px;background:#FFFBEF}
+  .un-item small{display:block;font-size:11px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.4px}
+  .un-item b{display:block;font-size:17px;color:var(--marrom);margin-top:2px}
+  .un-alt{margin-top:10px;padding:10px 12px;border:1px dashed var(--borda);border-radius:8px;background:#fff}
+  .un-mudou{margin-top:10px;padding:9px 12px;border-left:4px solid #B7791F;background:#FFF4D6;border-radius:6px;font-size:13px}
   #vComp h3,#vFluxo h3{display:none}
   .ajuda{display:block;font-size:11.5px;color:var(--texto-suave);margin-top:3px}
   .secao{grid-column:1/-1;font-size:12.5px;font-weight:800;color:var(--marrom);text-transform:uppercase;
@@ -99,6 +106,25 @@
   <div id="conteudo" style="display:none">
 
     <div class="resumo" id="resumo"></div>
+
+    <!-- 27/10/2026 — UNIDADE: tipo, número e valor, com opção de trocar -->
+    <div class="card" id="cardUnidade">
+      <h2>Unidade</h2>
+      <div class="un-box">
+        <div class="un-item"><small>Unidade</small><b id="un-numero">—</b></div>
+        <div class="un-item"><small>Tipo</small><b id="un-tipo">—</b></div>
+        <div class="un-item"><small>Valor de venda</small><b id="un-valor">—</b></div>
+      </div>
+      <div style="margin-top:10px"><button type="button" class="bt-sec" id="un-btAlterar" onclick="unAbrir()"
+        style="background:#fff;border:1.5px solid var(--marrom);color:var(--marrom);padding:8px 16px">Alterar unidade</button></div>
+      <div class="un-alt" id="un-alt" style="display:none">
+        <label for="un-select" style="font-weight:700;font-size:13px">Escolha a nova unidade (só aparecem as disponíveis)</label>
+        <select id="un-select" onchange="unEscolher(this.value)" style="margin-top:6px"></select>
+        <div class="ajuda" style="margin-top:6px">Ao trocar, o valor da proposta, a comissão e o fluxo de pagamento são refeitos com o valor da nova unidade
+          (confira na aba <b>Dados da venda</b>). A troca só é gravada quando você clicar em <b>Enviar para a Morais</b>.</div>
+      </div>
+      <div class="un-mudou" id="un-mudou" style="display:none"></div>
+    </div>
 
     <!-- r63 (item 6) — a análise só anda com tudo anexado -->
     <div class="trava pend" id="trava"></div>
@@ -612,6 +638,7 @@ function pintar(){
   window.CEP_PRONTO=true;
 
   verConjuge();
+  unIniciar();   // 27/10 — quadro da unidade (antes do fluxo: o preço vem dele)
   vendaIniciar();
   verCreditoLink();
 }
@@ -660,6 +687,54 @@ function buscarCepLink(el){
  * se algo mudou. Enquanto nada muda, a tela mostra o fluxo GRAVADO.
  * =================================================================== */
 var VENDA0=null, VDIL=[0,0];
+/* 27/10/2026 — UNIDADE da proposta: mostra tipo, número e valor e deixa trocar por outra
+   DISPONÍVEL. A troca refaz preço, comissão e fluxo (aba Dados da venda) e só é gravada no
+   envio — o servidor confere de novo se a unidade ainda está disponível. */
+var UN_ORIG=null, UN_NOVA=null, UN_LISTA=[];
+function unNum(u){ return parseInt(String(u||'').replace(/\D/g,''),10)||0; }
+function unAtual(){ return UN_NOVA || UN_ORIG || {}; }
+function unIniciar(){
+  var v=vendaDados();
+  UN_ORIG={unidade:String(DADOS.unidade||''), tipo:String(DADOS.tipo||''), valorVenda:Number(v.preco)||Number(DADOS.preco)||0,
+           avaliacao:Number(v.avaliacao)||simLinkAval()};
+  UN_NOVA=null;
+  unPintar();
+  var bloqueada = /VENDID/.test(semAcento(DADOS.status||''));
+  document.getElementById('un-btAlterar').style.display = bloqueada ? 'none' : '';
+  if(Array.isArray(DADOS.unidades) && DADOS.unidades.length){ UN_LISTA=DADOS.unidades; unOpcoes(); }
+  else fetch('unidades.json?t='+Date.now()).then(function(r){ return r.json(); })
+    .then(function(l){ UN_LISTA=Array.isArray(l)?l:[]; unOpcoes(); }).catch(function(){});
+}
+function unOpcoes(){
+  var sel=document.getElementById('un-select'); if(!sel) return;
+  var atual=String(UN_ORIG.unidade);
+  var disp=UN_LISTA.filter(function(u){ return String(u.unidade)!==atual && u.disponivel && !u.vendido && !u.reservado && Number(u.valorVenda)>0; })
+    .sort(function(a,b){ return unNum(a.unidade)-unNum(b.unidade); });
+  sel.innerHTML='<option value="">— manter a unidade '+esc(atual)+' —</option>'+disp.map(function(u){
+    return '<option value="'+esc(u.unidade)+'">Unidade '+esc(u.unidade)+' · Tipo '+esc(u.tipo)+' · '+brl(u.valorVenda)+'</option>'; }).join('');
+  if(!disp.length) sel.innerHTML+='<option value="" disabled>Nenhuma outra unidade disponível agora</option>';
+}
+function unAbrir(){ var a=document.getElementById('un-alt'); a.style.display = a.style.display==='none' ? '' : 'none'; }
+function unPintar(){
+  var u=unAtual();
+  document.getElementById('un-numero').textContent=u.unidade||'—';
+  document.getElementById('un-tipo').textContent=u.tipo ? 'Tipo '+u.tipo : '—';
+  document.getElementById('un-valor').textContent=brl(u.valorVenda);
+  var m=document.getElementById('un-mudou');
+  if(UN_NOVA){
+    m.style.display='';
+    m.innerHTML='<b>Unidade alterada:</b> '+esc(UN_ORIG.unidade)+' (Tipo '+esc(UN_ORIG.tipo)+', '+brl(UN_ORIG.valorVenda)+') → <b>'+
+      esc(UN_NOVA.unidade)+' (Tipo '+esc(UN_NOVA.tipo)+', '+brl(UN_NOVA.valorVenda)+')</b>. Valor, comissão e fluxo foram refeitos — confira na aba '+
+      '<a href="#" onclick="mostrarAba(\'venda\');return false">Dados da venda</a>. Clique em <b>Enviar para a Morais</b> para gravar.';
+  } else m.style.display='none';
+}
+function unEscolher(num){
+  var u = num ? UN_LISTA.filter(function(x){ return String(x.unidade)===String(num); })[0] : null;
+  UN_NOVA = u ? {unidade:String(u.unidade), tipo:String(u.tipo||''), valorVenda:Number(u.valorVenda)||0,
+                 avaliacao:Number(u.avaliacao)||UN_ORIG.avaliacao} : null;
+  unPintar();
+  try{ vendaPintar(); }catch(e){}
+}
 function vendaDados(){ return (DADOS && DADOS.venda) || {}; }
 function credSim(){ var el=document.getElementById('c-creditoAprovadoCaixa'); return !!(el ? el.value==='SIM' : (DADOS&&DADOS.comCredito)); }
 function mostrarAba(a){
@@ -707,7 +782,7 @@ function vendaEstado(){
   return JSON.stringify([simLinkNum('sl-valorEntrada'), simLinkNum('sl-saldoFgts'), simLinkNum('sl-saldoFgtsConjuge'),
     simLinkNum('sl-subsidio'), vPrazo(), vSinal(), VDIL]);
 }
-function vendaMudou(){ return VENDA0!==null && vendaEstado()!==VENDA0; }
+function vendaMudou(){ return !!UN_NOVA || (VENDA0!==null && vendaEstado()!==VENDA0); }   // 27/10 — trocar a unidade refaz o fluxo
 function vendaFin(){
   var v=vendaDados(), aval=Number(v.avaliacao)||simLinkAval(), teto=aval*0.8;
   var cr=document.getElementById('c-creditoAprovado'), cred=cr ? simLinkNumTxt(cr.value) : 0;
@@ -718,7 +793,7 @@ function vendaFin(){
 }
 function vendaCalc(){
   var v=vendaDados(), F=vendaFin(), hoje=new Date();
-  var preco=Number(v.preco)||Number(DADOS.preco)||0;
+  var preco=(UN_NOVA && UN_NOVA.valorVenda) || Number(v.preco)||Number(DADOS.preco)||0;   // 27/10 — unidade trocada
   var fgts=simLinkNum('sl-saldoFgts')+simLinkNum('sl-saldoFgtsConjuge'), sub=simLinkNum('sl-subsidio'), inf=simLinkNum('sl-valorEntrada');
   var o={preco:preco, financiado:F.fin, fgts:fgts, subsidio:sub, nSinal:vSinal(), prazoEntrada:vPrazo(), ano:hoje.getFullYear(), mes:hoje.getMonth()+1};
   var g0=fpcGerar(Object.assign({}, o, {informado:0}));
@@ -1150,7 +1225,8 @@ function enviar(){
   })).then(function(anexos){
     return fetch(APPS_SCRIPT_URL, {
       method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({acao:'completarProposta', pageId:ID, token:TOKEN, campos:campos, anexos:anexos, venda:venda})
+      body:JSON.stringify({acao:'completarProposta', pageId:ID, token:TOKEN, campos:campos, anexos:anexos, venda:venda,
+                           unidadeNova: UN_NOVA ? UN_NOVA.unidade : ''})   // 27/10 — troca de unidade
     }).then(function(r){ return r.json(); });
   }).then(function(j){
     bt.disabled=false;
@@ -1158,6 +1234,8 @@ function enviar(){
       av.className='aviso ok';
       av.innerHTML='<b>Enviado.</b> '+(j.gravados&&j.gravados.length ? j.gravados.length+' campo(s) atualizados. ' : '')+
         ((j.anexos&&j.anexos.ok) ? j.anexos.ok+' documento(s) anexados.' : '')+
+        (j.unidade&&j.unidade.ok ? ' <b>Unidade alterada para '+esc(j.unidade.unidade)+'</b> (Tipo '+esc(j.unidade.tipo)+', '+brl(j.unidade.preco)+').' :
+          (j.unidade&&j.unidade.erro ? '<br><b style="color:#8A2E17">Unidade NÃO alterada:</b> '+esc(j.unidade.erro) : ''))+
         (j.venda&&j.venda.ok ? ' Fluxo de pagamento atualizado na proposta.' : (j.venda&&j.venda.erro ? '<br><b style="color:#8A2E17">Fluxo não gravado:</b> '+esc(j.venda.erro) : ''))+
         ((j.anexos&&j.anexos.falhas&&j.anexos.falhas.length)
           ? '<br><b style="color:#8A2E17">Não subiram:</b> '+j.anexos.falhas.map(esc).join(' · ') : '')+

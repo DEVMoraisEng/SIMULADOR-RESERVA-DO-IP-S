@@ -17,8 +17,10 @@ PROF, LARG = 10.30, 7.18          # casa: profundidade e largura (cadeias do exe
 TIPOS = {
  'tipo-1':   dict(lado='A', R=1.88, B=4.70, lote=(35, 2026, 238, 1135),  casa=(498, 1500, 243, 935),  tot=('20,00', '9,00'),  vert='esq'),
  'decorado': dict(lado='A', R=1.88, B=4.70, lote=(50, 2062, 244, 1136),  casa=(521, 1541, 247, 949),  tot=('20,00', '9,00'),  vert='dir'),
- 'tipo-2':   dict(lado='B', R=3.23, B=2.10, lote=(42, 2045, 92, 1252),   casa=(276, 1446, 437, 1250), tot=('17,40', '10,35'), vert='dir'),
- 'tipo-3':   dict(lado='A', R=3.23, B=2.10, lote=(46, 2072, 82, 1260),   casa=(297, 1468, 82, 905),   tot=('17,40', '10,35'), vert='dir'),
+ 'tipo-2':   dict(lado='B', R=3.23, B=2.10, lote=(42, 2045, 92, 1252),   casa=(276, 1446, 437, 1250), tot=('17,40', '10,35'), vert='esq',
+                  rotulo=dict(caixa=(40, 752, 202, 802), novo=(700, 235), txt=('ÁREA PERMEÁVEL', '74,85m²'))),
+ 'tipo-3':   dict(lado='A', R=3.23, B=2.10, lote=(46, 2072, 82, 1260),   casa=(297, 1468, 82, 905),   tot=('17,40', '10,35'), vert='esq',
+                  rotulo=dict(caixa=(60, 576, 228, 627), novo=(700, 1090), txt=('ÁREA PERMEÁVEL', '75,33m²'))),
  'tipo-4':   dict(lado='B', R=1.88, B=4.70, lote=(26, 2142, 198, 1146),  casa=(520, 1596, 397, 1139), tot=('20,00', '9,00'),  vert='esq'),
  'tipo-5':   dict(lado='A', R=3.41, B=1.80, lote=(34, 1916, 94, 1226),   casa=(232, 1342, 94, 863),   tot=('17,10', '10,53'), vert='esq'),
 }
@@ -44,7 +46,20 @@ AMB_B = [((0.18, 2.10), (0.00, 2.62), '2,62', '1,92', False),   # área de servi
 def br(v): return ('%.2f' % v).replace('.', ',')
 
 def gerar(nome, cfg, src, dst):
-    im = Image.open(src).convert('RGB'); dr = ImageDraw.Draw(im)
+    im = Image.open(src).convert('RGB')
+    # o rótulo "ÁREA PERMEÁVEL" do quintal dos fundos sai do caminho das cotas de largura:
+    # cobre com a grama logo acima e escreve de novo no afastamento lateral
+    if cfg.get('rotulo'):
+        from PIL import ImageFilter
+        r = cfg['rotulo']; x0, y0, x1, y1 = r['caixa']; h = y1 - y0
+        remendo = im.crop((x0, y0 - h - 6, x1, y1 - h - 6))
+        masc = Image.new('L', remendo.size, 0); ImageDraw.Draw(masc).rectangle((4, 4, remendo.size[0] - 5, remendo.size[1] - 5), fill=255)
+        im.paste(remendo, (x0, y0), masc.filter(ImageFilter.GaussianBlur(3)))
+        FR = ImageFont.truetype(FONTE.replace('SemiBold', 'Regular'), 22); d0 = ImageDraw.Draw(im)
+        for k, t in enumerate(r['txt']):
+            tw = d0.textlength(t, font=FR)
+            d0.text((r['novo'][0] - tw / 2, r['novo'][1] - 26 + k * 26), t, font=FR, fill=(255, 255, 255))
+    dr = ImageDraw.Draw(im)
     lx0, lx1, ly0, ly1 = cfg['lote']; hx0, hx1, hy0, hy1 = cfg['casa']
     Sx, Sy = (hx1 - hx0) / PROF, (hy1 - hy0) / LARG
     X = lambda d: hx0 + d * Sx                     # d na casa

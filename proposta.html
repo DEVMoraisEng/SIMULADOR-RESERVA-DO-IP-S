@@ -360,7 +360,7 @@
         <span class="ajuda">Do casamento ou da união estável.</span></div>
       <div class="campo"><label>Nacionalidade</label><input type="text" name="nacionalidade" value="BR" data-pad="1"></div>
       <div class="campo"><label>Profissão</label><input type="text" name="profissao" data-pad="1"></div>
-      <div class="campo"><label>Data de nascimento</label><input type="date" name="dataNascimento"></div>
+      <div class="campo"><label>Data de nascimento<span class="obrig">*</span></label><input type="date" name="dataNascimento" required></div>
       <div class="campo"><label>E-mail do proponente<span class="obrig">*</span></label><input type="email" name="emailProponente" required></div>
       <!-- 30/09: endereço separado, igual ao banco de vendas (o comprovante de endereço lido preenche) -->
       <div class="campo"><label>CEP<span class="obrig">*</span></label><input type="text" name="cep" inputmode="numeric" maxlength="9" placeholder="00000-000"></div>
@@ -2478,6 +2478,11 @@
         document.getElementById('cpfAviso').style.display='block';
         return erro('<b>CPF</b> inválido. Confira os números.', f.cpf);
       }
+      /* 27/10 — data de nascimento do proponente obrigatória no passo 1 */
+      var dnP=String(f.dataNascimento.value||'').trim(), anoP=Number(dnP.slice(0,4));
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(dnP)) return erro('Informe a <b>data de nascimento</b> do proponente.', f.dataNascimento);
+      if(anoP<1900 || new Date(dnP+'T12:00:00')>new Date())
+        return erro('<b>Data de nascimento</b> do proponente inválida — confira o ano.', f.dataNascimento);
       if(!dig(f.celular.value)) return erro('Informe o <b>celular</b> do proponente — é por onde a Morais confirma a proposta.', f.celular);
       /* 01/10 — e-mail do proponente obrigatório (vai para o cadastro da venda e para o contrato) */
       if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(f.emailProponente.value||'').trim()))

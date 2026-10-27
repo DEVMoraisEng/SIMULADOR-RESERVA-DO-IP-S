@@ -260,8 +260,11 @@
   }
   function localPlanta(u, tam){
     var b=basePlanta(u); if(!b) return '';
-    return b + (tam ? '-'+tam : '') + '.jpg';
+    return b + (tam ? '-'+tam : '') + '.jpg?v=' + PLANTAS_VERSAO;
   }
+  /* 27/10 — versão das plantas: trocar sempre que as imagens mudarem, senão o
+     navegador continua mostrando a planta antiga que guardou */
+  var PLANTAS_VERSAO = '20261027b';
   /* Tenta a lista de fontes em ordem; se uma não existir, passa para a
      próxima (a última é a URL do Notion, que só entra se o repositório não
      tiver o arquivo). */

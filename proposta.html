@@ -569,6 +569,17 @@
         <input type="text" name="creditoAprovado" inputmode="numeric" placeholder="lido do print" readonly tabindex="-1">
         <span class="ajuda" id="ajudaCredito">O <b>Valor Financiamento</b> é lido do print automaticamente e não pode ser editado.</span></div>
     </div>
+    <!-- 28/10 — sem crédito aprovado: o cliente pode escrever quanto quer financiar (até 80% da avaliação);
+         a CAIXA é simulada com compra/venda e avaliação = valor ÷ 0,8, para a parcela sair desse valor -->
+    <div id="boxDesejadoProp" style="display:none;margin-bottom:12px">
+      <label class="check"><input type="checkbox" name="desejadoProp" onchange="desejPropMudou()"> Escrever valor que deseja financiar (limitado aos 80% da avaliação)</label>
+      <div class="linha" id="boxDesejadoCampo" style="display:none;margin-top:8px">
+        <div class="campo"><label>Valor que deseja financiar (R$)<span class="obrig">*</span></label>
+          <input type="text" name="valorDesejado" inputmode="numeric" placeholder="0,00">
+          <span class="ajuda" id="ajudaDesejadoProp">Máximo: 80% da avaliação.</span></div>
+        <div class="campo"></div>
+      </div>
+    </div>
     <div id="avisoTeto" class="status processando" style="display:none;margin-bottom:10px"></div>
     <div class="linha">
       <div class="campo"><label>Valor financiado (R$)</label>
@@ -1297,8 +1308,27 @@
   var ULTIMO_CALCULO=null;
   /* r96d — entrada mínima = sinal e estimativa sem crédito aprovado */
   var SINAL_MIN=10000, SINAL_MAX=1e12, ENTRADA_EDITADA_P=false, ESTP={fin:0, fonte:''};
+  /* 28/10 — valor que o cliente deseja financiar: até 80% da avaliação (acima disso volta para os 80%) */
+  function desejadoPropValor(u, f){
+    if(!f.desejadoProp || !f.desejadoProp.checked) return 0;
+    var v=moeda(f.valorDesejado.value); if(!(v>0)) return 0;
+    var teto=Math.round((u.avaliacao||0)*0.8*100)/100, aj=document.getElementById('ajudaDesejadoProp');
+    if(teto && v>teto+0.005){
+      v=teto; f.valorDesejado.value=teto.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+      if(aj){ aj.innerHTML='Acima de 80% da avaliação: ajustado para <b>'+brl(teto)+'</b>.'; aj.style.color='#B0431F'; }
+    } else if(aj){ aj.innerHTML='Máximo: 80% da avaliação'+(teto?' (<b>'+brl(teto)+'</b>)':'')+'. A CAIXA calcula a parcela para este valor.'; aj.style.color=''; }
+    return v;
+  }
+  function desejPropMudou(){
+    var f=F(), on=f.desejadoProp.checked;
+    document.getElementById('boxDesejadoCampo').style.display=on?'':'none';
+    if(!on) f.valorDesejado.value='';
+    montarFluxo();
+  }
   function estimativaSemCredito(u, f){
     var teto=(u.avaliacao||0)*0.8, fin=teto, fonte='teto';
+    var desej=desejadoPropValor(u, f);
+    if(desej>0){ ESTP={fin:Math.round(desej*100)/100, fonte:'desejado'}; return ESTP.fin; }
     try{
       var v=BaseOffline.consultar({possuiImovelCidade:f.possuiImovelCidade.checked, jaBeneficiado:f.jaBeneficiado.checked,
         fgts3anos:f.fgts3anos.checked, sistemaAmortizacao:f.sistemaAmortizacao.value, dataNascimento:f.dataNascimento.value,
@@ -1362,7 +1392,8 @@
     if(dz) dz.innerHTML=DiluirUI.html({fluxo:q.fluxo, fluxoOriginal:q.fluxoOriginal}, DIL_PROP, 'dilProp') || '<span class="ajuda">Sem balões neste fluxo.</span>';
     var nota = q.credito>q.teto&&q.teto ? 'crédito de '+brl(q.credito)+' limitado a 80% da avaliação'
              : (comCredito ? 'crédito aprovado (print da CAIXA)'
-               : (ESTP.fonte==='base' ? 'ESTIMATIVA — sem crédito aprovado (base de simulações)' : 'ESTIMATIVA — sem crédito aprovado (teto de 80%)'));
+               : (ESTP.fonte==='desejado' ? 'valor que o cliente deseja financiar'
+                 : (ESTP.fonte==='base' ? 'ESTIMATIVA — sem crédito aprovado (base de simulações)' : 'ESTIMATIVA — sem crédito aprovado (teto de 80%)')));
     /* r96f — composição (3) e fluxo (6) em lugares separados do passo 2 */
     var cp=document.getElementById('composicaoProp');
     if(cp) cp.innerHTML='<div class="quadro-fluxo">'+fpHtml_(c,{parte:'composicao', notaFinanciado:nota})+'</div>';
@@ -1389,7 +1420,8 @@
       av.className='status ok';
       av.innerHTML='<b>Sem crédito aprovado — a CAIXA será simulada como estimativa.</b><br>'+
         'Avaliação '+brl(q.avaliacao)+' → teto de financiamento <b>'+brl(q.teto)+'</b> (80%). '+
-        'O fluxo abaixo usa esse teto como referência.<br>'+
+        (ESTP.fonte==='desejado' ? 'O cliente quer financiar <b>'+brl(ESTP.fin)+'</b>: a CAIXA é simulada para esse valor e o fluxo abaixo já usa ele.<br>'
+                                  : 'O fluxo abaixo usa esse teto como referência.<br>')+
         '<span style="font-size:12px">A simulação serve apenas para dar uma ideia do crédito do cliente. '+
         '<b>O crédito real só existe depois da análise e aprovação pela CAIXA.</b></span>'+
         listaDocumentos();
@@ -1444,7 +1476,7 @@
      rendas passa a ser exigida (é o que substitui a análise do banco). */
   /* Mesmas listas do simulador — se mudarem lá, mudam aqui. São as linhas
      que o SIOP aceita conforme o cliente já tenha imóvel na cidade. */
-  var PROD_COM=['SBPE SFH - TR - AQUISIÇÃO DE IMÓVEL RESIDENCIAL NOVO'];
+  var PROD_COM=['SBPE SFH - TR - UNIDADE PF VINCULADA A EMPREENDIMENTO FINANCIADO NA CAIXA'];   // 28/10 — linha vinculada ao empreendimento (80% no PRICE e no SAC)
   /* r34 — na proposta, só NPMCMV (Prócotista removido) */
   var PROD_SEM=['NPMCMV - IMÓVEL NOVO INDIVIDUAL'];
   var produtosSelecionados=[];
@@ -1561,6 +1593,10 @@
   function verCredito(){
     var com = F().creditoAprovadoCaixa.value==='SIM';
     document.getElementById('boxCredito').style.display = com ? '' : 'none';
+    /* 28/10 — valor desejado só sem crédito aprovado */
+    var bd=document.getElementById('boxDesejadoProp');
+    if(bd) bd.style.display = F().creditoAprovadoCaixa.value==='NAO' ? '' : 'none';
+    if(com && F().desejadoProp){ F().desejadoProp.checked=false; F().valorDesejado.value=''; document.getElementById('boxDesejadoCampo').style.display='none'; }
     /* r47 (item 1) — a origem da renda fica SEMPRE visível: é ela que define
        os documentos da análise, com ou sem crédito aprovado. */
     /* r41 (item 9) — sem crédito aprovado, o subsídio quem calcula é a CAIXA */
@@ -2522,6 +2558,8 @@
           }
         }
       }
+      if(f.creditoAprovadoCaixa.value==='NAO' && f.desejadoProp && f.desejadoProp.checked && !moeda(f.valorDesejado.value))
+        return erro('Informe o <b>valor que o cliente deseja financiar</b> (ou desmarque a opção).', f.valorDesejado);
       if(f.creditoAprovadoCaixa.value==='SIM' && (!PAPROV.assinatura || !moeda(f.creditoAprovado.value)))
         return erro('Anexe o <b>print da tela de aprovação da CAIXA</b> — o crédito aprovado é lido dele automaticamente.', document.getElementById('printAprovacao'));
       var u2=unidadeAtual(), teto2=(u2&&u2.avaliacao||0)*0.8;
@@ -2683,7 +2721,7 @@
       el.addEventListener('input',function(e){ e.target.value=fmtTel(e.target.value); });
     });
     ['rendaAprovada','saldoFgts','subsidio','valorEntrada',
-     'saldoFgtsConjuge','rendaAprovadaConjuge','parcelaFinanciamento']
+     'saldoFgtsConjuge','rendaAprovadaConjuge','parcelaFinanciamento','valorDesejado']
       .forEach(function(nome){
         var el=F()[nome]; if(!el) return;
         el.addEventListener('input',function(e){
@@ -2885,6 +2923,8 @@
       creditoAssinatura:(f.creditoAprovadoCaixa.value==='SIM' ? PAPROV.assinatura : ''),   // r96 — crédito lido do print
       sinalParcelas:sinalEscolhido(),   // r96 — forma do sinal
       financiadoBase:(f.creditoAprovadoCaixa.value==='NAO' ? ESTP.fin : 0),   // r96d — estimativa sem crédito
+      /* 28/10 — valor que o cliente deseja financiar: o worker simula com compra/venda e avaliação = valor ÷ 0,8 */
+      financiamentoDesejado:(f.creditoAprovadoCaixa.value==='NAO' && ESTP.fonte==='desejado' ? ESTP.fin : 0),
       fonteEstimativa:(f.creditoAprovadoCaixa.value==='NAO' ? ESTP.fonte : ''),
       banco:padrao(f.banco.value), prazo:f.prazo.value, dataRef:f.dataRef.value,
       modoSiop:(f.modoSiop ? f.modoSiop.value : ''),   /* r64 — teste ONLINE/OFFLINE */

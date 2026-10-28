@@ -250,6 +250,15 @@
         <input type="file" id="printCredSim" accept="image/*,application/pdf" onchange="aoPrintCredSim(this)">
         <div id="lst-printCredSim" class="lst"></div>
       </div>
+      <!-- 28/10 — o cliente escreve quanto quer financiar (até 80% da avaliação); a CAIXA é simulada
+           com compra/venda e avaliação = valor ÷ 0,8, para a parcela sair exatamente desse valor -->
+      <label class="check" style="margin:0 0 10px"><input type="checkbox" name="desejadoSim" onchange="desejSimMudou()"> Escrever valor que deseja financiar (limitado aos 80% da avaliação)</label>
+      <div class="linha" id="boxDesejSim" style="display:none">
+        <div class="campo"><label>Valor que deseja financiar (R$)<span class="obrig">*</span></label>
+          <input type="text" name="valorDesejado" inputmode="numeric" placeholder="0,00">
+          <span class="ajuda" id="ajudaDesejSim">Máximo: 80% da avaliação.</span></div>
+        <div class="campo"></div>
+      </div>
       <div class="linha" id="boxCredSim" style="display:none">
         <div class="campo"><label>Valor financiado aprovado (R$)<span class="obrig">*</span></label>
           <input type="text" name="creditoAprovadoValor" inputmode="numeric" placeholder="0,00">
@@ -569,20 +578,25 @@
            sistemaAmortizacao:f.sistemaAmortizacao.value, dataNascimento:f.dataNascimento.value,
            rendaIndividual:parseMoeda(f.rendaIndividual.value), prazoMeses:Number(f.prazoMeses.value)||420};
     /* r96k — crédito aprovado: o valor informado (até 80% da avaliação) é o financiado */
-    var cred=credSimValor();
+    var cred=credSimValor(), desej=cred>0 ? 0 : desejSimValor();
+    var finRenda=0, fonteRenda='';
     function aplicar(fin, fonte){
+      finRenda=fin; fonteRenda=fonte;
       if(cred>0){ fin=cred; fonte='credito'; }
+      else if(desej>0){ fin=desej; fonte='desejado'; }
       var ref=f.dataSimulacao.value ? new Date(f.dataSimulacao.value+'T12:00:00') : new Date();
       var fgts=parseMoeda(f.fgtsDisponivel.value), sub=parseMoeda(f.subsidio.value);   // r96f — subsídio opcional
       var g=fpcGerar({preco:u.valorVenda, financiado:fin, fgts:fgts, subsidio:sub, informado:0, nSinal:sinalEscolhidoSim(),
                       prazoEntrada:prazoEscolhidoSim(), ano:ref.getFullYear(), mes:ref.getMonth()+1});
       EST={fin:fin, sinal:g.sinalMinimo, max:Math.max(10000, Math.round((u.valorVenda-fin-fgts-sub)*100)/100), fonte:fonte, pronto:true};
       var it=function(r,v,cl){ return '<div class="it'+(cl?' '+cl:'')+'"><small>'+r+'</small><b>'+v+'</b></div>'; };
-      cx.innerHTML=it(fonte==='credito'?'Valor financiado (crédito aprovado)':'Valor financiado (estimado)','R$ '+fmt(fin))+it('FGTS','R$ '+fmt(fgts))+
+      cx.innerHTML=it(fonte==='credito'?'Valor financiado (crédito aprovado)':(fonte==='desejado'?'Valor que deseja financiar':'Valor financiado (estimado)'),'R$ '+fmt(fin))+it('FGTS','R$ '+fmt(fgts))+
         (sub>0 ? it('Subsídio','R$ '+fmt(sub)) : '')+
         it('Entrada total','R$ '+fmt(Math.max(0,u.valorVenda-fin-fgts-sub)))+
         it('Sinal mínimo','R$ '+fmt(EST.sinal),'destaque')+
         '<div class="nota">'+(fonte==='credito' ? 'Crédito aprovado informado pelo corretor (até 80% da avaliação): o e-mail sai com este valor, sem nova simulação na CAIXA.'
+          : fonte==='desejado' ? 'Valor que o cliente deseja financiar (até 80% da avaliação): a CAIXA é simulada para este valor e a parcela sai dele.'+
+              (fonteRenda==='base' && fin>finRenda+1 ? ' <b style="color:#B0431F">Atenção:</b> acima do estimado para esta renda (R$ '+fmt(finRenda)+') — a CAIXA pode aprovar menos.' : '')
           : fonte==='base' ? 'Financiamento estimado pela base de simulações, limitado a 80% da avaliação.'
           : 'Fora da base de simulações: estimado pelo teto de 80% da avaliação.')+'</div>';
       document.getElementById('ajudaEntradaMin').innerHTML='Todo este valor vai para o sinal. Mínimo <b>R$ '+fmt(EST.sinal)+'</b> (sinal mínimo desta unidade), máximo <b>R$ '+fmt(EST.max)+'</b> (a entrada inteira).';
@@ -592,7 +606,7 @@
       pintarFluxoSim();
     }
     EST.pronto=false;
-    if(cred>0){ aplicar(cred, 'credito'); return; }
+    if(cred>0){ aplicar(cred, 'credito'); return; }   // o valor desejado espera a base (para comparar com a renda)
     cx.innerHTML='<span class="ajuda">Calculando o financiamento estimado…</span>';
     BaseOffline.carregar().then(function(){
       var fin, fonte='base';
@@ -618,14 +632,14 @@
                     prazoEntrada:prazoEscolhidoSim(), ano:ref.getFullYear(), mes:ref.getMonth()+1, diluir:DIL_SIM});
     var c=fpResumo_({preco:u.valorVenda, financiado:EST.fin, fgts:fgts, subsidio:sub, informado:inf, devolucao:g.devolucao,
       fluxo:g.fluxo.map(function(x,i){ return {quando:x[0], valor:x[1], desc:x[2], grupo:x[3], i:i, dilTxt:x[4]||''}; })});
-    var nota=EST.fonte==='credito' ? 'crédito aprovado' : (EST.fonte==='base' ? 'estimado pela base de simulações' : 'estimado pelo teto de 80% da avaliação');
+    var nota=EST.fonte==='credito' ? 'crédito aprovado' : (EST.fonte==='desejado' ? 'valor que o cliente deseja financiar' : (EST.fonte==='base' ? 'estimado pela base de simulações' : 'estimado pelo teto de 80% da avaliação'));
     /* r96f — composição (3), fluxo (6) e diluição (7) em lugares separados do passo 2 */
     cComp.innerHTML=fpHtml_(c, {parte:'composicao', notaFinanciado:nota});
     cFl.innerHTML=fpHtml_(c, {parte:'fluxo', mudou:DiluirUI.mudou(g.fluxo)});
     cDil.innerHTML=DiluirUI.html(g, DIL_SIM, 'dilSim') || '<span class="ajuda">Sem balões neste fluxo.</span>';
   }
 
-  var PROD_COM=['SBPE SFH - TR - AQUISIÇÃO DE IMÓVEL RESIDENCIAL NOVO'];
+  var PROD_COM=['SBPE SFH - TR - UNIDADE PF VINCULADA A EMPREENDIMENTO FINANCIADO NA CAIXA'];   // 28/10 — linha vinculada ao empreendimento (80% no PRICE e no SAC)
   /* r41 (itens 4 e 5) — Prócotista removido. Sobrou UMA linha em cada caso:
      com imóvel -> SBPE; sem imóvel -> NPMCMV. Como não há escolha, a linha
      é marcada sozinha e fica fixa; a tela só mostra qual será simulada. */
@@ -655,6 +669,11 @@
     var avE=document.getElementById('avisoEntradaMin');
     if(!EST.pronto){ if(avE){ avE.style.display='block'; avE.innerHTML='Aguarde o cálculo do financiamento estimado.'; } return false; }
     var fCred=document.getElementById('formSimulacao');
+    if(fCred.desejadoSim.checked && !(parseMoeda(fCred.valorDesejado.value)>0)){
+      var ajD=document.getElementById('ajudaDesejSim');
+      if(ajD){ ajD.innerHTML='Informe o <b>valor que deseja financiar</b> (ou desmarque a opção).'; ajD.style.color='#B0431F'; }
+      fCred.valorDesejado.focus(); return false;
+    }
     if(fCred.creditoAprovadoSim.checked && !(parseMoeda(fCred.creditoAprovadoValor.value)>0)){
       var ajC=document.getElementById('ajudaCredSim');
       if(ajC){ ajC.innerHTML='Informe o <b>valor financiado aprovado</b> (ou desmarque o crédito aprovado).'; ajC.style.color='#B0431F'; }
@@ -707,9 +726,31 @@
     } else if(aj){ aj.innerHTML='Máximo: 80% da avaliação'+(teto?' (<b>R$ '+fmt(teto)+'</b>)':'')+'.'; aj.style.color=''; }
     return v;
   }
+  /* 28/10 — valor que o cliente deseja financiar: até 80% da avaliação; acima disso volta para os 80% */
+  function desejSimValor(){
+    var f=document.getElementById('formSimulacao'), u=unidadeAtual();
+    if(!f.desejadoSim.checked) return 0;
+    var v=parseMoeda(f.valorDesejado.value);
+    if(!(v>0)) return 0;
+    var teto=u ? Math.round((u.avaliacao||0)*0.8*100)/100 : 0;
+    var aj=document.getElementById('ajudaDesejSim');
+    if(teto && v>teto+0.005){
+      v=teto; f.valorDesejado.value=fmt(teto);
+      if(aj){ aj.innerHTML='Acima de 80% da avaliação: ajustado para <b>R$ '+fmt(teto)+'</b>.'; aj.style.color='#B0431F'; }
+    } else if(aj){ aj.innerHTML='Máximo: 80% da avaliação'+(teto?' (<b>R$ '+fmt(teto)+'</b>)':'')+'.'; aj.style.color=''; }
+    return v;
+  }
+  function desejSimMudou(){
+    var f=document.getElementById('formSimulacao'), on=f.desejadoSim.checked;
+    document.getElementById('boxDesejSim').style.display=on?'':'none';
+    if(on && f.creditoAprovadoSim.checked){ f.creditoAprovadoSim.checked=false; credSimMudou(); }
+    if(!on) f.valorDesejado.value='';
+    clearTimeout(TM_CRED); TM_CRED=setTimeout(estimar,250);
+  }
   var TM_CRED=null;
   function credSimMudou(){
     var f=document.getElementById('formSimulacao'), on=f.creditoAprovadoSim.checked;
+    if(on && f.desejadoSim.checked){ f.desejadoSim.checked=false; f.valorDesejado.value=''; document.getElementById('boxDesejSim').style.display='none'; }
     document.getElementById('boxCredSim').style.display=on?'':'none';
     document.getElementById('boxCredPrintSim').style.display=on?'':'none';
     if(!on){ f.creditoAprovadoValor.value=''; f.creditoAprovadoParcela.value='';
@@ -1047,6 +1088,8 @@
       creditoAprovadoCaixa:(EST.fonte==='credito' ? 'SIM' : 'NAO'),
       creditoAprovado:(EST.fonte==='credito' ? EST.fin : 0),
       parcelaAprovada:(EST.fonte==='credito' ? parseMoeda(f.creditoAprovadoParcela.value) : 0),
+      /* 28/10 — valor desejado: o worker simula com compra/venda e avaliação = valor ÷ 0,8 */
+      financiamentoDesejado:(EST.fonte==='desejado' ? EST.fin : 0),
       diluicao:DIL_SIM.slice(),   /* r96e — % de cada balão diluído nas parcelas pré-chaves */
       dataSimulacao:(f.dataSimulacao.value||''),
       modoSiop:(f.modoSiop ? f.modoSiop.value : ''),   /* r64 — teste ONLINE/OFFLINE */
@@ -1114,6 +1157,8 @@
   var TM_SUB=null;
   document.querySelector('[name="subsidio"]').addEventListener('input',function(){ clearTimeout(TM_SUB); TM_SUB=setTimeout(estimar,250); });
   document.querySelector('[name="creditoAprovadoValor"]').addEventListener('input',function(){ clearTimeout(TM_CRED); TM_CRED=setTimeout(estimar,600); });
+  document.querySelector('[name="valorDesejado"]').addEventListener('input',function(){ clearTimeout(TM_CRED); TM_CRED=setTimeout(estimar,600); });
+  document.querySelector('[name="valorDesejado"]').addEventListener('blur',function(){ clearTimeout(TM_CRED); estimar(); });
   document.querySelector('[name="creditoAprovadoValor"]').addEventListener('blur',function(){ clearTimeout(TM_CRED); estimar(); });
   BaseOffline.carregar().catch(function(){});   // já baixa a base enquanto preenche o passo 1
   document.querySelector('[name="possuiImovelCidade"]').addEventListener('change',renderProdutos);

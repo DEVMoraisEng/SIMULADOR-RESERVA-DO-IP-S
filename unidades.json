@@ -397,10 +397,10 @@
     "planta": "assets/plantas/tipo-4.jpg",
     "informacoes": "",
     "decorado": false,
-    "disponivel": false,
+    "disponivel": true,
     "reservado": false,
-    "vendido": true,
-    "vendidaCru": "SIM"
+    "vendido": false,
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "32",

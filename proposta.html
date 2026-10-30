@@ -253,7 +253,7 @@
   <div class="passos">
     <div class="passo ativo" data-p="1" onclick="irPara(1)" title="Ir para este passo">1. Unidade e proponente</div>
     <div class="passo" data-p="2" onclick="irPara(2)" title="Ir para este passo">2. Renda e financiamento</div>
-    <div class="passo" data-p="3" onclick="irPara(3)" title="Ir para este passo">3. Fiadores</div>
+    <div class="passo" data-p="3" onclick="irPara(3)" title="Ir para este passo">3. Fiadores<span id="passoFiaTag"></span></div>
     <div class="passo" data-p="4" onclick="irPara(4)" title="Ir para este passo">4. Anexos</div>
     <div class="passo" data-p="5" onclick="irPara(5)" title="Ir para este passo">5. Enviar</div>
   </div>
@@ -608,9 +608,9 @@
       <div class="campo full" style="margin-bottom:16px;">
         <label>Prazo de parcelamento da entrada<span class="obrig">*</span></label>
         <div class="prazo-opts" id="prazoOpts">
-          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="24" onchange="atualizarComissao();montarFluxo()"><b class="prazo-n" data-base="24">24 meses</b><small>comissão 5,00%</small></label>
-          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="36" onchange="atualizarComissao();montarFluxo()"><b class="prazo-n" data-base="36">36 meses</b><small>comissão 4,75%</small></label>
-          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="48" onchange="atualizarComissao();montarFluxo()"><b class="prazo-n" data-base="48">48 meses</b><small>comissão 4,50%</small></label>
+          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="24" onchange="atualizarComissao();montarFluxo();atualizarFiadorExigido()"><b class="prazo-n" data-base="24">24 meses</b><small>comissão 5,00%</small></label>
+          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="36" onchange="atualizarComissao();montarFluxo();atualizarFiadorExigido()"><b class="prazo-n" data-base="36">36 meses</b><small>comissão 4,75%</small></label>
+          <label class="prazo-opt"><input type="radio" name="prazoEntrada" value="48" onchange="atualizarComissao();montarFluxo();atualizarFiadorExigido()"><b class="prazo-n" data-base="48">48 meses</b><small>comissão 4,50%</small></label>
         </div>
         <div class="comissao-box"><span>Comissão do corretor</span><b id="comissaoTxt">Escolha o prazo</b></div>
       </div>
@@ -653,8 +653,15 @@
   <!-- ============================ PASSO 3 · FIADORES ============================ -->
   <section class="card" data-etapa="3" style="display:none">
     <h2>Fiadores</h2>
+    <!-- 30/10/2026 — entrada em 24x (sem parcelas pós-chaves): fiador NÃO é necessário -->
+    <div id="fiaDispensado" style="display:none;margin:0 0 12px;padding:12px 14px;background:#E3F4EA;border:2px solid #2E9E5B;border-radius:8px;color:#1D5E37;font-size:13.5px;line-height:1.55">
+      <b>Fiador não é necessário nesta proposta.</b><br>
+      A entrada foi escolhida em <b>24 meses</b>, sem parcelas pós-chaves — por isso não é preciso informar fiadores.
+      Pode seguir para o próximo passo. Se o prazo da entrada for aumentado depois (36 ou 48 meses),
+      os dois fiadores passam a ser obrigatórios.
+    </div>
     <!-- 02/10 (item 14) -->
-    <div style="margin:0 0 12px;padding:12px 14px;background:#FBEEC8;border:2px solid #EFB700;border-radius:8px;color:#7A4A16;font-size:13.5px;line-height:1.55">
+    <div id="fiaObrigatorio" style="margin:0 0 12px;padding:12px 14px;background:#FBEEC8;border:2px solid #EFB700;border-radius:8px;color:#7A4A16;font-size:13.5px;line-height:1.55">
       <b>Os dois fiadores são obrigatórios para finalizar a venda.</b><br>
       Se ainda não tiver os dados e documentos deles, a proposta pode ser enviada assim mesmo:
       o que faltar será completado depois pelo <b>link de complemento</b> que segue no e-mail da proposta.
@@ -1838,6 +1845,17 @@
     lerEndereco(arqs[0], document.getElementById('lst-fiadorend-'+n), 'fiador'+n,
       {cep:f['cepFiador'+n], logradouro:f['logradouroFiador'+n], numero:f['numeroFiador'+n], bairro:f['setorFiador'+n], cidade:f['cidadeFiador'+n]});
   }
+  /* 30/10/2026 — fiador só é exigido quando a entrada tem parcelas pós-chaves
+     (prazo de 36 ou 48 meses). Em 24x não há pós-chaves: fiador dispensado. */
+  function fiadorExigido(){ var p=Number(prazoEscolhido())||0; return !p || p>24; }
+  function atualizarFiadorExigido(){
+    var ex=fiadorExigido(), a=document.getElementById('fiaDispensado'), b=document.getElementById('fiaObrigatorio'),
+        t=document.getElementById('passoFiaTag');
+    if(a) a.style.display = ex ? 'none' : 'block';
+    if(b) b.style.display = ex ? 'block' : 'none';
+    if(t) t.textContent = ex ? '' : ' (não necessário)';
+    try{ resumoAnexos(); }catch(e){}
+  }
   function fiadorInformado(n){
     var f=F(), algum=false;
     ['fiador','cpfFiador','rgFiador','emailFiador','cepFiador','logradouroFiador','numeroFiador','setorFiador','cidadeFiador'].forEach(function(k){
@@ -2465,6 +2483,7 @@
       p.classList.toggle('concluido', i<n);
     });
     if(n===2){ montarFluxo(); atualizarComissao(); }
+    if(n===3) atualizarFiadorExigido();
     if(n===4) resumoAnexos();
     if(n===5){ atualizarCreciP5(); pintarCreci(); }
     window.scrollTo({top:0,behavior:'smooth'});
@@ -2641,7 +2660,9 @@
       });
       /* 01/10 — documentos de quem foi informado nos outros passos */
       [1,2].forEach(function(fn){
-        /* r96i — sempre tem fiador: documento e comprovante dos dois são cobrados (ou "não anexar agora") */
+        /* r96i — sempre tem fiador: documento e comprovante dos dois são cobrados (ou "não anexar agora").
+           30/10/2026 — em 24x (sem pós-chaves) o fiador não é necessário: só cobra de quem foi informado. */
+        if(!fiadorExigido() && !fiadorInformado(fn)) return;
         if(!(PFIA[fn]||[]).length && !naoAnexarAgora(document.getElementById('fiador'+fn+'-doc'))) faltam.push('Documento do fiador '+fn+' (passo 3)');
         if(!(PFIAEND[fn]||[]).length && !naoAnexarAgora(document.getElementById('fiador'+fn+'-end'))) faltam.push('Comprovante de endereço do fiador '+fn+' (passo 3)');
       });
@@ -2937,6 +2958,7 @@
       cpfCorretor:(f.cpfCorretor ? fmtCpf(f.cpfCorretor.value) : ''),   // 07/10
       observacoes:padrao(f.observacoes.value),
       prazoEntrada:Number(prazoEscolhido())||0,
+      fiadorDispensado:!fiadorExigido(),   // 30/10/2026 — 24x sem pós-chaves
       comissaoPct:COMISSAO[prazoEscolhido()]||0,
       comissaoValor:Math.round((Number(u.valorVenda)||0)*(COMISSAO[prazoEscolhido()]||0)*100)/100,
       fiador1:padrao(f.fiador1.value), cpfFiador1:dig(f.cpfFiador1.value),

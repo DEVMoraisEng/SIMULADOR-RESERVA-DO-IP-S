@@ -117,6 +117,14 @@ var DADOS=null;
 var ARQ={};            // chave do documento -> {sub: [File]}
 var DIA_MIN=5;         // dia de pagamento: a partir do dia 5
 var COND_GRUPOS=/^comprador[12]$/;   // 05/10 (item 4): só os compradores dependem de existir — os DOIS fiadores são obrigatórios
+/* 30/10/2026 — entrada em 24x (sem parcelas pós-chaves): fiador não é necessário. O servidor manda
+   fiadorDispensado (ou o prazo da entrada / o fluxo gravado); aí os fiadores viram "só se houver". */
+function fiadorDispensado(){
+  if(!DADOS) return false;
+  if(DADOS.fiadorDispensado===true || DADOS.fiadorDispensado===false) return DADOS.fiadorDispensado;
+  var esq=semAcento(DADOS.esquema||'');
+  return !!esq && esq.indexOf('POS-CHAVES')<0 && esq.indexOf('POS A OBRA')<0 && esq.indexOf('POS CHAVES')<0;
+}
 var SINT={};           // documentos criados aqui (o servidor não listou) -> vão como "outros" com o nome identificado
 /* 01/10 — regime de bens: lista fechada (igual à proposta) */
 var REGIMES=['COMUNHAO PARCIAL DE BENS','COMUNHAO UNIVERSAL DE BENS','SEPARACAO TOTAL DE BENS',
@@ -197,7 +205,9 @@ function carregar(){
           : '<b>Não consegui abrir o cadastro da venda.</b> '+esc((j&&j.erro)||''));
         return;
       }
-      DADOS=j; ARQ={}; pintar();
+      DADOS=j; ARQ={};
+      COND_GRUPOS = fiadorDispensado() ? /^(comprador[12]|fiador[12])$/ : /^comprador[12]$/;   // 30/10/2026
+      pintar();
     })
     .catch(function(){ estado('erro','<b>Sem conexão com o servidor.</b> Tente de novo em instantes.'); });
 }
@@ -363,8 +373,9 @@ function pintar(){
   var html='';
   ORDEM_GRUPO.forEach(function(g){
     if(!porGrupo[g]) return;
-    var opc = COND_GRUPOS.test(g) ? ' <span class="marca opc" id="tag-g-'+g+'">só se houver</span>' : '';
+    var opc = COND_GRUPOS.test(g) ? ' <span class="marca opc" id="tag-g-'+g+'">'+(/^fiador/.test(g)?'não necessário':'só se houver')+'</span>' : '';
     html+='<div class="card" id="g-'+g+'"><h2>'+TITULO_GRUPO[g]+opc+'</h2>';
+    if(/^fiador/.test(g) && COND_GRUPOS.test(g)) html+='<p class="sub" style="color:#1D5E37"><b>Fiador não é necessário nesta venda:</b> a entrada está em 24 meses, sem parcelas pós-chaves.</p>';
     if(COND_GRUPOS.test(g)) html+='<p class="sub">Se houver '+(g.indexOf('fiador')===0?'este fiador':'este comprador')+', preencha <b>tudo</b>: dados, documento e comprovante de endereço. Se não houver, deixe em branco.</p>';
     if(g==='prop') html+='<p class="sub">O que já está preenchido veio da proposta — corrija se estiver errado. Campos marcados com <b>falta</b> são obrigatórios.</p>';
     if(g==='pagamento') html+='<p class="sub">Escolha o dia do mês em que é melhor para você pagar os boletos. Eles vencem sempre neste dia, '+
@@ -566,7 +577,7 @@ function pendencias(){
     if(!COND_GRUPOS.test(g)) return;
     ativos[g]=grupoAtivo(g);
     var tag=document.getElementById('tag-g-'+g);
-    if(tag){ tag.className='marca'+(ativos[g]?'':' opc'); tag.textContent=ativos[g]?'obrigatório':'só se houver'; }
+    if(tag){ tag.className='marca'+(ativos[g]?'':' opc'); tag.textContent=ativos[g]?'obrigatório':(/^fiador/.test(g)?'não necessário':'só se houver'); }
   });
   document.querySelectorAll('.campo').forEach(function(cx){
     if(cx.closest('[data-oculto="1"]')) return;          // endereço do cônjuge quando mora junto

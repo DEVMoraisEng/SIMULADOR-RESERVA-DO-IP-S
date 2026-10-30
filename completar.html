@@ -190,8 +190,13 @@
     </div>
 
     <div class="card" id="cardFiador" style="display:none">
-      <h2>Fiadores <span class="marca">obrigatório</span></h2>
-      <p class="sub">A venda sempre tem <b>dois fiadores</b>. Preencha <b>tudo</b> de cada um — dados, documento e
+      <h2>Fiadores <span class="marca" id="fiaMarca">obrigatório</span></h2>
+      <!-- 30/10/2026 — entrada em 24x (sem pós-chaves): fiador não é necessário -->
+      <div id="fiaDispensado" style="display:none;margin:0 0 10px;padding:10px 12px;background:#E3F4EA;border:2px solid #2E9E5B;border-radius:8px;color:#1D5E37;font-size:13.5px;line-height:1.5">
+        <b>Fiador não é necessário.</b> A entrada está em <b>24 meses</b>, sem parcelas pós-chaves.
+        Se o prazo da entrada for aumentado para 36 ou 48 meses (aba <b>Dados da venda</b>), os dois fiadores passam a ser obrigatórios.
+      </div>
+      <p class="sub" id="fiaSub">A venda sempre tem <b>dois fiadores</b>. Preencha <b>tudo</b> de cada um — dados, documento e
         comprovante de endereço (os dois são pedidos em “Documentos obrigatórios” e lidos automaticamente).</p>
       <div class="grade" id="camposFiador"></div>
     </div>
@@ -845,9 +850,19 @@ function vendaPayload(c){
     financiado:c.F.fin, entradaTotal:c.g.total, sinal:c.g.sinaisTotal, devolucao:c.g.devolucao};
 }
 
+/* 30/10/2026 — fiador só é exigido quando a entrada tem parcelas pós-chaves (36 ou 48 meses).
+   Em 24x não há pós-chaves: fiador dispensado. Se o prazo for aumentado aqui, volta a ser exigido. */
+function fiadorExigido(){ return vPrazo() > 24; }
+function pintarFiadorExigido(){
+  var ex=fiadorExigido(), a=document.getElementById('fiaDispensado'), m=document.getElementById('fiaMarca'),
+      sb=document.getElementById('fiaSub');
+  if(a) a.style.display = ex ? 'none' : 'block';
+  if(sb) sb.style.display = ex ? '' : 'none';
+  if(m){ m.className = ex ? 'marca' : 'marca opc'; m.textContent = ex ? 'obrigatório' : 'não necessário'; }
+}
 /* fiador com qualquer dado preenchido: tudo dele vira obrigatório (menos e-mail) */
 function fiadorAtivo(n){
-  return true;   // r96i — a venda sempre tem os dois fiadores: dados e documentos são obrigatórios
+  if(fiadorExigido()) return true;   // r96i — com pós-chaves a venda sempre tem os dois fiadores
   var at=false;
   document.querySelectorAll('[data-fia="'+n+'"] input:not([type=file])').forEach(function(i){
     if(!/^c-emailFiador/.test(i.id) && String(i.value||'').trim()) at=true;
@@ -933,11 +948,12 @@ function htmlCampo(c){
 function atualizarTrava(){
   var el=document.getElementById('trava'); if(!el || !DADOS) return;
   var campos=[];
+  try{ pintarFiadorExigido(); }catch(eF){}
   var fAt={1:fiadorAtivo(1), 2:fiadorAtivo(2)};
   document.querySelectorAll('.campo[data-obrig="1"]').forEach(function(cx){
     if(cx.style.display==='none') return;
     if(cx.dataset.fia && !fAt[cx.dataset.fia]){                 // fiador em branco = não existe
-      cx.classList.remove('falta'); var mm=cx.querySelector('.marca'); if(mm){ mm.className='marca opc'; mm.textContent='se houver'; }
+      cx.classList.remove('falta'); var mm=cx.querySelector('.marca'); if(mm){ mm.className='marca opc'; mm.textContent=fiadorExigido() ? 'se houver' : 'não necessário'; }
       return;
     }
     var inp=cx.querySelector('input,select,textarea');
@@ -953,7 +969,7 @@ function atualizarTrava(){
     d.dataset.exigido = at ? '1' : '0';
     d.classList.toggle('pedido', at && d.dataset.enviado!=='1');
     var mk=d.querySelector('label .marca');
-    if(mk && d.dataset.enviado!=='1'){ mk.className = at ? 'marca' : 'marca opc'; mk.textContent = at ? 'falta' : 'se houver fiador'; }
+    if(mk && d.dataset.enviado!=='1'){ mk.className = at ? 'marca' : 'marca opc'; mk.textContent = at ? 'falta' : (fiadorExigido() ? 'se houver fiador' : 'não necessário'); }
   });
   document.querySelectorAll('#docs .doc[data-exigido="1"]').forEach(function(d){
     var inp=d.querySelector('input[type=file]');

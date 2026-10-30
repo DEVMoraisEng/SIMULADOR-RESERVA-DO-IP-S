@@ -687,9 +687,29 @@
       <div class="campo"><label>Número ou lote</label><input type="text" name="numeroFiador1" data-pad="1"></div>
       <div class="campo"><label>Setor ou bairro</label><input type="text" name="setorFiador1" data-pad="1"></div>
       <div class="campo"><label>Cidade</label><input type="text" name="cidadeFiador1" data-pad="1"></div>
+      <!-- 30/10/2026 (dono, Súmula 332 do STJ): estado civil do fiador; casado ou em união estável, o cônjuge também assina -->
+      <div class="campo fia-civil"><label>Estado civil</label>
+        <select name="estadoCivilFiador1" onchange="verConjugesFiadores()">
+          <option value="">Escolha…</option><option>SOLTEIRO</option><option>CASADO</option><option>DIVORCIADO</option>
+          <option>VIUVO</option><option>UNIAO ESTAVEL</option></select></div>
+    </div>
+    <div class="fia-conj" id="conjFiador1" style="display:none">
+      <div style="margin:0 0 10px;padding:12px 14px;background:#E3F4EA;border:2px solid #2E9E5B;border-radius:8px;color:#1D5E37;font-size:13.5px;line-height:1.55">
+        <b>Fiador casado ou em união estável:</b> o cônjuge precisa assinar junto. O mais simples (e o preferido pela Morais)
+        é o <b>cônjuge ser o fiador 2</b>.
+        <div style="margin-top:8px"><button type="button" class="btn-secundario" onclick="usarConjugeComoFiador2()">Usar o cônjuge como fiador 2</button>
+        <label class="ajuda" style="margin-left:10px"><input type="checkbox" name="conjugeEhFiador2" onchange="verConjugesFiadores()"> o fiador 2 é o cônjuge do fiador 1</label></div>
+      </div>
+      <div class="linha" id="dadosConjF1">
+        <div class="campo full"><label>Nome do cônjuge do fiador 1</label><input type="text" name="conjugeFiador1" data-pad="1"></div>
+        <div class="campo"><label>CPF do cônjuge</label>
+          <input type="text" name="cpfConjugeFiador1" inputmode="numeric" maxlength="14" placeholder="000.000.000-00"></div>
+        <div class="campo"><label>E-mail do cônjuge</label><input type="email" name="emailConjugeFiador1"></div>
+        <div class="ajuda" style="grid-column:1/-1">O cônjuge do fiador assina os termos de confissão junto com ele (assinatura eletrônica).</div>
+      </div>
     </div>
 
-    <div class="secao">Fiador 2</div>
+    <div class="secao" id="tituloFiador2">Fiador 2</div>
     <div class="linha">
       <div class="campo full"><label>Documento do fiador 2 (CNH ou RG + CPF)</label>
         <input type="file" accept="image/*,application/pdf" multiple id="fiador2-doc" onchange="aoAnexarFiador(2,this)">
@@ -709,6 +729,20 @@
       <div class="campo"><label>Número ou lote</label><input type="text" name="numeroFiador2" data-pad="1"></div>
       <div class="campo"><label>Setor ou bairro</label><input type="text" name="setorFiador2" data-pad="1"></div>
       <div class="campo"><label>Cidade</label><input type="text" name="cidadeFiador2" data-pad="1"></div>
+      <!-- 30/10/2026 (dono, Súmula 332 do STJ): estado civil do fiador; casado ou em união estável, o cônjuge também assina -->
+      <div class="campo fia-civil"><label>Estado civil</label>
+        <select name="estadoCivilFiador2" onchange="verConjugesFiadores()">
+          <option value="">Escolha…</option><option>SOLTEIRO</option><option>CASADO</option><option>DIVORCIADO</option>
+          <option>VIUVO</option><option>UNIAO ESTAVEL</option></select></div>
+    </div>
+    <div class="fia-conj" id="conjFiador2" style="display:none">
+      <div class="linha">
+        <div class="campo full"><label>Nome do cônjuge do fiador 2</label><input type="text" name="conjugeFiador2" data-pad="1"></div>
+        <div class="campo"><label>CPF do cônjuge</label>
+          <input type="text" name="cpfConjugeFiador2" inputmode="numeric" maxlength="14" placeholder="000.000.000-00"></div>
+        <div class="campo"><label>E-mail do cônjuge</label><input type="email" name="emailConjugeFiador2"></div>
+        <div class="ajuda" style="grid-column:1/-1">O cônjuge do fiador assina os termos de confissão junto com ele (assinatura eletrônica).</div>
+      </div>
     </div>
 
     <div class="rodape">
@@ -1854,7 +1888,58 @@
     if(a) a.style.display = ex ? 'none' : 'block';
     if(b) b.style.display = ex ? 'block' : 'none';
     if(t) t.textContent = ex ? '' : ' (não necessário)';
+    try{ verConjugesFiadores(); }catch(e){}   /* 30/10: em 24x some o estado civil / cônjuge */
     try{ resumoAnexos(); }catch(e){}
+  }
+  /* ---------- 30/10/2026 — fiador casado (Súmula 332 do STJ) ----------
+     Decisão do dono: com pós-chaves (36x/48x) cada fiador diz o estado civil. Casado ou em união estável, o
+     cônjuge também assina — o preferido é o CASAL ser os 2 fiadores (fiador 2 = cônjuge do fiador 1). De famílias
+     diferentes, pede nome, CPF e e-mail do cônjuge de quem for casado. Em 24x (fiador dispensado) nada disso. */
+  function fiadorCasado(v){ return /^(CASADO|UNIAO ESTAVEL)$/.test(String(v||'')); }
+  function verConjugesFiadores(){
+    var f=F(), disp=!fiadorExigido();
+    document.querySelectorAll('.fia-civil').forEach(function(x){ x.style.display=disp?'none':''; });
+    var c1=!disp && fiadorCasado(f.estadoCivilFiador1.value), c2=!disp && fiadorCasado(f.estadoCivilFiador2.value);
+    var casal=c1 && f.conjugeEhFiador2.checked;
+    document.getElementById('conjFiador1').style.display=c1?'block':'none';
+    document.getElementById('dadosConjF1').style.display=casal?'none':'';
+    document.getElementById('conjFiador2').style.display=(c2 && !casal)?'block':'none';
+    document.getElementById('tituloFiador2').textContent=casal?'Fiador 2 — cônjuge do fiador 1':'Fiador 2';
+    if(casal && f.estadoCivilFiador2.value!==f.estadoCivilFiador1.value) f.estadoCivilFiador2.value=f.estadoCivilFiador1.value;
+  }
+  /* o botão da sugestão: o que já foi digitado como cônjuge do fiador 1 vira o fiador 2; o endereço do casal é o mesmo */
+  function usarConjugeComoFiador2(){
+    var f=F();
+    if(f.conjugeFiador1.value.trim() && !f.fiador2.value.trim()){
+      f.fiador2.value=f.conjugeFiador1.value; f.cpfFiador2.value=f.cpfConjugeFiador1.value; f.emailFiador2.value=f.emailConjugeFiador1.value;
+    }
+    ['cepFiador','logradouroFiador','numeroFiador','setorFiador','cidadeFiador'].forEach(function(k){
+      if(f[k+'2'] && f[k+'1'] && !f[k+'2'].value.trim()) f[k+'2'].value=f[k+'1'].value;
+    });
+    f.conjugeEhFiador2.checked=true;
+    verConjugesFiadores();
+    f.fiador2.focus();
+  }
+  /* o que vai para o Notion: com o casal, o cônjuge de cada um é o outro fiador (o contrato reconhece pelo CPF) */
+  function conjugesFiadores(){
+    var f=F(), disp=!fiadorExigido(), o={};
+    [1,2].forEach(function(n){
+      o['estadoCivilFiador'+n]=disp?'':f['estadoCivilFiador'+n].value;
+      o['conjugeFiador'+n]=''; o['cpfConjugeFiador'+n]=''; o['emailConjugeFiador'+n]='';
+    });
+    if(disp) return o;
+    var casal=fiadorCasado(f.estadoCivilFiador1.value) && f.conjugeEhFiador2.checked;
+    function de(n, nome, cpf, email){ o['conjugeFiador'+n]=padrao(nome); o['cpfConjugeFiador'+n]=dig(cpf); o['emailConjugeFiador'+n]=String(email||'').trim().toLowerCase(); }
+    if(casal){
+      de(1, f.fiador2.value, f.cpfFiador2.value, f.emailFiador2.value);
+      de(2, f.fiador1.value, f.cpfFiador1.value, f.emailFiador1.value);
+      return o;
+    }
+    [1,2].forEach(function(n){
+      if(fiadorCasado(f['estadoCivilFiador'+n].value))
+        de(n, f['conjugeFiador'+n].value, f['cpfConjugeFiador'+n].value, f['emailConjugeFiador'+n].value);
+    });
+    return o;
   }
   function fiadorInformado(n){
     var f=F(), algum=false;
@@ -2639,6 +2724,20 @@
         if(!f['logradouroFiador'+fn].value.trim()) return erro('Informe o <b>endereço '+q+'</b>.', f['logradouroFiador'+fn]);
         if(!f['cidadeFiador'+fn].value.trim()) return erro('Informe a <b>cidade '+q+'</b>.', f['cidadeFiador'+fn]);
       }
+      /* 30/10/2026 — fiador casado: o que foi digitado do cônjuge tem de estar certo (a venda cobra o resto) */
+      if(fiadorExigido()){
+        var casalF=fiadorCasado(f.estadoCivilFiador1.value) && f.conjugeEhFiador2.checked;
+        if(casalF && !f.fiador2.value.trim())
+          return erro('Você marcou que o <b>fiador 2 é o cônjuge do fiador 1</b>: preencha o fiador 2.', f.fiador2);
+        for(var nc=1; nc<=2; nc++){
+          if(!fiadorInformado(nc)) continue;
+          if(!f['estadoCivilFiador'+nc].value) return erro('Informe o <b>estado civil do fiador '+nc+'</b>.', f['estadoCivilFiador'+nc]);
+          if(!fiadorCasado(f['estadoCivilFiador'+nc].value) || casalF) continue;
+          var nm=f['conjugeFiador'+nc], cp=f['cpfConjugeFiador'+nc];
+          if(nm.value.trim() && !nomeCompleto(nm.value)) return erro('Informe o <b>nome completo</b> do cônjuge do fiador '+nc+'.', nm);
+          if(dig(cp.value) && !cpfValido(cp.value)) return erro('<b>CPF do cônjuge do fiador '+nc+'</b> inválido. Confira os números.', cp);
+        }
+      }
     }
     if(n===4){
       var lista=arquivosAnexados();
@@ -2725,7 +2824,7 @@
 
   /* ---------- máscaras ---------- */
   function ligarMascaras(){
-    ['cpf','cpfConjuge','cpfFiador1','cpfFiador2','cpfCorretor'].forEach(function(nome){
+    ['cpf','cpfConjuge','cpfFiador1','cpfFiador2','cpfConjugeFiador1','cpfConjugeFiador2','cpfCorretor'].forEach(function(nome){
       var el=F()[nome]; if(!el) return;
       el.addEventListener('input',function(e){
         e.target.value=fmtCpf(e.target.value);
@@ -3026,6 +3125,8 @@
                 fgts:r(q.fgts), subsidio:r(q.subsidio), financiado:r(q.financiado)};
       })(ULTIMO_CALCULO)
     };
+    /* 30/10/2026 — estado civil e cônjuge dos fiadores (vazio em 24x) */
+    var cjF=conjugesFiadores(); Object.keys(cjF).forEach(function(k){ dados[k]=cjF[k]; });
 
     var lista=arquivosAnexados();
     var anexos=[];

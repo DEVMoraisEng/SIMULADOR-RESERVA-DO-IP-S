@@ -457,7 +457,7 @@
     var r=Math.max(8, Math.min(bb.width, bb.height)*0.24);
     var c=document.createElementNS(SVGNS,'circle');
     c.setAttribute('id', id); c.setAttribute('class','marca-un');
-    c.setAttribute('cx', bb.x+bb.width-r*1.35); c.setAttribute('cy', bb.y+r*1.35); c.setAttribute('r', r);
+    c.setAttribute('cx', bb.x+bb.width/2); c.setAttribute('cy', bb.y+r*1.35);   // centralizada na parte de cima c.setAttribute('r', r);
     c.setAttribute('fill', cor); c.setAttribute('stroke', '#fff'); c.setAttribute('stroke-width', Math.max(2, r*0.22));
     c.style.pointerEvents='none';
     var t=document.createElementNS(SVGNS,'title'); t.textContent = vendido(u) ? 'Vendida' : 'Reservada'; c.appendChild(t);

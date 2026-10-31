@@ -418,12 +418,14 @@ function simCamposHtml(){
     '<div class="grade">'+
       '<div class="campo"><label>Valor financiado (R$)</label><input id="sl-financiado" readonly><span class="ajuda">Crédito aprovado, limitado ao teto de 80% da avaliação.</span></div>'+
       '<div class="campo"><label>Prazo (meses)</label><input id="sl-prazo" type="number" value="'+(Number(simLinkVal('prazoMeses',420))||420)+'"></div>'+
-      '<div class="campo"><label>Sistema de amortização</label><select id="sl-sistemaAmortizacao"><option value="PRICE"'+(sis==='PRICE'?' selected':'')+'>PRICE — parcela fixa</option><option value="SAC"'+(sis==='SAC'?' selected':'')+'>SAC — parcela decrescente</option></select></div>'+
     '</div>'+
-    '<div id="boxSimLink" style="display:none;margin-top:12px;padding:12px 14px;border:1px dashed #C9A227;border-radius:10px;background:#FFFDF6">'+
+  '</div>'+
+    /* 31/10/2026 — os dados da simulação da CAIXA aparecem SEMPRE (como na proposta), com ou sem crédito aprovado */
+    '<div id="boxSimLink" style="margin-top:12px;padding:12px 14px;border:1px dashed #C9A227;border-radius:10px;background:#FFFDF6">'+
       '<b style="color:var(--marrom)">Dados para a simulação da CAIXA</b>'+
-      '<p class="ajuda" style="margin:4px 0 10px">Quando o crédito bate no teto de 80%, o sistema roda a simulação automaticamente. Ele precisa exatamente destes campos — são os mesmos do simulador.</p>'+
+      '<p class="ajuda" style="margin:4px 0 10px">Os mesmos da proposta. Quando o crédito bate no teto de 80%, o sistema roda a simulação com estes campos.</p>'+
       '<div class="grade">'+
+        '<div class="campo"><label>Sistema de amortização</label><select id="sl-sistemaAmortizacao"><option value="PRICE"'+(sis==='PRICE'?' selected':'')+'>PRICE — parcela fixa</option><option value="SAC"'+(sis==='SAC'?' selected':'')+'>SAC — parcela decrescente</option></select></div>'+
         '<div class="campo"><label>Prazo do financiamento (meses)</label><input id="sl-prazoMeses" type="number" min="60" max="420" step="1" value="'+(Number(simLinkVal('prazoMeses',420))||420)+'"><span class="ajuda">Máximo permitido: 420 meses.</span></div>'+
         '<div class="campo"><label>Seguradora</label><select id="sl-seguradora">'+
           ['CAIXA RESIDENCIAL HABITACIONAL','TOKIO MARINE SEGURADORA','TOO SEGUROS'].map(function(o){ return '<option'+(o===seg?' selected':'')+'>'+o+'</option>'; }).join('')+'</select></div>'+
@@ -435,11 +437,21 @@ function simCamposHtml(){
         return h;
       }).join('')+
       '<div style="margin-top:8px;font-size:13px"><b style="color:var(--marrom)">Linha de financiamento que será simulada:</b> <span id="slProdutos"></span></div>'+
-    '</div>'+
-  '</div>';
+    '</div>';
 }
 function simLinkProdutos(){ var el=document.getElementById('sl-possuiImovelCidade');
   return (el&&el.checked) ? ['SBPE SFH - TR - UNIDADE PF VINCULADA A EMPREENDIMENTO FINANCIADO NA CAIXA'] : ['NPMCMV - IMÓVEL NOVO INDIVIDUAL']; }
+/* 31/10/2026 — perfil da simulação (sempre gravado no DADOS da proposta, com ou sem crédito) */
+function simLinkPerfil(){
+  var o={prazoMeses:Math.min(420, Number((document.getElementById('sl-prazoMeses')||{}).value)||420),
+    seguradora:(document.getElementById('sl-seguradora')||{}).value||'CAIXA RESIDENCIAL HABITACIONAL',
+    sistemaAmortizacao:(document.getElementById('sl-sistemaAmortizacao')||{}).value||'PRICE'};
+  SIM_LINK_PERFIL.concat(SIM_LINK_SUB).forEach(function(x){ var el=document.getElementById('sl-'+x[0]); if(el) o[x[0]]=!!el.checked; });
+  if(!o.relacionamentoCaixa){ o.servidorPublico=false; o.creditoSalarioCaixa=false; }
+  o.dataConcessaoBeneficio = o.jaBeneficiado ? ((document.getElementById('sl-dataConcessaoBeneficio')||{}).value||'') : '';
+  o.possuiImovel=!!o.possuiImovelCidade; o.produtos=simLinkProdutos();
+  return o;
+}
 function simLinkColetar(simula){
   var o={ creditoAprovadoCaixa:'SIM', saldoFgts:simLinkNum('sl-saldoFgts'), subsidio:simLinkNum('sl-subsidio'),
     valorEntrada:simLinkNum('sl-valorEntrada'), rendaTotal:simLinkNum('sl-rendaTotal'),
@@ -525,7 +537,7 @@ function verCreditoLink(){
   var pcx=pf && pf.closest('.campo'), bs=document.getElementById('boxSimLink');
   var noTeto = sim && cred>0 && teto>0 && cred>=teto-0.5, abaixo = sim && cred>0 && teto>0 && cred<teto-0.5;
   if(pcx){ pcx.style.display = abaixo ? '' : 'none'; pcx.dataset.obrig = abaixo ? '1' : '0'; }
-  if(bs) bs.style.display = noTeto ? '' : 'none';
+  if(bs) bs.style.display = '';   // 31/10 — sempre visível
   if(av){
     if(!sim || !cred || !teto){ av.style.display='none'; }
     else if(noTeto){
@@ -1501,6 +1513,7 @@ function enviar(){
       method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
       body:JSON.stringify({acao:'completarProposta', pageId:ID, token:TOKEN, campos:campos, anexos:anexos, venda:venda,
                            pessoas:(lkMais() ? lkColetar() : []), maisDeUmComprador:lkMais(),   // 31/10 — compradores e dependentes
+                           perfil:(document.getElementById('boxSimLink') ? simLinkPerfil() : null),   // 31/10 — dados da simulação da CAIXA
                            unidadeNova: UN_NOVA ? UN_NOVA.unidade : ''})   // 27/10 — troca de unidade
     }).then(function(r){ return r.json(); });
   }).then(function(j){

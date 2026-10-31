@@ -261,6 +261,13 @@ var LEITURA={
   'COMP. END. FIADOR 1':{tipo:'endereco', quem:'fiador1', mapa:{cep:'cepFiador1', logradouro:'logradouroFiador1', numero:'numeroFiador1', bairro:'setorFiador1', cidade:'cidadeFiador1'}, inteiro:'enderecoFiador1'},
   'COMP. END. FIADOR 2':{tipo:'endereco', quem:'fiador2', mapa:{cep:'cepFiador2', logradouro:'logradouroFiador2', numero:'numeroFiador2', bairro:'setorFiador2', cidade:'cidadeFiador2'}, inteiro:'enderecoFiador2'}
 };
+/* 31/10/2026 — documento e comprovante dos compradores preenchem o card de cada um */
+[1,2].forEach(function(n){
+  LEITURA['DOC. COMPRADOR '+n]={tipo:'pessoa', quem:'comprador'+n, mapa:{nome:'comprador'+n, cpf:'cpfComprador'+n, rg:'rgComprador'+n,
+    dataNascimento:'dataNascimentoComprador'+n, nacionalidade:'nacionalidadeComprador'+n}};
+  LEITURA['COMP. END. COMPRADOR '+n]={tipo:'endereco', quem:'comprador'+n, mapa:{cep:'cepComprador'+n, logradouro:'logradouroComprador'+n,
+    numero:'numeroComprador'+n, bairro:'setorComprador'+n, cidade:'cidadeComprador'+n}};
+});
 /* de quem é cada documento fixo (o selo aparece ao lado do nome) */
 var DONO_DOC={'PRINT APROVACAO CAIXA':'proponente','DOC. PROP.':'proponente','DOC. CONJUGE':'cônjuge','COMPROVANTE DE ENDERECO':'proponente',
   'DOC. FIADOR 1':'fiador 1','DOC. FIADOR 2':'fiador 2','COMP. END. FIADOR 1':'fiador 1','COMP. END. FIADOR 2':'fiador 2'};
@@ -553,6 +560,16 @@ function verEndConjLink(){
   });
   var cc=document.getElementById('cardConjuge'); if(cc && cc.innerHTML) cc.style.display = com ? '' : 'none';
 }
+/* 31/10/2026 — nome, CPF e e-mail do cônjuge do fiador só aparecem (e são cobrados) para casado / união estável */
+function verConjFiadorLink(){
+  [1,2].forEach(function(n){
+    var ec=document.getElementById('c-estadoCivilFiador'+n), cas=!!(ec && /CASAD|UNIAO/.test(semAcento(ec.value)));
+    ['conjugeFiador','cpfConjugeFiador','emailConjugeFiador'].forEach(function(b){
+      var el=document.getElementById('c-'+b+n); if(!el) return; var cx=el.closest('.campo'); if(cx) cx.style.display = cas ? '' : 'none';
+    });
+  });
+  try{ atualizarTrava(); }catch(e){}
+}
 function verConjuge(){
   var com=temConjuge();
   try{ verEndConjLink(); }catch(e){}
@@ -598,9 +615,9 @@ function pintar(){
   document.getElementById('campos').innerHTML=htmlProp;
   /* 06/10 — CÔNJUGE e COMPRADORES em quadros próprios, logo depois do proponente */
   var cardProp=document.getElementById('campos').closest('.card'), depois=cardProp;
-  [['cardConjuge','Cônjuge',htmlConj,'Dados do cônjuge. Se ele mora em outro endereço, informe o endereço dele e anexe o comprovante em "Documentos obrigatórios".'],
-   ['cardComprador1','Comprador 1',htmlComp.comprador1||'','Dados do 2º comprador, que entra na compra junto com o proponente.'],
-   ['cardComprador2','Comprador 2',htmlComp.comprador2||'','Dados do 3º comprador.']].forEach(function(q){
+  /* 31/10/2026 — os compradores saíram dos quadros fixos "Comprador 1/2": ficam no bloco
+     "Compradores e dependentes" (igual à proposta, com estado civil e cônjuge) */
+  [['cardConjuge','Cônjuge',htmlConj,'Dados do cônjuge. Se ele mora em outro endereço, informe o endereço dele e anexe o comprovante em "Documentos obrigatórios".']].forEach(function(q){
     var cx=document.getElementById(q[0]);
     if(!cx){ cx=document.createElement('div'); cx.className='card'; cx.id=q[0]; depois.parentNode.insertBefore(cx, depois.nextSibling); }
     depois=cx;
@@ -608,12 +625,13 @@ function pintar(){
     cx.innerHTML = mostra ? '<h2>'+q[1]+'</h2><p class="sub">'+q[3]+'</p><div class="grade">'+q[2]+'</div>' : '';
     cx.style.display = mostra ? '' : 'none';
     /* 06/10 — comprador que existe: todos os dados dele são obrigatórios (menos o RG) */
-    if(mostra && nComp) cx.querySelectorAll('.campo').forEach(function(cp){
-      var inp=cp.querySelector('input,select'); if(!inp || /^c-rgComprador/.test(inp.id)) return;
-      cp.dataset.obrig='1'; var lb=cp.querySelector('label');
-      if(lb && !lb.querySelector('.marca')){ var mk=document.createElement('span'); mk.className='marca'; mk.textContent='falta'; lb.appendChild(mk); }
-    });
   });
+  ['cardComprador1','cardComprador2'].forEach(function(id){ var v=document.getElementById(id); if(v) v.remove(); });
+  var cxLk=document.getElementById('cardPessoasLink');
+  if(!cxLk){ cxLk=document.createElement('div'); cxLk.className='card'; cxLk.id='cardPessoasLink'; depois.parentNode.insertBefore(cxLk, depois.nextSibling); }
+  cxLk.innerHTML=lkCardHtml();
+  LK_LISTA=lkInicial();
+  lkPintar(LK_LISTA.length ? LK_LISTA : null);
   /* 02/10 (item 2) — CRÉDITO NA CAIXA em quadro próprio, no alto: quem enviou sem crédito e foi
      aprovado marca SIM, informa o correspondente e o valor; a simulação roda de novo (ou, abaixo
      de 80% da avaliação, informa a parcela). */
@@ -643,9 +661,238 @@ function pintar(){
   window.CEP_PRONTO=true;
 
   verConjuge();
+  verConjFiadorLink();   // 31/10 — cônjuge do fiador só para casado
+  var slM=document.getElementById('sl-maisDeUmComprador');   // 31/10 — o mesmo "mais de um comprador" do bloco da CAIXA
+  if(slM){ slM.checked=lkMais(); slM.addEventListener('change', function(){ var c=document.getElementById('lk-mais'); if(c && c.checked!==slM.checked){ c.checked=slM.checked; lkMaisMudou(); } }); }
   unIniciar();   // 27/10 — quadro da unidade (antes do fluxo: o preço vem dele)
   vendaIniciar();
   verCreditoLink();
+}
+
+/* =====================================================================
+ * 31/10/2026 — COMPRADORES E DEPENDENTES NO LINK DE COMPLETAR
+ * Mesmo bloco da proposta ("Mais de um comprador ou dependente"): o corretor vê, corrige,
+ * inclui ou tira quem compra junto. Cada comprador diz o estado civil; casado ou em união
+ * estável, o regime de bens é obrigatório e o CÔNJUGE entra como mais um COMPRADOR (a
+ * quantidade sobe sozinha, o card dele vem logo abaixo e todos os dados são obrigatórios).
+ * No máximo 2 compradores (comprador 1 e 2 do banco de vendas e do contrato).
+ * Os campos dos compradores usam os ids c-comprador1, c-cpfComprador1… — a leitura do
+ * documento e do comprovante (Documentos obrigatórios) preenche direto no card.
+ * =================================================================== */
+var LK_ESTADOS=['SOLTEIRO','CASADO','DIVORCIADO','VIUVO','UNIAO ESTAVEL'];
+var LK_MAX_COMP=2;
+var LK_LISTA=[];   // retrato da lista na tela (o render sempre parte daqui)
+function lkCasado(v){ v=semAcento(v); return v.indexOf('CASAD')>=0 || v.indexOf('UNIAO')>=0; }
+function lkUid(){ return 'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function lkCivil(v){ v=semAcento(v); if(!v) return ''; if(v.indexOf('CASAD')>=0) return 'CASADO'; if(v.indexOf('UNIAO')>=0) return 'UNIAO ESTAVEL';
+  if(v.indexOf('DIVORC')>=0) return 'DIVORCIADO'; if(v.indexOf('VIUV')>=0) return 'VIUVO'; if(v.indexOf('SOLTEIR')>=0) return 'SOLTEIRO'; return v; }
+function lkMoeda(v){ var n=(typeof v==='number') ? v : simLinkNumTxt(v); return n ? n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : ''; }
+/* o que a proposta gravou (DADOS + colunas corrigidas pelo link). Servidor antigo: monta pelos campos comprador1/2 */
+function lkInicial(){
+  if(DADOS && Array.isArray(DADOS.pessoas)) return DADOS.pessoas.map(function(p){ var o={}; Object.keys(p||{}).forEach(function(k){ o[k]=p[k]; }); return o; });
+  var v=function(id){ var c=(DADOS.campos||[]).filter(function(x){ return x.id===id; })[0]; return c ? String(c.valor||'') : ''; };
+  var out=[];
+  [1,2].forEach(function(n){ if(!v('comprador'+n).trim()) return;
+    out.push({tipo:'COMPRADOR', nome:v('comprador'+n), cpf:v('cpfComprador'+n), rg:v('rgComprador'+n), profissao:v('profissaoComprador'+n),
+      dataNascimento:v('nascComprador'+n), email:v('emailComprador'+n), celular:v('celularComprador'+n), origemRenda:v('origemRendaComprador'+n),
+      renda:v('rendaComprador'+n), cep:v('cepComprador'+n), logradouro:v('enderecoComprador'+n)}); });
+  return out;
+}
+function lkMaisInicial(){
+  if(DADOS && DADOS.maisDeUmComprador!=null) return !!DADOS.maisDeUmComprador;
+  return simLinkSim('maisDeUmComprador') || lkInicial().length>0;
+}
+/* lê os cards da tela de volta para objetos (mesmos nomes do DADOS.dependentes da proposta) */
+function lkColetar(){
+  var out=[];
+  document.querySelectorAll('#lk-lista .lk-dep').forEach(function(d){
+    var g=function(c){ var el=d.querySelector('.'+c); return el ? String(el.value||'').trim() : ''; };
+    var p={uid:d.dataset.uid||'', par:d.dataset.par||'', conj:d.dataset.conj==='1',
+      tipo:g('lk-tipo')||'DEPENDENTE', nome:semAcento(g('lk-nome')), cpf:dig(g('lk-cpf'))};
+    if(p.tipo==='COMPRADOR'){
+      p.estadoCivil=g('lk-civil'); p.regimeBens=lkCasado(p.estadoCivil) ? g('lk-regime') : '';
+      p.profissao=semAcento(g('lk-prof')); p.nacionalidade=semAcento(g('lk-nac')); p.rg=semAcento(g('lk-rg'));
+      p.dataNascimento=g('lk-nasc'); p.email=g('lk-email').toLowerCase(); p.celular=dig(g('lk-cel'));
+      p.renda=g('lk-renda'); p.origemRenda=g('lk-origem');
+      p.cep=dig(g('lk-cep')); p.logradouro=semAcento(g('lk-logr')); p.numero=semAcento(g('lk-num'));
+      p.setor=semAcento(g('lk-setor')); p.cidade=semAcento(g('lk-cid'));
+      p.endereco=[p.logradouro,p.numero,p.setor,p.cidade].filter(Boolean).join(', ')+(p.cep.length===8?' - CEP '+p.cep.slice(0,5)+'-'+p.cep.slice(5):'');
+    }
+    out.push(p);
+  });
+  out.forEach(function(p){ var o=p.par ? out.filter(function(x){ return x.uid===p.par; })[0] : null;
+    p.conjuge=o ? o.nome : ''; p.cpfConjuge=o ? o.cpf : ''; });
+  return out;
+}
+function lkMais(){ var c=document.getElementById('lk-mais'); return !!(c && c.checked); }
+function lkCompradores(){ return lkMais() ? lkColetar().filter(function(p){ return p.tipo==='COMPRADOR'; }) : []; }
+function lkAviso(msg){
+  var a=document.getElementById('lk-aviso'); if(!a) return;
+  a.style.display=msg?'':'none'; a.className='aviso '+(/^⚠/.test(msg||'')?'erro':'ok'); a.innerHTML=msg||'';
+}
+function lkCampo(rot, html, obrig, full){
+  return '<div class="campo"'+(full?' style="grid-column:1/-1"':'')+' data-obrig="'+(obrig?1:0)+'"><label>'+esc(rot)+
+    (obrig?'<span class="marca">falta</span>':'')+'</label>'+html+'</div>';
+}
+function lkSel(cls, id, ops, val, extra){
+  return '<select class="'+cls+'"'+(id?' id="'+id+'"':'')+(extra||'')+'><option value="">Selecione…</option>'+
+    ops.map(function(o){ return '<option'+(mesmaOpcao(o,val)?' selected':'')+'>'+esc(o)+'</option>'; }).join('')+
+    (val && !ops.some(function(o){ return mesmaOpcao(o,val); }) ? '<option selected>'+esc(val)+'</option>' : '')+'</select>';
+}
+function lkInp(cls, id, val, tipo, ph, extra){
+  var t=tipo==='data'?'date':(tipo==='email'?'email':'text');
+  return '<input type="'+t+'" class="'+cls+'"'+(id?' id="'+id+'"':'')+' value="'+esc(val||'')+'"'+(tipo?' data-tipo="'+tipo+'"':'')+
+    (tipo==='cpf'||tipo==='tel'||tipo==='cep'||tipo==='numero'?' inputmode="numeric"':'')+(tipo==='cep'?' maxlength="9"':'')+
+    (tipo==='data'?' max="9999-12-31"':'')+(ph?' placeholder="'+esc(ph)+'"':'')+(extra||'')+'>';
+}
+function lkPintar(lista){
+  if(lista) LK_LISTA=lista;
+  var box=document.getElementById('lk-box'), mais=lkMais();
+  if(box) box.style.display = mais ? '' : 'none';
+  var q=document.getElementById('lk-qtd');
+  if(lista && q) q.value=Math.max(1, lista.length);
+  var n=Math.max(1, Math.min(6, parseInt((q||{}).value,10)||1));
+  var at=LK_LISTA.slice(0, n);
+  while(at.length<n) at.push({tipo:'DEPENDENTE', nome:'', cpf:''});
+  at.forEach(function(p){ if(!p.uid) p.uid=lkUid(); });
+  LK_LISTA=at;
+  var nomeDe=function(uid){ var o=at.filter(function(x){ return x.uid===uid; })[0]; return o ? (o.nome||'') : ''; };
+  var nc=0, html='';
+  at.forEach(function(p, i){
+    var comp=p.tipo==='COMPRADOR', conj=comp && !!p.conj, civ=comp ? lkCivil(p.estadoCivil) : '', cas=lkCasado(civ);
+    var parOk=!!(p.par && at.some(function(x){ return x.uid===p.par; }));
+    var k=comp ? ++nc : 0, quem=comp ? ' do comprador '+k : ' do dependente '+(i+1);
+    var id=function(base){ return (comp && k<=2) ? 'c-'+base+k : ''; };
+    var h='<div class="lk-dep" data-i="'+i+'" data-uid="'+esc(p.uid)+'" data-par="'+esc(parOk?p.par:'')+'" data-conj="'+(conj?1:0)+'" style="margin:0 0 12px;padding:10px 12px;border:1.5px solid '+
+      (conj?'#C9A227':'#E7DCC7')+';border-radius:10px;background:'+(conj?'#FFFBEF':'#FFFDF8')+(conj?';margin-left:14px':'')+'">'+
+      '<b style="display:block;margin:0 0 6px;color:#6B4A12;font-size:14px">'+(comp ? 'Comprador '+k : 'Dependente')+(p.nome?' — '+esc(p.nome):'')+'</b>'+
+      (conj ? '<div class="ajuda" style="margin:-2px 0 8px;font-size:12.5px">💍 Cônjuge de <b>'+esc(nomeDe(p.par)||'comprador acima')+'</b> — entra como <b>comprador</b>. Todos os dados são obrigatórios.</div>' : '')+
+      '<div class="grade">'+
+      lkCampo('Nome completo'+quem, lkInp('lk-nome', id('comprador'), p.nome, 'texto'), true)+
+      lkCampo('CPF'+quem, lkInp('lk-cpf', id('cpfComprador'), fmtCpf(p.cpf||''), 'cpf'), comp)+
+      lkCampo('Tipo', '<select class="lk-tipo" onchange="lkTipoMudou('+i+')"'+(conj?' disabled':'')+'><option'+(comp?'':' selected')+'>DEPENDENTE</option><option'+(comp?' selected':'')+'>COMPRADOR</option></select>', false);
+    if(comp){
+      h+=lkCampo('Estado civil'+quem, lkSel('lk-civil', '', LK_ESTADOS, civ, ' onchange="lkCivilMudou('+i+')"'+(conj?' disabled':'')), true)+
+        '<div class="campo lk-regbox"'+(cas?'':' style="display:none"')+' data-obrig="'+(cas?1:0)+'"><label>Regime de bens'+esc(quem)+'<span class="marca">falta</span></label>'+
+          lkSel('lk-regime', '', REGIMES, p.regimeBens||'', ' onchange="lkRegimeMudou('+i+')"'+(conj?' disabled':''))+'</div>'+
+        (cas && !conj ? '<div class="ajuda" style="grid-column:1/-1;margin-top:-4px">'+(parOk
+            ? 'O cônjuge (<b>'+esc(nomeDe(p.par)||'card abaixo')+'</b>) entra como comprador no card logo abaixo.'
+            : '<b style="color:#8A2E17">Falta o cônjuge na lista</b> — escolha o estado civil de novo para ele entrar como comprador.')+'</div>' : '')+
+        lkCampo('Profissão'+quem, lkInp('lk-prof', id('profissaoComprador'), p.profissao, 'texto'), true)+
+        lkCampo('Nacionalidade'+quem, lkInp('lk-nac', id('nacionalidadeComprador'), p.nacionalidade||'BR', 'texto'), true)+
+        lkCampo('RG'+quem, lkInp('lk-rg', id('rgComprador'), p.rg, 'texto'), false)+
+        lkCampo('Data de nascimento'+quem, lkInp('lk-nasc', id('dataNascimentoComprador'), String(p.dataNascimento||'').slice(0,10), 'data'), true)+
+        lkCampo('E-mail'+quem, lkInp('lk-email', id('emailComprador'), p.email, 'email'), true)+
+        lkCampo('Celular'+quem, lkInp('lk-cel', id('celularComprador'), p.celular, 'tel', '(00) 00000-0000'), true)+
+        lkCampo('Renda'+quem+' (R$)', lkInp('lk-renda', id('rendaComprador'), lkMoeda(p.renda), 'numero', '0,00'), true)+
+        lkCampo('Origem da renda'+quem, lkSel('lk-origem', id('origemRendaComprador'), ORIGENS, p.origemRenda||'', ' onchange="montarDocs()"'), true)+
+        lkCampo('CEP'+quem, lkInp('lk-cep', id('cepComprador'), fmtCep(p.cep||''), 'cep'), true)+
+        lkCampo('Endereço'+quem+' (rua, avenida ou quadra)', lkInp('lk-logr', id('logradouroComprador'), p.logradouro||(!p.numero&&!p.setor?p.endereco:'')||'', 'texto'), true, true)+
+        lkCampo('Número ou lote'+quem, lkInp('lk-num', id('numeroComprador'), p.numero, 'texto'), false)+
+        lkCampo('Setor ou bairro'+quem, lkInp('lk-setor', id('setorComprador'), p.setor, 'texto'), true)+
+        lkCampo('Cidade'+quem, lkInp('lk-cid', id('cidadeComprador'), p.cidade, 'texto'), true);
+    }
+    html+=h+'</div></div>';
+  });
+  var l=document.getElementById('lk-lista'); if(!l) return;
+  l.innerHTML = mais ? html : '';
+  l.querySelectorAll('input,select').forEach(function(el){
+    el.addEventListener('input', function(){ mascarar(el); if(el.classList.contains('lk-nome')) montarDocs(); atualizarTrava(); });
+    el.addEventListener('change', atualizarTrava);
+    if(el.dataset.tipo==='cep') el.addEventListener('input', function(){ if(dig(el.value).length===8) lkCep(el); });
+  });
+  montarDocs();
+}
+/* CEP do card preenche rua, setor e cidade (ViaCEP), como no resto do link */
+function lkCep(el){
+  var c=dig(el.value), d=el.closest('.lk-dep'); if(!d || c.length!==8 || el.dataset.ult===c) return; el.dataset.ult=c;
+  fetch('https://viacep.com.br/ws/'+c+'/json/').then(function(r){ return r.json(); }).then(function(j){
+    if(!j || j.erro) return;
+    [['.lk-logr',j.logradouro],['.lk-setor',j.bairro],['.lk-cid',j.localidade]].forEach(function(p){ var e=d.querySelector(p[0]); if(e && p[1]){ e.value=semAcento(p[1]); e.classList.add('lido'); } });
+    atualizarTrava();
+  }).catch(function(){ el.dataset.ult=''; });
+}
+function lkQtdMudou(){ LK_LISTA=lkColetar(); lkPintar(); }
+function lkMaisMudou(){
+  var on=lkMais(), s=document.getElementById('sl-maisDeUmComprador'); if(s) s.checked=on;
+  if(on && !LK_LISTA.length) LK_LISTA=[{tipo:'COMPRADOR', nome:'', cpf:''}];
+  if(!on) LK_LISTA=lkColetar();   // guarda: se marcar de novo, volta como estava
+  lkPintar();
+}
+function lkCivilMudou(i){
+  var lista=lkColetar(), p=lista[i]; if(!p) return;
+  var cas=lkCasado(p.estadoCivil), k=-1;
+  lista.forEach(function(x, j){ if(p.par && x.uid===p.par) k=j; });
+  if(cas && p.estadoCivil==='UNIAO ESTAVEL' && !p.regimeBens) p.regimeBens='COMUNHAO PARCIAL DE BENS';   // art. 1.725 CC
+  if(cas && k<0){
+    if(lista.filter(function(x){ return x.tipo==='COMPRADOR'; }).length>=LK_MAX_COMP){
+      lkPintar(lista);
+      lkAviso('⚠ O cônjuge de <b>'+esc(p.nome||'este comprador')+'</b> também precisa entrar como comprador, mas o limite é de <b>'+LK_MAX_COMP+
+        ' compradores</b> além do proponente. Mude outro card para DEPENDENTE e escolha o estado civil de novo.');
+      return;
+    }
+    var s={uid:lkUid(), par:p.uid, conj:true, tipo:'COMPRADOR', nome:'', cpf:'', nacionalidade:'BR',
+           estadoCivil:p.estadoCivil, regimeBens:p.regimeBens, cep:p.cep, logradouro:p.logradouro, numero:p.numero, setor:p.setor, cidade:p.cidade};
+    p.par=s.uid; lista.splice(i+1, 0, s);
+    lkPintar(lista);
+    lkAviso('✓ <b>'+esc(p.nome||'O comprador')+'</b> é casado(a): o cônjuge entrou como <b>comprador</b> logo abaixo (agora são '+lista.length+
+      ' pessoas além do proponente). Preencha <b>todos</b> os dados dele.');
+    return;
+  }
+  if(!cas && k>=0){ if(lista[k].conj) lista.splice(k, 1); else lista[k].par=''; p.par=''; lkPintar(lista); lkAviso(''); return; }
+  if(cas && k>=0){ lista[k].estadoCivil=p.estadoCivil; lista[k].regimeBens=p.regimeBens; }
+  lkPintar(lista);
+}
+function lkRegimeMudou(i){
+  var cards=document.querySelectorAll('#lk-lista .lk-dep'), d=cards[i]; if(!d || !d.dataset.par) return;
+  var o=document.querySelector('#lk-lista .lk-dep[data-uid="'+d.dataset.par+'"] .lk-regime');
+  if(o) o.value=d.querySelector('.lk-regime').value;
+  atualizarTrava();
+}
+function lkTipoMudou(i){
+  var lista=lkColetar(), p=lista[i]; if(!p) return;
+  if(p.tipo!=='COMPRADOR' && p.par){
+    var k=-1; lista.forEach(function(x, j){ if(x.uid===p.par) k=j; });
+    if(k>=0 && lista[k].conj) lista.splice(k, 1); else if(k>=0) lista[k].par='';
+    p.par=''; p.estadoCivil=''; p.regimeBens='';
+  }
+  lkPintar(lista);
+}
+/* conferência antes do envio (as mesmas regras da proposta) */
+function lkErro(){
+  if(!lkMais()) return '';
+  var cards=document.querySelectorAll('#lk-lista .lk-dep'), lista=lkColetar();
+  if(lista.filter(function(p){ return p.tipo==='COMPRADOR'; }).length>LK_MAX_COMP)
+    return 'No máximo <b>'+LK_MAX_COMP+' compradores</b> além do proponente. Mude os demais para DEPENDENTE.';
+  for(var i=0;i<lista.length;i++){
+    var p=lista[i], nm=p.nome||('pessoa '+(i+1));
+    if(!nomeCompleto(p.nome)) return 'Informe o <b>nome completo</b> de cada comprador / dependente.';
+    if(p.tipo==='COMPRADOR'){
+      if(dig(p.cpf).length!==11) return 'Informe o <b>CPF</b> do comprador '+esc(nm)+'.';
+      if(!p.estadoCivil) return 'Informe o <b>estado civil</b> do comprador '+esc(nm)+'.';
+      if(lkCasado(p.estadoCivil)){
+        if(!p.regimeBens) return 'Escolha o <b>regime de bens</b> do comprador '+esc(nm)+'.';
+        var o=lista.filter(function(x){ return p.par && x.uid===p.par && x.tipo==='COMPRADOR'; })[0];
+        if(!o) return 'O comprador <b>'+esc(nm)+'</b> é casado: o <b>cônjuge</b> precisa entrar na lista como comprador (escolha o estado civil de novo).';
+      }
+      if(p.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(p.email)) return 'E-mail do comprador '+esc(nm)+' inválido.';
+    } else if(dig(p.cpf) && dig(p.cpf).length!==11){
+      return 'O <b>CPF do dependente</b> '+esc(nm)+' está incompleto — corrija ou deixe em branco.';
+    }
+  }
+  return '';
+}
+function lkCardHtml(){
+  return '<h2>Compradores e dependentes</h2>'+
+    '<p class="sub">Quem compra junto com o proponente (além do cônjuge dele) e os dependentes — o mesmo bloco da proposta. '+
+    'Comprador casado: o cônjuge entra como mais um comprador, com todos os dados.</p>'+
+    '<label class="check" style="display:flex;gap:8px;align-items:center;margin:4px 0 8px;font-weight:600"><input type="checkbox" id="lk-mais" style="width:auto"'+
+      (lkMaisInicial()?' checked':'')+' onchange="lkMaisMudou()"> Mais de um comprador ou dependente</label>'+
+    '<div id="lk-box" style="display:none;margin:4px 0 0">'+
+      '<div class="campo" style="max-width:260px;margin-bottom:10px"><label>Quantas pessoas além do proponente?</label>'+
+      '<input type="number" id="lk-qtd" min="1" max="6" step="1" value="1" onchange="lkQtdMudou()"></div>'+
+      '<div id="lk-aviso" class="aviso" style="display:none;margin:0 0 10px"></div>'+
+      '<div id="lk-lista"></div></div>';
 }
 
 /* r63 — campos que não aparecem mais e os obrigatórios (para servidor antigo) */
@@ -666,7 +913,7 @@ function mascarar(el){
 /* 06/10 — CEP preenche o endereço sozinho (ViaCEP): proponente, cônjuge, compradores e fiadores */
 var CEP_LINK={cep:['logradouro','setor','cidade','endereco'], cepConjuge:['enderecoConjuge','setorConjuge','cidadeConjuge'],
   cepFiador1:['logradouroFiador1','setorFiador1','cidadeFiador1','enderecoFiador1'], cepFiador2:['logradouroFiador2','setorFiador2','cidadeFiador2','enderecoFiador2'],
-  cepComprador1:['enderecoComprador1'], cepComprador2:['enderecoComprador2']};
+  };   // 31/10: CEP dos compradores é tratado no próprio card (lkCep)
 var CEP_LINK_ULT={};
 function buscarCepLink(el){
   var id=String(el.id||'').replace(/^c-/,''), c=dig(el.value), alvo=CEP_LINK[id]; if(!alvo || c.length!==8 || CEP_LINK_ULT[id]===c) return;
@@ -894,6 +1141,11 @@ function htmlCampo(c){
       '<option value="">Selecione…</option>'+
       ORIGENS.map(function(o){ return '<option'+(mesmaOpcao(c.valor,o)?' selected':'')+'>'+o+'</option>'; }).join('')+
       '</select>';
+  } else if(/^estadoCivilFiador[12]$/.test(c.id)){
+    /* 31/10/2026 — estado civil do fiador (Súmula 332 do STJ: casado, o cônjuge também assina) */
+    campo='<select id="c-'+c.id+'" onchange="verConjFiadorLink()"><option value="">Selecione…</option>'+
+      ['SOLTEIRO','CASADO','DIVORCIADO','VIUVO','UNIAO ESTAVEL'].map(function(o){ return '<option'+(mesmaOpcao(c.valor,o)?' selected':'')+'>'+o+'</option>'; }).join('')+
+      '</select>';
   } else if(c.id==='estadoCivil'){
     campo='<select id="c-'+c.id+'" onchange="verConjuge()"><option value="">Selecione…</option>'+
       ESTADOS.map(function(o){ return '<option'+(mesmaOpcao(c.valor,o)?' selected':'')+'>'+o+'</option>'; }).join('')+
@@ -1020,7 +1272,8 @@ function montarDocs(){
                   (d.coluna==='COMPROVANTE DE DIVORCIO' && civil.indexOf('DIVORC')>=0) ||
                   (d.coluna==='DOC. CONJUGE' && temConjuge()) ||
                   (d.coluna==='COMP. END. CONJUGE' && temConjuge() && !conjMoraJunto()) ||
-                  (compN && Number(compN)<=(PD.compradores||0));
+                  (compN && Number(compN)<=lkCompradores().length) ||                     // 31/10: do bloco de compradores
+                  (d.coluna==='DOC. DEPENDENTE' && lkMais() && lkColetar().some(function(p){ return p.tipo!=='COMPRADOR'; }));
     if(!exigido && !fiaN && !(d.temArquivo && (baseC||compN||d.coluna==='COMP. END. CONJUGE'))) return;
     if(ehPrint && !exigido && !d.temArquivo) return;
     var nome=ROTULO_DOC[d.coluna]||d.rotulo;
@@ -1034,7 +1287,7 @@ function montarDocs(){
     var mRC=/^COMP\. RENDA COMPRADOR ([12])$/.exec(d.coluna);
     if(mRC && !d.temArquivo){
       var selOC=document.getElementById('c-origemRendaComprador'+mRC[1]);
-      var oC=(selOC&&selOC.value)||((PD.origensComp||[])[Number(mRC[1])-1])||'';
+      var oC=(selOC&&selOC.value)||'';   // 31/10: origem vem do card do comprador
       var basesC=Object.keys(REGRA_DOC).filter(function(b){ return oC && regraTem(REGRA_DOC[b], oC); });
       if(basesC.length){
         basesC.forEach(function(b){
@@ -1048,7 +1301,8 @@ function montarDocs(){
       }
     }
     var le=LEITURA[d.coluna];
-    var gPessoa = /^fiador/.test(dono) ? dono.replace(/^./,function(x){return x.toUpperCase();}).replace(/ ·.*/,'')
+    if(d.coluna==='DOC. DEPENDENTE') dono='dependentes';
+    var gPessoa = dono==='dependentes' ? 'Dependentes' : /^fiador/.test(dono) ? dono.replace(/^./,function(x){return x.toUpperCase();}).replace(/ ·.*/,'')
                 : (/^cônjuge/.test(dono) ? 'Cônjuge' : (/^comprador/.test(dono) ? dono.replace('comprador','Comprador') : 'Proponente'));
     linhas.push('<!--G:'+gPessoa+'--><div class="doc'+(d.temArquivo||fiaN?'':' pedido')+'" data-exigido="'+(fiaN?0:1)+'" data-enviado="'+(d.temArquivo?1:0)+'"'+(ehPrint?' data-print="1"':'')+
       (fiaN?' data-fia="'+fiaN+'"':'')+' data-nome="'+esc(nome)+'">'+
@@ -1059,7 +1313,7 @@ function montarDocs(){
       '<input type="file" accept="image/*,application/pdf" id="'+id+'" data-rotulo="'+esc(d.rotulo)+'" data-col="'+esc(d.coluna)+'" multiple onchange="aoArquivo(this)"></div>');
   });
   /* 06/10 (item 3) — um quadro por pessoa, como na proposta */
-  var gr={}, ord=['Proponente','Cônjuge','Comprador 1','Comprador 2','Fiador 1','Fiador 2'];
+  var gr={}, ord=['Proponente','Cônjuge','Comprador 1','Comprador 2','Dependentes','Fiador 1','Fiador 2'];
   linhas.forEach(function(h){ var m=/^<!--G:(.*?)-->/.exec(h); var g=m?m[1]:'Proponente'; (gr[g]=gr[g]||[]).push(h.replace(/^<!--G:.*?-->/,'')); });
   linhas = Object.keys(gr).sort(function(a,b){ return (ord.indexOf(a)+99)%99-(ord.indexOf(b)+99)%99; }).map(function(g){
     return '<div style="border:1.5px solid #E7DCC7;border-radius:10px;padding:8px 12px;margin:0 0 12px;background:#FFFDF8">'+
@@ -1194,8 +1448,12 @@ function enviar(){
     av.innerHTML='Os arquivos somam mais de 20 MB. Envie em duas vezes — o link continua valendo.';
     return;
   }
+  var erroLk=lkErro();   // 31/10 — compradores e dependentes (mesmas regras da proposta)
+  if(erroLk){ mostrarAba('pessoal'); av.style.display='block'; av.className='aviso erro'; av.innerHTML=erroLk;
+    var cxL=document.getElementById('cardPessoasLink'); if(cxL) cxL.scrollIntoView({behavior:'smooth', block:'start'}); return; }
   var campos={};
   DADOS.campos.forEach(function(c){
+    if(/^comprador[12]$/.test(c.grupo||'')) return;   // 31/10: vão em "pessoas"
     var el=document.getElementById('c-'+c.id); if(!el) return;
     if(String(el.value||'').trim()) campos[c.id]=el.value;
   });
@@ -1242,6 +1500,7 @@ function enviar(){
     return fetch(APPS_SCRIPT_URL, {
       method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
       body:JSON.stringify({acao:'completarProposta', pageId:ID, token:TOKEN, campos:campos, anexos:anexos, venda:venda,
+                           pessoas:(lkMais() ? lkColetar() : []), maisDeUmComprador:lkMais(),   // 31/10 — compradores e dependentes
                            unidadeNova: UN_NOVA ? UN_NOVA.unidade : ''})   // 27/10 — troca de unidade
     }).then(function(r){ return r.json(); });
   }).then(function(j){

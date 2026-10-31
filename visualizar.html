@@ -48,6 +48,8 @@
 <main>
   <div id="conteudo"><div class="card load">Carregando a proposta…</div></div>
 </main>
+<!-- 31/10/2026 — "Baixar todos (ZIP)": junta os documentos num arquivo só -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 var APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbzwUIApU5nKXi1vG3cEs_V2DWCdkLDwY_vo0zBxO59ZBLbEihIxuOqbHdNLm-8pVVwVJQ/exec';
 var q=new URLSearchParams(location.search), ID=q.get('p')||'', TOKEN=q.get('t')||'';
@@ -74,6 +76,57 @@ function valorTxt(c){
   if(c.tipo==='date') return dataBr(c.valor);
   return String(c.valor);
 }
+/* 31/10/2026 — BAIXAR TODOS (ZIP). Cada documento vai numa pasta com o nome do grupo (DOC. PROP., CONTRACHEQUES…).
+   Tenta baixar direto do Notion; se o navegador não deixar, pede o arquivo ao servidor (mesmo link/token). */
+var DOCS=[], NUMERO='', CLIENTE='';
+function nomeSeguro(s){ return String(s||'arquivo').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\\/:*?"<>|]+/g,'-').replace(/\s+/g,' ').trim().slice(0,90) || 'arquivo'; }
+function b64Blob(b64, tipo){ var bin=atob(b64), n=bin.length, u=new Uint8Array(n); for(var i=0;i<n;i++) u[i]=bin.charCodeAt(i); return new Blob([u], {type:tipo||'application/octet-stream'}); }
+function pegarArquivo(i){
+  var d=DOCS[i];
+  return fetch(d.url, {mode:'cors'}).then(function(r){ if(!r.ok) throw new Error('http'); return r.blob(); })
+    .catch(function(){
+      return fetch(APPS_SCRIPT_URL+'?acao=propostaArquivo&p='+encodeURIComponent(ID)+'&t='+encodeURIComponent(TOKEN)+'&i='+i)
+        .then(function(r){ return r.json(); })
+        .then(function(j){ if(!j || !j.ok) throw new Error((j && j.erro) || 'falhou'); return b64Blob(j.base64, j.tipo); });
+    });
+}
+function baixarTodos(){
+  if(!DOCS.length) return;
+  if(typeof JSZip==='undefined'){ alert('Não consegui carregar o compactador. Recarregue a página e tente de novo.'); return; }
+  var bt=document.getElementById('btZip'), st=document.getElementById('zipStatus');
+  bt.disabled=true; st.style.display='block'; st.style.color='var(--texto-suave)';
+  var zip=new JSZip(), usados={}, feitos=0, falhas=[], prox=0;
+  function status(){ st.innerHTML='Preparando o ZIP… <b>'+feitos+' de '+DOCS.length+'</b> documento(s).'; }
+  function caminho(d){
+    var pasta=nomeSeguro(rotulo(d.grupo)), nome=nomeSeguro(d.nome), c=pasta+'/'+nome, k=1;
+    while(usados[c.toLowerCase()]){ k++; var p=nome.lastIndexOf('.'); c=pasta+'/'+(p>0 ? nome.slice(0,p)+' ('+k+')'+nome.slice(p) : nome+' ('+k+')'); }
+    usados[c.toLowerCase()]=1; return c;
+  }
+  function trabalhador(){
+    if(prox>=DOCS.length) return Promise.resolve();
+    var i=prox++, d=DOCS[i];
+    return pegarArquivo(i).then(function(b){ zip.file(caminho(d), b); })
+      .catch(function(e){ falhas.push(d.nome+' ('+(e && e.message || 'erro')+')'); })
+      .then(function(){ feitos++; status(); return trabalhador(); });
+  }
+  status();
+  Promise.all([trabalhador(), trabalhador(), trabalhador()]).then(function(){
+    if(feitos-falhas.length<=0) throw new Error('nenhum documento baixado');
+    st.innerHTML='Compactando…';
+    return zip.generateAsync({type:'blob'});
+  }).then(function(blob){
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download=nomeSeguro('Proposta '+NUMERO+(CLIENTE?' - '+CLIENTE:''))+'.zip';
+    document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+    st.style.color = falhas.length ? 'var(--vermelho)' : 'var(--verde)';
+    st.innerHTML = falhas.length
+      ? '<b>ZIP baixado, mas '+falhas.length+' documento(s) não entraram:</b> '+falhas.map(esc).join(' · ')+'. Baixe esses pelo botão de cada um.'
+      : '<b>✓ ZIP baixado</b> com os '+DOCS.length+' documentos.';
+  }).catch(function(e){
+    st.style.color='var(--vermelho)';
+    st.innerHTML='<b>Não consegui montar o ZIP.</b> '+esc(e && e.message || '')+' — recarregue a página ou baixe um a um.';
+  }).then(function(){ bt.disabled=false; });
+}
 function pintar(r){
   var el=document.getElementById('conteudo');
   if(!r || !r.ok){
@@ -91,7 +144,7 @@ function pintar(r){
         '<div style="font-size:13px;color:var(--texto-suave)">'+esc(r.cliente||'')+(r.unidade?' · Unidade '+esc(r.unidade):'')+'</div></div>'+
         '<button class="bt" onclick="window.print()">Imprimir / salvar em PDF</button></div></div>'+
         '<div class="aviso info">Consulta <b>somente leitura</b>. Os dados abaixo são os que constam na proposta neste momento; '+
-        'os documentos podem ser baixados um a um.'+(r.validade?' Link válido até <b>'+esc(r.validade)+'</b>.':'')+
+        'os documentos podem ser baixados um a um ou todos de uma vez (ZIP).'+(r.validade?' Link válido até <b>'+esc(r.validade)+'</b>.':'')+
         (r.atualizadoEm?'<br><b>Atualizado em '+esc(r.atualizadoEm)+'</b>.':'')+
         (r.enviadoEm?' Itens marcados <span class="tag-novo">NOVO</span> ou <span class="tag-alt">ALTERADO</span> mudaram depois do envio ('+esc(r.enviadoEm)+').':'')+'</div>';
   /* 05/10 (item 6) — renda de cada pessoa e a renda total */
@@ -104,8 +157,10 @@ function pintar(r){
        '<div class="item" style="background:#F6F1E6"><small>Renda total</small><b style="font-size:17px">'+brl(R.total)+'</b></div>'+
        '</div></div>';
   }
-  var docs=r.documentos||[];
-  h+='<div class="card"><h2>Documentos anexados ('+docs.length+')</h2>'+
+  var docs=r.documentos||[]; DOCS=docs; NUMERO=r.numero||''; CLIENTE=r.cliente||'';
+  h+='<div class="card"><div class="topo" style="margin-bottom:6px"><h2 style="margin:0">Documentos anexados ('+docs.length+')</h2>'+
+     (docs.length ? '<button class="bt" id="btZip" onclick="baixarTodos()" style="background:var(--verde)">⬇ Baixar todos (ZIP)</button>' : '')+'</div>'+
+     '<div id="zipStatus" style="display:none;font-size:13px;margin:4px 0 8px"></div>'+
      (docs.length ? docs.map(function(d){
         return '<div class="doc"><div><div class="g">'+esc(rotulo(d.grupo))+'</div>'+esc(d.nome)+(d.novo?'<span class="tag-novo">NOVO</span>':'')+'</div>'+
                '<a href="'+esc(d.url)+'" target="_blank" rel="noopener" download>Baixar</a></div>';

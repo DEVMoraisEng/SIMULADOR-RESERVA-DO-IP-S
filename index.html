@@ -374,8 +374,9 @@
     var leg=tiposOrdenados.map(function(t){return '<span><i style="background:'+corDoTipo(t,false)+'"></i>Tipo '+t+'</span>';}).join('');
     if(dec) leg+='<span><i style="background:'+DEC_COR+'"></i>Decorado</span>';
     if(UNIDADES.some(indisponivel)) leg+='<span><i style="background:'+COR_INDISP+'"></i>Em breve</span>';
-    if(UNIDADES.some(reservado)) leg+='<span><i style="background:'+COR_RESERVADA+'"></i>Reservada</span>';
-    if(UNIDADES.some(vendido)) leg+='<span><i style="background:'+COR_VENDIDO+'"></i>Vendida</span>';
+    /* 31/10 — reservada e vendida são bolinhas sobre a unidade */
+    if(UNIDADES.some(reservado)) leg+='<span><i style="background:'+COR_RESERVADA+';border-radius:50%;box-shadow:0 0 0 2px #fff,0 0 0 3px #ccc"></i>Reservada</span>';
+    if(UNIDADES.some(vendido)) leg+='<span><i style="background:'+COR_VENDIDO+';border-radius:50%;box-shadow:0 0 0 2px #fff,0 0 0 3px #ccc"></i>Vendida</span>';
     var elLeg=document.getElementById('legenda'); if(elLeg) elLeg.innerHTML=leg;
   }
   function abrirTipo(t,decorado){
@@ -439,12 +440,28 @@
   }
 
   // ---- cor das unidades por tipo (só cores; listeners ficam no ligarMapa) ----
-  var COR_INDISP='#9AA0A6', COR_VENDIDO='#C1121F', COR_RESERVADA='#1F6FB2';
+  /* 31/10/2026 — a unidade fica SEMPRE na cor do tipo; vendida e reservada viram uma BOLINHA sólida
+     dentro do contorno (vermelha = vendida, azul-escura = reservada). */
+  var COR_INDISP='#9AA0A6', COR_VENDIDO='#C1121F', COR_RESERVADA='#0B2E6B';
   function corUnidade(u){
-    if(vendido(u)) return COR_VENDIDO;
-    if(reservado(u)) return COR_RESERVADA;
-    if(indisponivel(u)) return COR_INDISP;
+    if(indisponivel(u) && !vendido(u) && !reservado(u)) return COR_INDISP;
     return corDoTipo(u.tipo,u.decorado);
+  }
+  var SVGNS='http://www.w3.org/2000/svg';
+  function marcarUnidade(pol, u){
+    var id='mk-'+pol.id, velho=document.getElementById(id); if(velho) velho.remove();
+    var cor = vendido(u) ? COR_VENDIDO : (reservado(u) ? COR_RESERVADA : '');
+    if(!cor) return;
+    var bb; try{ bb=pol.getBBox(); }catch(e){ return; }
+    if(!bb || !bb.width) return;
+    var r=Math.max(8, Math.min(bb.width, bb.height)*0.24);
+    var c=document.createElementNS(SVGNS,'circle');
+    c.setAttribute('id', id); c.setAttribute('class','marca-un');
+    c.setAttribute('cx', bb.x+bb.width-r*1.35); c.setAttribute('cy', bb.y+r*1.35); c.setAttribute('r', r);
+    c.setAttribute('fill', cor); c.setAttribute('stroke', '#fff'); c.setAttribute('stroke-width', Math.max(2, r*0.22));
+    c.style.pointerEvents='none';
+    var t=document.createElementNS(SVGNS,'title'); t.textContent = vendido(u) ? 'Vendida' : 'Reservada'; c.appendChild(t);
+    pol.parentNode.insertBefore(c, pol.nextSibling);
   }
   function pintarMapa(){
     for(var n=1;n<=62;n++){
@@ -453,6 +470,7 @@
       var cor=corUnidade(u);
       pol.dataset.base=rgba(cor,0.35); pol.dataset.hover=rgba(cor,0.7);
       if(pol!==selPoly) pol.style.fill=pol.dataset.base;
+      marcarUnidade(pol, u);   // 31/10 — bolinha de vendida / reservada
     }
   }
 

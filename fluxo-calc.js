@@ -15,10 +15,31 @@ var FPC_BASE_MEIO = FPC_BALOES_BASE + FPC_M1A12 + FPC_M13A24;
 var FPC_BASE_CHEIA = FPC_SINAIS_BASE + FPC_BASE_MEIO + 24 * FPC_POS_UNIT;   // 60.200
 var FPC_POS_PARCELAS = {24: 0, 36: 12, 48: 24};
 
+/* r97f (31/10/26, dono): 1ª parcela pré-chaves em novembro ou dezembro. Quem fecha até novembro/2026 escolhe
+   nov ou dez/2026; depois disso, o mês da proposta ou o seguinte. As pré-chaves e os balões terminam SEMPRE até
+   30/11/2028 (última parcela em out/2028, balão da entrega em nov/2028). */
+var FPC_FIM_PRE = {ano: 2028, mes: 10}, FPC_LIMITE = '2028-11-30';
+function fpcMesSeguinte(a, m){ return m === 12 ? {ano: a + 1, mes: 1} : {ano: a, mes: m + 1}; }
+function fpcOpcoesPrimeira(ano, mes){
+  var a = Number(ano) || 2026, m = Number(mes) || 11;
+  if(a * 12 + m < 2026 * 12 + 11){ a = 2026; m = 11; }
+  return [{ano: a, mes: m}, fpcMesSeguinte(a, m)];
+}
+/* o.primeira = {ano, mes} (uma das opções) ou "AAAA-MM"; inválida ou fora das opções -> 1ª opção */
+function fpcPrimeira(o){
+  var ops = fpcOpcoesPrimeira(o.ano, o.mes), p = o.primeira, mm;
+  if(typeof p === 'string' && (mm = p.match(/^(\d{4})-(\d{2})/))) p = {ano: Number(mm[1]), mes: Number(mm[2])};
+  for(var i = 0; p && i < ops.length; i++) if(ops[i].ano === Number(p.ano) && ops[i].mes === Number(p.mes)) return ops[i];
+  return ops[0];
+}
+/* quantas pré-chaves cabem de {ano, mes} até out/2028 (24 em nov/2026, 23 em dez/2026...) */
+function fpcQtdPre(p){ return Math.max(0, (FPC_FIM_PRE.ano * 12 + FPC_FIM_PRE.mes) - (p.ano * 12 + p.mes) + 1); }
+
+
 function fpcR2(v){ return Math.round((Number(v) || 0) * 100) / 100; }
 function fpcQtd(q){ var m = String(q || '').match(/^(\d+)\s*X$/i); return m ? Number(m[1]) : 1; }
 
-/* o = {preco, financiado, fgts, subsidio, informado, nSinal (1..4), prazoEntrada, ano, mes (data de referência),
+/* o = {preco, financiado, fgts, subsidio, informado, nSinal (1..4), prazoEntrada, ano, mes (data de referência), primeira,
         diluir: [% 1º balão, % 2º balão] (0/25/50/75/100)}
    r96i (21/10/26) — TODO O VALOR DO CLIENTE VAI PARA O SINAL ("Valor para o sinal").
    O sinal mínimo é o do fluxo padrão da unidade; o cliente pode dar mais. O ato é
@@ -54,8 +75,13 @@ function fpcGerar(o){
   else { g = baseMeio ? (R - basePos) / baseMeio : 0; tpos = basePos; }
   var t12 = bM1 * g, t1324 = bM13 * g;
   var fatorBaloes = R > 0.005 ? g : 0;
-  var meses = ((Number(o.ano) || 2026) - 2026) * 12 + ((Number(o.mes) || 11) - 11);
+  /* r97f (31/10/26, dono): o mês da 1ª parcela pré-chaves é escolhido (o.primeira = {ano, mes}: nov ou dez/2026);
+     sem escolha, vale o mês da proposta, como antes. A última pré-chaves é SEMPRE out/2028 e o balão da entrega
+     nov/2028: começar um mês depois tira uma parcela da 1ª parte (dez/2026 = 23/35/47) e o valor de cada sobe. */
+  var ini = fpcPrimeira(o);
+  var meses = (ini.ano - 2026) * 12 + (ini.mes - 11);
   var n1 = Math.max(1, Math.min(12, 12 - Math.max(0, meses)));
+  var erroPrazo = meses > 11 ? 'A 1ª parcela não pode passar de outubro/2027: as pré-chaves e os balões terminam até 30/11/2028' : '';
 
   var fl = [];
   if(nS === 1){
@@ -89,6 +115,7 @@ function fpcGerar(o){
   var dil = fpcDiluir(fl, o.diluir);
   var cobertos = fpcR2(Math.min(inf, S));
   return {total: T, entradaCliente: fpcR2(B0), fluxo: fl, n1: n1, nPos: nPos, nSinal: nS,
+          primeira: ini, nPre: n1 + 12, erroPrazo: erroPrazo,
           devolucao: fpcR2(devolucao), totalCalculado: B0 - Math.max(0, inf - S), excedente: fpcR2(Math.max(0, inf - S)),
           sinaisTotal: S, sinalMinimo: Smin, sinaisCobertos: cobertos, faltaSinais: fpcR2(Math.max(0, S - cobertos)),
           fluxoOriginal: fluxoOriginal, diluicao: dil};

@@ -1091,7 +1091,8 @@ function vendaCalc(){
   var v=vendaDados(), F=vendaFin(), hoje=new Date();
   var preco=(UN_NOVA && UN_NOVA.valorVenda) || Number(v.preco)||Number(DADOS.preco)||0;   // 27/10 — unidade trocada
   var fgts=simLinkNum('sl-saldoFgts')+simLinkNum('sl-saldoFgtsConjuge'), sub=simLinkNum('sl-subsidio'), inf=simLinkNum('sl-valorEntrada');
-  var o={preco:preco, financiado:F.fin, fgts:fgts, subsidio:sub, nSinal:vSinal(), prazoEntrada:vPrazo(), ano:hoje.getFullYear(), mes:hoje.getMonth()+1};
+  var o={preco:preco, financiado:F.fin, fgts:fgts, subsidio:sub, nSinal:vSinal(), prazoEntrada:vPrazo(), ano:hoje.getFullYear(), mes:hoje.getMonth()+1,
+         primeira:DADOS.primeiraParcela || ''};   // r97f — mês da 1ª parcela escolhido na proposta (se ainda couber)
   var g0=fpcGerar(Object.assign({}, o, {informado:0}));
   var g=fpcGerar(Object.assign({}, o, {informado:inf, diluir:VDIL}));
   return {preco:preco, F:F, fgts:fgts, sub:sub, inf:inf, g0:g0, g:g, min:g0.sinalMinimo,

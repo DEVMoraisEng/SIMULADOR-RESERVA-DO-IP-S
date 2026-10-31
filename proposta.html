@@ -3141,7 +3141,7 @@
       /* proponente, corretor */
       val('cliente', d.nomeCliente); val('cpf', d.cpfCliente); val('dataNascimento', d.dataNascimento);
       val('vendedor', d.corretor); val('imobiliaria', d.imobiliaria);
-      val('celularCorretor', d.celularCorretor); val('email', d.emailCorretor);
+      val('celularCorretor', d.celularCorretor); val('email', d.emailCorretor); val('cpfCorretor', d.cpfCorretor);
       /* condições do financiamento */
       val('prazoMeses', d.prazoMeses); val('sistemaAmortizacao', d.sistemaAmortizacao);
       if(d.seguradora && f.seguradora){
@@ -3171,6 +3171,7 @@
 
     var msgs=['<b>📋 Proposta montada a partir da simulação.</b> Os dados da simulação já estão preenchidos — confira e complete o que falta (documentos, endereço, estado civil, fiadores…).'];
     if(d.renda) msgs.push('A renda total da simulação (<b>R$ '+d.renda+'</b>) entrou como renda do <b>proponente</b>. Se houver cônjuge ou outros compradores, divida a renda entre eles no passo 2.');
+    if(d.origem==='portal') msgs.push('Veio do portal: o crédito ficou como <b>NÃO aprovado</b>. Se o cliente já tem crédito aprovado, troque para <b>SIM</b> acima e anexe o print da aprovação da CAIXA no passo 2.');
     if(d.unidade && String(f.unidade.value)!==String(d.unidade)) msgs.push('<b style="color:#B0431F">A unidade '+d.unidade+' da simulação não está disponível para proposta — escolha outra unidade acima.</b>');
     var av=document.getElementById('avisoDaSim');
     function pintar(){ if(av){ av.innerHTML=msgs.join('<br>'); av.style.display='block'; } }

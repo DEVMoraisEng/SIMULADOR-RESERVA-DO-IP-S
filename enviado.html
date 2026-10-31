@@ -62,6 +62,8 @@
   .btn-primario:hover{background:var(--amarelo2);}
   .btn-secundario{background:var(--branco);color:var(--marrom);border:1px solid var(--borda);}
   .btn-secundario:hover{border-color:var(--marrom2);}
+  .btn-proposta{background:#2a9d5c;color:#fff;border:0;}
+  .btn-proposta:hover{background:#1a6b40;}
   .rodape{text-align:center;font-size:12px;color:var(--texto-suave);margin-top:18px;}
   @media(max-width:640px){
     header{padding:14px 16px;} header h1{font-size:15px;}
@@ -99,6 +101,8 @@
     <div class="acoes">
       <a class="btn btn-primario" href="index.html">← Voltar ao mapa de vendas</a>
       <a class="btn btn-secundario" id="btNovo" href="simulador.html">Fazer outra simulação</a>
+      <!-- 31/10 — leva os dados desta simulação para a proposta -->
+      <a class="btn btn-proposta" id="btProposta" href="#" style="display:none">📄 Transformar em proposta</a>
     </div>
   </div>
   <p class="rodape">Morais Engenharia e Construção · Condomínio Reserva dos Ipês</p>
@@ -144,6 +148,15 @@
     $('corpo').innerHTML = '<div class="bloco info">Pode fechar esta página ou voltar ao mapa — a simulação ' +
       'continua rodando e o e-mail sai mesmo assim. Deixando aberta, o resultado aparece aqui.</div>';
     if(ID) acompanhar(ID);
+    /* 31/10 — o simulador guardou os dados deste envio: o botão abre a proposta já preenchida */
+    try{
+      var SP=JSON.parse(localStorage.getItem('simParaProposta')||'null');
+      if(SP && SP.unidade && (!ID || !SP.simId || SP.simId===ID)){
+        var bp=$('btProposta');
+        bp.href='proposta.html?tipo='+encodeURIComponent(SP.tipo||'')+'&unidade='+encodeURIComponent(SP.unidade)+'&daSimulacao=1';
+        bp.style.display='';
+      }
+    }catch(e){}
   }
   /* uma leitura só: um F5 depois não reaproveita texto velho de outro envio */
   try{ sessionStorage.removeItem('envioConcluido'); }catch(e){}

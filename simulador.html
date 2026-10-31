@@ -131,6 +131,10 @@
     opacity:0;pointer-events:none;padding:0;border:0;}
   .bt-cal{flex:0 0 46px;padding:0;background:#fff;border:1px solid var(--borda);border-radius:6px;font-size:18px;line-height:1;cursor:pointer;}
   input.data-invalida{border-color:#B0431F !important;box-shadow:0 0 0 3px rgba(176,67,31,.18) !important;}
+  /* 31/10 — botão "Transformar em proposta" (verde, igual ao SUBIR PASTA do mapa) */
+  .btn-proposta{background:#2a9d5c;color:#fff;border:0;border-radius:8px;padding:12px 18px;font-weight:700;font-size:14px;cursor:pointer}
+  .btn-proposta:hover{background:#1a6b40}
+  .btn-proposta:disabled{opacity:.6;cursor:wait}
 </style>
 </head>
 <body>
@@ -395,6 +399,8 @@
       </div>
       <div class="rodape">
         <button type="button" class="btn-secundario" onclick="irPara(2)">Voltar</button>
+        <!-- 31/10 — leva tudo o que foi preenchido aqui para a proposta; lá só se completa o resto -->
+        <button type="button" class="btn-proposta" id="btTransformar" onclick="transformarEmProposta()">📄 Transformar em proposta</button>
         <button type="submit" class="btn-primario">Enviar solicitação</button>
       </div>
       <div id="statusEnvio" class="status" style="display:none;"></div>
@@ -1105,6 +1111,7 @@
       var r=await enviarComRetentativas(dados,3);
       if(!r.ok){mostrarStatus('erro',r.mensagem||'Não foi possível enviar.');botao.disabled=false;botao.textContent=textoBotao;return;}
       localStorage.setItem('ultimaSimulacao',r.id);
+      try{ await guardarParaProposta(r.id); }catch(x){}   // 31/10 — para o botão "Transformar em proposta" do enviado.html
       /* r62 — a confirmação abre na página própria (enviado.html), que
          acompanha a simulação e tem o botão de voltar ao mapa. */
       try{ sessionStorage.setItem('envioConcluido', JSON.stringify({tipo:'simulacao', id:r.id})); }catch(x){}
@@ -1144,6 +1151,71 @@
       }catch(err){}
     },5000);
   }
+  /* ===== 31/10/2026 — TRANSFORMAR A SIMULAÇÃO EM PROPOSTA ==================
+     Guarda tudo o que foi preenchido aqui (localStorage) e o print da aprovação da
+     CAIXA (IndexedDB, que aguenta arquivo grande) e abre a proposta.html com
+     ?daSimulacao=1 — lá os campos já entram preenchidos e só se completa o resto. */
+  var SIM_PROP_KEY='simParaProposta';
+  function idbPrint(op, blob){
+    return new Promise(function(ok){
+      try{
+        var rq=indexedDB.open('reservaIpes',1);
+        rq.onupgradeneeded=function(){ rq.result.createObjectStore('arq'); };
+        rq.onerror=function(){ ok(null); };
+        rq.onsuccess=function(){
+          try{
+            var tx=rq.result.transaction('arq', op==='get'?'readonly':'readwrite'), st=tx.objectStore('arq');
+            var r= op==='get' ? st.get('printCred') : (op==='del' ? st.delete('printCred') : st.put(blob,'printCred'));
+            r.onsuccess=function(){ ok(op==='get' ? r.result : true); };
+            r.onerror=function(){ ok(null); };
+          }catch(e){ ok(null); }
+        };
+      }catch(e){ ok(null); }
+    });
+  }
+  function dadosParaProposta(simId){
+    var f=document.getElementById('formSimulacao'), u=unidadeAtual()||{};
+    function rd(n){ return (f.querySelector('[name="'+n+'"]:checked')||{}).value||''; }
+    function v(n){ return f[n] ? String(f[n].value||'') : ''; }
+    function c(n){ return !!(f[n] && f[n].checked); }
+    return { v:1, ts:Date.now(), simId:simId||'',
+      tipo:document.getElementById('tipo').value, unidade:String(u.unidade||document.getElementById('unidade').value||''),
+      possuiImovelCidade:c('possuiImovelCidade'), fgts3anos:c('fgts3anos'), maisDeUmComprador:c('maisDeUmComprador'),
+      jaBeneficiado:c('jaBeneficiado'), dataConcessaoBeneficio:v('dataConcessaoBeneficio'),
+      relacionamentoCaixa:c('relacionamentoCaixa'), servidorPublico:c('servidorPublico'), creditoSalarioCaixa:c('creditoSalarioCaixa'),
+      dataNascimento:v('dataNascimento'), renda:v('rendaIndividual'),
+      prazoMeses:v('prazoMeses'), sistemaAmortizacao:v('sistemaAmortizacao'), seguradora:v('seguradora'),
+      fgts:v('fgtsDisponivel'), subsidio:v('subsidio'),
+      credito:c('creditoAprovadoSim'), creditoValor:v('creditoAprovadoValor'), creditoParcela:v('creditoAprovadoParcela'),
+      desejado:c('desejadoSim'), valorDesejado:v('valorDesejado'),
+      valorEntrada:v('valorEntrada'), prazoEntrada:rd('prazoEntrada'), sinalParcelas:rd('sinalParcelas'),
+      diluicao:DIL_SIM.slice(),
+      corretor:v('corretor'), imobiliaria:v('imobiliaria'), celularCorretor:v('celularCorretor'),
+      nomeCliente:v('nomeCliente'), cpfCliente:v('cpfCliente'), emailCorretor:v('emailDestino') };
+  }
+  async function guardarParaProposta(simId){
+    var d=dadosParaProposta(simId), f=document.getElementById('formSimulacao');
+    d.temPrint=false;
+    if(d.credito && PRINT_SIM){
+      d.temPrint=!!(await idbPrint('put', PRINT_SIM));
+      d.printNome=PRINT_SIM.name||'print-aprovacao'; d.printTipo=PRINT_SIM.type||'';
+    } else { await idbPrint('del'); }
+    localStorage.setItem(SIM_PROP_KEY, JSON.stringify(d));
+    return d;
+  }
+  async function transformarEmProposta(){
+    var u=unidadeAtual(), bt=document.getElementById('btTransformar');
+    if(!u){ mostrarStatus('erro','Escolha a <b>unidade</b> antes de transformar a simulação em proposta.'); irPara(1); return; }
+    bt.disabled=true; bt.textContent='Abrindo a proposta…';
+    try{ await guardarParaProposta(''); }
+    catch(e){
+      bt.disabled=false; bt.textContent='📄 Transformar em proposta';
+      mostrarStatus('erro','Não consegui guardar os dados da simulação neste navegador. Tente de novo.'); return;
+    }
+    location.href='proposta.html?tipo='+encodeURIComponent(u.tipo||document.getElementById('tipo').value||'')+
+      '&unidade='+encodeURIComponent(u.unidade)+'&daSimulacao=1';
+  }
+
   function mostrarStatus(t,h){var c=document.getElementById('statusEnvio');c.style.display='block';c.className='status '+t;c.innerHTML=h;}
   async function verificarServico(){var a=document.getElementById('avisoOffline');try{var s=await apiGet({acao:'servico'});a.classList.toggle('visivel',!s.online);}catch(e){a.classList.add('visivel');}}
 

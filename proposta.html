@@ -263,6 +263,8 @@
   <!-- ============================ PASSO 1 ============================ -->
   <section class="card" data-etapa="1">
     <h2>Unidade e proponente</h2>
+    <!-- 31/10 — proposta aberta pelo botão "Transformar em proposta" da simulação -->
+    <div id="avisoDaSim" style="display:none;margin:0 0 14px;padding:12px 14px;border:2px solid #2a9d5c;border-radius:10px;background:#EEF8F1;color:#1a4d31;font-size:13px;line-height:1.5"></div>
 
     <div class="linha">
       <div class="campo">
@@ -3082,6 +3084,112 @@
           escolhida. É ele que vale para o estado (reservada/vendida).
      Enquanto nada chegou, o campo diz "Carregando unidades…". */
   var unidadesAoVivo=false;
+  /* ===== 31/10/2026 — PROPOSTA A PARTIR DA SIMULAÇÃO ======================
+     O simulador grava o que foi preenchido (localStorage 'simParaProposta') e o print
+     da aprovação da CAIXA (IndexedDB) e abre esta página com ?daSimulacao=1. Aqui os
+     campos entram preenchidos (disparando os mesmos eventos de quem digita) e o
+     corretor só completa o resto: documentos, endereço, estado civil, fiadores… */
+  function idbPrintP(op){
+    return new Promise(function(ok){
+      try{
+        var rq=indexedDB.open('reservaIpes',1);
+        rq.onupgradeneeded=function(){ rq.result.createObjectStore('arq'); };
+        rq.onerror=function(){ ok(null); };
+        rq.onsuccess=function(){
+          try{
+            var tx=rq.result.transaction('arq', op==='get'?'readonly':'readwrite'), st=tx.objectStore('arq');
+            var r= op==='get' ? st.get('printCred') : st.delete('printCred');
+            r.onsuccess=function(){ ok(op==='get' ? r.result : true); };
+            r.onerror=function(){ ok(null); };
+          }catch(e){ ok(null); }
+        };
+      }catch(e){ ok(null); }
+    });
+  }
+  (function(){
+    if(param('daSimulacao')!=='1') return;
+    var d=null;
+    try{ d=JSON.parse(localStorage.getItem('simParaProposta')||'null'); }catch(e){}
+    if(!d || !d.ts || Date.now()-d.ts > 30*864e5) return;
+    var t0=Date.now();
+    (function esperar(){
+      var f=F();
+      if(f && UNIDADES.length && f.unidade && f.unidade.value) return setTimeout(function(){ aplicarSimulacao(d); }, 50);
+      if(Date.now()-t0 < 45000) setTimeout(esperar, 300);
+    })();
+  })();
+  function aplicarSimulacao(d){
+    var f=F();
+    function disp(el,ev){ try{ el.dispatchEvent(new Event(ev,{bubbles:true})); }catch(e){} }
+    function val(n,v){
+      var el=f.elements[n]; if(v==null || v==='' || !el || !el.tagName) return;
+      el.value=v; disp(el,'input'); disp(el,'change');
+    }
+    function chk(n,v){ var el=f.elements[n]; if(!el || !el.tagName) return; el.checked=!!v; disp(el,'change'); }
+    function radio(n,v){
+      if(!v) return;
+      var el=f.querySelector('input[name="'+n+'"][value="'+v+'"]');
+      if(el){ el.checked=true; disp(el,'change'); }
+    }
+    try{
+      /* perfil da CAIXA (o "relacionamento" antes dos dois que dependem dele) */
+      chk('possuiImovelCidade', d.possuiImovelCidade); chk('fgts3anos', d.fgts3anos);
+      chk('jaBeneficiado', d.jaBeneficiado); val('dataConcessaoBeneficio', d.dataConcessaoBeneficio);
+      chk('relacionamentoCaixa', d.relacionamentoCaixa);
+      chk('servidorPublico', d.servidorPublico); chk('creditoSalarioCaixa', d.creditoSalarioCaixa);
+      chk('maisDeUmComprador', d.maisDeUmComprador);
+      /* proponente, corretor */
+      val('cliente', d.nomeCliente); val('cpf', d.cpfCliente); val('dataNascimento', d.dataNascimento);
+      val('vendedor', d.corretor); val('imobiliaria', d.imobiliaria);
+      val('celularCorretor', d.celularCorretor); val('email', d.emailCorretor);
+      /* condições do financiamento */
+      val('prazoMeses', d.prazoMeses); val('sistemaAmortizacao', d.sistemaAmortizacao);
+      if(d.seguradora && f.seguradora){
+        var alvo=String(d.seguradora).toUpperCase(), op=[].slice.call(f.seguradora.options).filter(function(o){
+          var t=String(o.value||o.text).toUpperCase(); return t===alvo || t.indexOf(alvo)===0 || alvo.indexOf(t)===0; })[0];
+        if(op){ f.seguradora.value=op.value||op.text; disp(f.seguradora,'change'); }
+      }
+      /* renda total da simulação → renda do proponente (o corretor divide se houver mais gente) */
+      val('rendaAprovada', d.renda); val('saldoFgts', d.fgts);
+      try{ somarRenda(); }catch(e){}
+      /* crédito aprovado ou não */
+      f.creditoAprovadoCaixa.value = d.credito ? 'SIM' : 'NAO'; disp(f.creditoAprovadoCaixa,'change');
+      if(d.credito){
+        val('subsidio', d.subsidio);
+        val('parcelaFinanciamento', d.creditoParcela);
+      } else if(d.desejado){
+        chk('desejadoProp', true); val('valorDesejado', d.valorDesejado);
+      }
+      radio('prazoEntrada', d.prazoEntrada); radio('sinalParcelas', d.sinalParcelas);
+      if(d.diluicao && d.diluicao.length===2) DIL_PROP=[Number(d.diluicao[0])||0, Number(d.diluicao[1])||0];
+      try{ atualizarComissao(); }catch(e){}
+      try{ atualizarFiadorExigido(); }catch(e){}
+      try{ montarFluxo(); }catch(e){}
+      /* o valor para o sinal por último: o montarFluxo preenche o mínimo e aqui fica o da simulação */
+      if(d.valorEntrada){ ENTRADA_EDITADA_P=true; val('valorEntrada', d.valorEntrada); try{ montarFluxo(); }catch(e){} }
+    }catch(e){ try{ console.log('aplicarSimulacao:', e); }catch(x){} }
+
+    var msgs=['<b>📋 Proposta montada a partir da simulação.</b> Os dados da simulação já estão preenchidos — confira e complete o que falta (documentos, endereço, estado civil, fiadores…).'];
+    if(d.renda) msgs.push('A renda total da simulação (<b>R$ '+d.renda+'</b>) entrou como renda do <b>proponente</b>. Se houver cônjuge ou outros compradores, divida a renda entre eles no passo 2.');
+    if(d.unidade && String(f.unidade.value)!==String(d.unidade)) msgs.push('<b style="color:#B0431F">A unidade '+d.unidade+' da simulação não está disponível para proposta — escolha outra unidade acima.</b>');
+    var av=document.getElementById('avisoDaSim');
+    function pintar(){ if(av){ av.innerHTML=msgs.join('<br>'); av.style.display='block'; } }
+    pintar();
+    /* print da aprovação da CAIXA: vem da simulação e é lido de novo aqui (o servidor exige a leitura) */
+    if(d.credito){
+      var semPrint='No passo 2, anexe o <b>print da aprovação da CAIXA</b> — sem ele o crédito aprovado não é registrado.';
+      if(!d.temPrint){ msgs.push(semPrint); pintar(); return; }
+      idbPrintP('get').then(function(blob){
+        var inp=document.getElementById('printAprovacao');
+        if(!blob || !inp || typeof DataTransfer==='undefined'){ msgs.push(semPrint); pintar(); return; }
+        var arq=(blob instanceof File) ? blob : new File([blob], d.printNome||'print-aprovacao', {type:d.printTipo||blob.type||''});
+        var dt=new DataTransfer(); dt.items.add(arq); inp.files=dt.files;
+        aoAnexarAprovacao(inp);
+        msgs.push('O <b>print da aprovação da CAIXA</b> da simulação já foi anexado e está sendo lido no passo 2.'); pintar();
+      });
+    }
+  }
+
   function carregarUnidades(){
     var sel=F().unidade;
     if(!sel.options.length) sel.innerHTML='<option value="">Carregando unidades…</option>';
@@ -3454,6 +3562,7 @@
       sessionStorage.setItem('envioConcluido', JSON.stringify({tipo:'proposta', id:r.id||'',
         numero:r.proposta||'', html:partes.join(''), alerta:alerta}));
     }catch(x){}
+    if(param('daSimulacao')==='1') try{ localStorage.removeItem('simParaProposta'); idbPrintP('del'); }catch(x){}   // 31/10
     location.replace('enviado.html?tipo=proposta&numero='+encodeURIComponent(r.proposta||''));
   }
 

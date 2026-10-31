@@ -1793,11 +1793,19 @@
      união estável, o regime de bens é obrigatório e o CÔNJUGE entra na lista como mais um
      COMPRADOR (a quantidade sobe sozinha e o card dele vem logo abaixo, com todos os dados
      obrigatórios). O casal fica ligado pelo data-uid/data-par; o cônjuge herda estado civil,
-     regime e endereço. No máximo 2 compradores (o banco de vendas e o contrato têm comprador 1 e 2). */
+     regime e endereço. No máximo 3 compradores além do proponente (31/10): casal + 1 solteiro, ou 3 solteiros;
+     casal + 2 solteiros ou dois casais passam do limite. */
   var DEP_ESTADOS=['SOLTEIRO','CASADO','DIVORCIADO','VIUVO','UNIAO ESTAVEL'];
   var DEP_REGIMES=['COMUNHAO PARCIAL DE BENS','COMUNHAO UNIVERSAL DE BENS','SEPARACAO TOTAL DE BENS',
                    'SEPARACAO OBRIGATORIA DE BENS','PARTICIPACAO FINAL NOS AQUESTOS'];
-  var DEP_MAX_COMP=2;
+  var DEP_MAX_COMP=3;
+  /* posição do card do n-ésimo COMPRADOR (dependente na frente não muda a numeração) */
+  function idxComprador(n){ var k=0, r=-1; document.querySelectorAll('#listaDependentes .dep').forEach(function(d, i){
+    if(r<0 && d.querySelector('.dep-tipo').value==='COMPRADOR' && ++k===n) r=i; }); return r; }
+  function depLimiteMsg(){
+    return '⚠ Limite de <b>'+DEP_MAX_COMP+' compradores</b> além do proponente — o casal conta como 2. Pode: casal + 1 solteiro, ou 3 solteiros. '+
+           'Casal + 2 solteiros ou dois casais passam do limite: mude alguém para DEPENDENTE.';
+  }
   function depCasado(v){ v=String(v||'').toUpperCase(); return v.indexOf('CASAD')>=0 || v.indexOf('UNIAO')>=0; }
   function depUid(){ return 'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
   /* ordem[novo]=antigo (-1 = card novo): os anexos e o "não anexar agora" acompanham o card */
@@ -1836,8 +1844,8 @@
       var nComp=lista.filter(function(x){ return x.tipo==='COMPRADOR'; }).length;
       if(nComp>=DEP_MAX_COMP){
         montarDependentes(lista);
-        depAviso('⚠ O cônjuge de <b>'+esc_(p.nome||'este comprador')+'</b> também precisa entrar como comprador, mas o limite é de <b>'+DEP_MAX_COMP+
-          ' compradores</b> além do proponente. Ajuste a lista (ex.: mude outro card para DEPENDENTE) e escolha o estado civil de novo.');
+        depAviso('⚠ <b>'+esc_(p.nome||'Este comprador')+'</b> é casado(a): o cônjuge também entra como comprador e passaria de '+DEP_MAX_COMP+
+          ' compradores além do proponente (o casal conta como 2). Pode: casal + 1 solteiro, ou 3 solteiros. Mude alguém para DEPENDENTE e escolha o estado civil de novo.');
         return;
       }
       var s={uid:depUid(), par:p.uid, conj:true, tipo:'COMPRADOR', nome:'', cpf:'', rg:'', profissao:'', nacionalidade:'BR',
@@ -1880,6 +1888,8 @@
       return;
     }
     montarDependentes(lista);
+    /* 31/10 — limite de compradores */
+    depAviso(lista.filter(function(x){ return x.tipo==='COMPRADOR'; }).length>DEP_MAX_COMP ? depLimiteMsg() : '');
   }
   function montarDependentes(lista, ordem){
     if(lista){
@@ -2232,14 +2242,14 @@
         var nc=nCD[i]||0;
         var quem=p.nome ? (p.nome) : ((p.tipo==='COMPRADOR'?'2º comprador ':'dependente ')+(i+1));
         /* 06/10 — comprador (1 e 2) tem quadro próprio (documento, endereço e renda): sem o bloco "Documentos de" */
-        if(!(p.tipo==='COMPRADOR' && nc && nc<=2)) lista.push(['dep'+i, 'Documentos de '+quem,
+        if(!(p.tipo==='COMPRADOR' && nc && nc<=DEP_MAX_COMP)) lista.push(['dep'+i, 'Documentos de '+quem,
           p.tipo==='COMPRADOR'
             ? 'Documento pessoal, comprovante de endereço, comprovante de estado civil e comprovação de renda.'
             : 'Criança: certidão de nascimento ou identidade. Maior de idade: documento pessoal + comprovante de estado civil.',
           null, 'dependente']);
         /* 05/10 (item 5) — comprador: quadro próprio para os comprovantes de renda dele */
         /* 06/10 (item 2) — comprador: um quadro para CADA comprovante de renda, conforme a origem DELE */
-        if(p.tipo==='COMPRADOR' && nc && nc<=2) ['imposto','contracheques','carteiraTrabalho','proLabore','extratos','plataforma','extratoFgts'].forEach(function(b){
+        if(p.tipo==='COMPRADOR' && nc && nc<=DEP_MAX_COMP) ['imposto','contracheques','carteiraTrabalho','proLabore','extratos','plataforma','extratoFgts'].forEach(function(b){
           var base=DOCS.filter(function(x){ return x[0]===b; })[0]; if(!base) return;
           lista.push([b+'Comp'+nc, base[1]+' do comprador '+nc, (p.nome?p.nome+' — ':'')+base[2], base[3], 'comp'+nc]);
         });
@@ -2247,7 +2257,7 @@
     }
     /* 06/10 (item 1) — o comprador e o cônjuge (endereço diferente) também aparecem no passo 4 */
     if(F().maisDeUmComprador.checked) extras.filter(function(p){ return p.tipo==='COMPRADOR'; }).forEach(function(p,j){
-      if(j>1) return;
+      if(j>=DEP_MAX_COMP) return;
       lista.push(['docComp'+(j+1),'Documento do comprador '+(j+1),(p.nome?p.nome+' — ':'')+'CNH ou RG + CPF.',null,'espelhoComp']);
       lista.push(['endComp'+(j+1),'Comprovante de endereço do comprador '+(j+1),'Conta de água, luz ou telefone dos últimos 3 meses.',null,'espelhoComp']);
     });
@@ -2317,7 +2327,7 @@
       var ehCreci = d[0]==='docCreci';
       if(d[4]==='espelhoComp' || d[4]==='espelhoConj'){
         var alvoId = d[4]==='espelhoConj' ? 'p1-endconj-comp' : '';
-        var nC = d[0].slice(-1), iC = Number(nC)-1;
+        var nC = d[0].slice(-1), iC = idxComprador(Number(nC));   // 31/10: card do n-ésimo comprador
         var ja = d[4]==='espelhoConj' ? (PENDCONJ||[]).length : ((/^doc/.test(d[0]) ? PDEP[iC] : PDEND[iC])||[]).length;
         var gkE = d[4]==='espelhoConj' ? 'Cônjuge' : 'Comprador '+nC;
         if(!grupos[gkE]){ grupos[gkE]=[]; ordemG.push(gkE); }
@@ -2346,7 +2356,7 @@
       grupos[gk].push(html);
       return html;
     });
-    var ORD=['Proponente','Cônjuge','Comprador 1','Comprador 2','Compradores e dependentes','Corretor e outros documentos'];
+    var ORD=['Proponente','Cônjuge','Comprador 1','Comprador 2','Comprador 3','Compradores e dependentes','Corretor e outros documentos'];
     ordemG.sort(function(a,b){ return ORD.indexOf(a)-ORD.indexOf(b); });
     document.getElementById('anexos').innerHTML=ordemG.map(function(g){
       return '<div class="card-pessoa" style="padding:10px 12px"><h3>'+g+'</h3>'+grupos[g].join('')+'</div>';
@@ -2775,8 +2785,8 @@
         var blocos=document.querySelectorAll('#listaDependentes .dep');
         /* 31/10 — no máximo 2 compradores além do proponente (comprador 1 e 2 do banco de vendas e do contrato) */
         var nCompV=Array.prototype.filter.call(blocos, function(b){ return b.querySelector('.dep-tipo').value==='COMPRADOR'; }).length;
-        if(nCompV>DEP_MAX_COMP) return erro('No máximo <b>'+DEP_MAX_COMP+' compradores</b> além do proponente (e do cônjuge dele). Mude os demais para DEPENDENTE.',
-                                            document.getElementById('qtdDependentes'));
+        if(nCompV>DEP_MAX_COMP) return erro('No máximo <b>'+DEP_MAX_COMP+' compradores</b> além do proponente — o casal conta como 2. Pode: casal + 1 solteiro, ou 3 solteiros. '+
+                                            'Casal + 2 solteiros ou dois casais passam do limite: mude alguém para DEPENDENTE.', document.getElementById('qtdDependentes'));
         for(var bi=0; bi<blocos.length; bi++){
           var b=blocos[bi], tipo=b.querySelector('.dep-tipo').value, cpfEl=b.querySelector('.dep-cpf');
           var nm=(b.querySelector('.dep-nome').value||'').trim();

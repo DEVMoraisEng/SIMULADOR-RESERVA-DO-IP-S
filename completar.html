@@ -262,7 +262,7 @@ var LEITURA={
   'COMP. END. FIADOR 2':{tipo:'endereco', quem:'fiador2', mapa:{cep:'cepFiador2', logradouro:'logradouroFiador2', numero:'numeroFiador2', bairro:'setorFiador2', cidade:'cidadeFiador2'}, inteiro:'enderecoFiador2'}
 };
 /* 31/10/2026 — documento e comprovante dos compradores preenchem o card de cada um */
-[1,2].forEach(function(n){
+[1,2,3].forEach(function(n){
   LEITURA['DOC. COMPRADOR '+n]={tipo:'pessoa', quem:'comprador'+n, mapa:{nome:'comprador'+n, cpf:'cpfComprador'+n, rg:'rgComprador'+n,
     dataNascimento:'dataNascimentoComprador'+n, nacionalidade:'nacionalidadeComprador'+n}};
   LEITURA['COMP. END. COMPRADOR '+n]={tipo:'endereco', quem:'comprador'+n, mapa:{cep:'cepComprador'+n, logradouro:'logradouroComprador'+n,
@@ -328,7 +328,7 @@ var CONJ_BASE={'CONTRACHEQUES CONJUGE':'CONTRACHEQUES','CARTEIRA DE TRABALHO CON
     ROTULO_DOC[c]=(ROTULO_DOC[b]||b)+' do cônjuge'; DICA_DOC[c]=DICA_DOC[b]||''; DONO_DOC[c]='cônjuge'; });
   ROTULO_DOC['COMP. END. CONJUGE']='Comprovante de endereço do cônjuge'; DONO_DOC['COMP. END. CONJUGE']='cônjuge';
   DICA_DOC['COMP. END. CONJUGE']='O cônjuge mora em outro endereço: conta de água, luz ou telefone dos últimos 3 meses.';
-  [1,2].forEach(function(n){
+  [1,2,3].forEach(function(n){   // 31/10: comprador 3
     ROTULO_DOC['DOC. COMPRADOR '+n]='Documento do comprador '+n; DICA_DOC['DOC. COMPRADOR '+n]='CNH ou RG + CPF do comprador '+n+'.';
     ROTULO_DOC['COMP. END. COMPRADOR '+n]='Comprovante de endereço do comprador '+n; DICA_DOC['COMP. END. COMPRADOR '+n]='Conta de água, luz ou telefone dos últimos 3 meses.';
     ROTULO_DOC['COMP. RENDA COMPRADOR '+n]='Comprovantes de renda do comprador '+n; DICA_DOC['COMP. RENDA COMPRADOR '+n]='Conforme a origem da renda: contracheques, carteira de trabalho, IR ou extratos.';
@@ -434,6 +434,8 @@ function simCamposHtml(){
         var h=ck(x);
         if(x[0]==='jaBeneficiado') h+='<div class="campo" id="slBoxConcessao" style="display:none;margin:2px 0 8px 26px;max-width:260px"><label>Data da concessão do benefício</label><input type="date" id="sl-dataConcessaoBeneficio" value="'+String(simLinkVal('dataConcessaoBeneficio','')).slice(0,10)+'"></div>';
         if(x[0]==='relacionamentoCaixa') h+='<div id="slBoxRel" style="display:none;margin:2px 0 8px 26px">'+SIM_LINK_SUB.map(ck).join('')+'</div>';
+        /* 31/10/2026 — quem compra junto aparece logo abaixo, igual à proposta */
+        if(x[0]==='maisDeUmComprador') h+='<div id="lkSlot" style="display:none;margin:6px 0 10px 22px;padding:10px 12px;border-radius:8px;background:#FFFBEF;border:1px solid var(--borda)"></div>';
         return h;
       }).join('')+
       '<div style="margin-top:8px;font-size:13px"><b style="color:var(--marrom)">Linha de financiamento que será simulada:</b> <span id="slProdutos"></span></div>'+
@@ -639,11 +641,7 @@ function pintar(){
     /* 06/10 — comprador que existe: todos os dados dele são obrigatórios (menos o RG) */
   });
   ['cardComprador1','cardComprador2'].forEach(function(id){ var v=document.getElementById(id); if(v) v.remove(); });
-  var cxLk=document.getElementById('cardPessoasLink');
-  if(!cxLk){ cxLk=document.createElement('div'); cxLk.className='card'; cxLk.id='cardPessoasLink'; depois.parentNode.insertBefore(cxLk, depois.nextSibling); }
-  cxLk.innerHTML=lkCardHtml();
-  LK_LISTA=lkInicial();
-  lkPintar(LK_LISTA.length ? LK_LISTA : null);
+  var cxLkVelho=document.getElementById('cardPessoasLink'); if(cxLkVelho) cxLkVelho.remove();
   /* 02/10 (item 2) — CRÉDITO NA CAIXA em quadro próprio, no alto: quem enviou sem crédito e foi
      aprovado marca SIM, informa o correspondente e o valor; a simulação roda de novo (ou, abaixo
      de 80% da avaliação, informa a parcela). */
@@ -660,6 +658,15 @@ function pintar(){
     'Abaixo do teto: informe a <b>parcela</b>.</p>'+
     '<div class="grade">'+htmlCred+'</div>'+simCamposHtml() : '';
   cxCred.style.display = htmlCred ? '' : 'none';
+  /* 31/10/2026 — compradores e dependentes logo abaixo do "Mais de um comprador ou dependente" (como na proposta).
+     Servidor sem o quadro da CAIXA: card próprio nos dados pessoais, com o próprio checkbox. */
+  var slotLk=document.getElementById('lkSlot');
+  if(!slotLk){ slotLk=document.createElement('div'); slotLk.className='card'; slotLk.id='cardPessoasLink'; depois.parentNode.insertBefore(slotLk, depois.nextSibling); }
+  slotLk.innerHTML=lkCardHtml(!document.getElementById('sl-maisDeUmComprador'));
+  var slM=document.getElementById('sl-maisDeUmComprador');
+  if(slM){ slM.checked=lkMaisInicial(); slM.addEventListener('change', lkMaisMudou); }
+  LK_LISTA=lkInicial();
+  lkPintar(LK_LISTA.length ? LK_LISTA : null);
   document.getElementById('camposCorretor').innerHTML=htmlCorr;
   document.getElementById('cardCorretor').style.display = htmlCorr ? '' : 'none';
   document.getElementById('camposFiador').innerHTML=htmlFiad;
@@ -674,8 +681,6 @@ function pintar(){
 
   verConjuge();
   verConjFiadorLink();   // 31/10 — cônjuge do fiador só para casado
-  var slM=document.getElementById('sl-maisDeUmComprador');   // 31/10 — o mesmo "mais de um comprador" do bloco da CAIXA
-  if(slM){ slM.checked=lkMais(); slM.addEventListener('change', function(){ var c=document.getElementById('lk-mais'); if(c && c.checked!==slM.checked){ c.checked=slM.checked; lkMaisMudou(); } }); }
   unIniciar();   // 27/10 — quadro da unidade (antes do fluxo: o preço vem dele)
   vendaIniciar();
   verCreditoLink();
@@ -687,12 +692,12 @@ function pintar(){
  * inclui ou tira quem compra junto. Cada comprador diz o estado civil; casado ou em união
  * estável, o regime de bens é obrigatório e o CÔNJUGE entra como mais um COMPRADOR (a
  * quantidade sobe sozinha, o card dele vem logo abaixo e todos os dados são obrigatórios).
- * No máximo 2 compradores (comprador 1 e 2 do banco de vendas e do contrato).
+ * No máximo 3 compradores além do proponente — o casal conta como 2 (casal + 1 solteiro, ou 3 solteiros).
  * Os campos dos compradores usam os ids c-comprador1, c-cpfComprador1… — a leitura do
  * documento e do comprovante (Documentos obrigatórios) preenche direto no card.
  * =================================================================== */
 var LK_ESTADOS=['SOLTEIRO','CASADO','DIVORCIADO','VIUVO','UNIAO ESTAVEL'];
-var LK_MAX_COMP=2;
+var LK_MAX_COMP=3;
 var LK_LISTA=[];   // retrato da lista na tela (o render sempre parte daqui)
 function lkCasado(v){ v=semAcento(v); return v.indexOf('CASAD')>=0 || v.indexOf('UNIAO')>=0; }
 function lkUid(){ return 'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
@@ -736,7 +741,7 @@ function lkColetar(){
     p.conjuge=o ? o.nome : ''; p.cpfConjuge=o ? o.cpf : ''; });
   return out;
 }
-function lkMais(){ var c=document.getElementById('lk-mais'); return !!(c && c.checked); }
+function lkMais(){ var c=document.getElementById('sl-maisDeUmComprador')||document.getElementById('lk-mais'); return !!(c && c.checked); }
 function lkCompradores(){ return lkMais() ? lkColetar().filter(function(p){ return p.tipo==='COMPRADOR'; }) : []; }
 function lkAviso(msg){
   var a=document.getElementById('lk-aviso'); if(!a) return;
@@ -759,8 +764,9 @@ function lkInp(cls, id, val, tipo, ph, extra){
 }
 function lkPintar(lista){
   if(lista) LK_LISTA=lista;
-  var box=document.getElementById('lk-box'), mais=lkMais();
+  var box=document.getElementById('lk-box'), mais=lkMais(), slot=document.getElementById('lkSlot');
   if(box) box.style.display = mais ? '' : 'none';
+  if(slot) slot.style.display = mais ? '' : 'none';
   var q=document.getElementById('lk-qtd');
   if(lista && q) q.value=Math.max(1, lista.length);
   var n=Math.max(1, Math.min(6, parseInt((q||{}).value,10)||1));
@@ -774,7 +780,7 @@ function lkPintar(lista){
     var comp=p.tipo==='COMPRADOR', conj=comp && !!p.conj, civ=comp ? lkCivil(p.estadoCivil) : '', cas=lkCasado(civ);
     var parOk=!!(p.par && at.some(function(x){ return x.uid===p.par; }));
     var k=comp ? ++nc : 0, quem=comp ? ' do comprador '+k : ' do dependente '+(i+1);
-    var id=function(base){ return (comp && k<=2) ? 'c-'+base+k : ''; };
+    var id=function(base){ return (comp && k<=LK_MAX_COMP) ? 'c-'+base+k : ''; };
     var h='<div class="lk-dep" data-i="'+i+'" data-uid="'+esc(p.uid)+'" data-par="'+esc(parOk?p.par:'')+'" data-conj="'+(conj?1:0)+'" style="margin:0 0 12px;padding:10px 12px;border:1.5px solid '+
       (conj?'#C9A227':'#E7DCC7')+';border-radius:10px;background:'+(conj?'#FFFBEF':'#FFFDF8')+(conj?';margin-left:14px':'')+'">'+
       '<b style="display:block;margin:0 0 6px;color:#6B4A12;font-size:14px">'+(comp ? 'Comprador '+k : 'Dependente')+(p.nome?' — '+esc(p.nome):'')+'</b>'+
@@ -826,7 +832,7 @@ function lkCep(el){
 }
 function lkQtdMudou(){ LK_LISTA=lkColetar(); lkPintar(); }
 function lkMaisMudou(){
-  var on=lkMais(), s=document.getElementById('sl-maisDeUmComprador'); if(s) s.checked=on;
+  var on=lkMais();
   if(on && !LK_LISTA.length) LK_LISTA=[{tipo:'COMPRADOR', nome:'', cpf:''}];
   if(!on) LK_LISTA=lkColetar();   // guarda: se marcar de novo, volta como estava
   lkPintar();
@@ -839,8 +845,8 @@ function lkCivilMudou(i){
   if(cas && k<0){
     if(lista.filter(function(x){ return x.tipo==='COMPRADOR'; }).length>=LK_MAX_COMP){
       lkPintar(lista);
-      lkAviso('⚠ O cônjuge de <b>'+esc(p.nome||'este comprador')+'</b> também precisa entrar como comprador, mas o limite é de <b>'+LK_MAX_COMP+
-        ' compradores</b> além do proponente. Mude outro card para DEPENDENTE e escolha o estado civil de novo.');
+      lkAviso('⚠ <b>'+esc(p.nome||'Este comprador')+'</b> é casado(a): o cônjuge também entra como comprador e passaria de '+LK_MAX_COMP+
+        ' compradores além do proponente (o casal conta como 2). Pode: casal + 1 solteiro, ou 3 solteiros. Mude alguém para DEPENDENTE e escolha o estado civil de novo.');
       return;
     }
     var s={uid:lkUid(), par:p.uid, conj:true, tipo:'COMPRADOR', nome:'', cpf:'', nacionalidade:'BR',
@@ -869,13 +875,15 @@ function lkTipoMudou(i){
     p.par=''; p.estadoCivil=''; p.regimeBens='';
   }
   lkPintar(lista);
+  lkAviso(lista.filter(function(x){ return x.tipo==='COMPRADOR'; }).length>LK_MAX_COMP ? '⚠ Limite de <b>'+LK_MAX_COMP+' compradores</b> além do proponente — o casal conta como 2. '+
+    'Casal + 2 solteiros ou dois casais passam do limite: mude alguém para DEPENDENTE.' : '');
 }
 /* conferência antes do envio (as mesmas regras da proposta) */
 function lkErro(){
   if(!lkMais()) return '';
   var cards=document.querySelectorAll('#lk-lista .lk-dep'), lista=lkColetar();
   if(lista.filter(function(p){ return p.tipo==='COMPRADOR'; }).length>LK_MAX_COMP)
-    return 'No máximo <b>'+LK_MAX_COMP+' compradores</b> além do proponente. Mude os demais para DEPENDENTE.';
+    return 'No máximo <b>'+LK_MAX_COMP+' compradores</b> além do proponente — o casal conta como 2. Pode: casal + 1 solteiro, ou 3 solteiros. Mude alguém para DEPENDENTE.';
   for(var i=0;i<lista.length;i++){
     var p=lista[i], nm=p.nome||('pessoa '+(i+1));
     if(!nomeCompleto(p.nome)) return 'Informe o <b>nome completo</b> de cada comprador / dependente.';
@@ -894,13 +902,13 @@ function lkErro(){
   }
   return '';
 }
-function lkCardHtml(){
-  return '<h2>Compradores e dependentes</h2>'+
-    '<p class="sub">Quem compra junto com o proponente (além do cônjuge dele) e os dependentes — o mesmo bloco da proposta. '+
-    'Comprador casado: o cônjuge entra como mais um comprador, com todos os dados.</p>'+
+function lkCardHtml(comCheck){
+  return (comCheck ? '<h2>Compradores e dependentes</h2>'+
     '<label class="check" style="display:flex;gap:8px;align-items:center;margin:4px 0 8px;font-weight:600"><input type="checkbox" id="lk-mais" style="width:auto"'+
-      (lkMaisInicial()?' checked':'')+' onchange="lkMaisMudou()"> Mais de um comprador ou dependente</label>'+
+      (lkMaisInicial()?' checked':'')+' onchange="lkMaisMudou()"> Mais de um comprador ou dependente</label>' : '')+
     '<div id="lk-box" style="display:none;margin:4px 0 0">'+
+      '<p class="ajuda" style="margin:0 0 8px">Até <b>'+LK_MAX_COMP+' compradores</b> além do proponente — o casal conta como 2 (casal + 1 solteiro, ou 3 solteiros). '+
+      'Comprador casado: o cônjuge entra como mais um comprador, com todos os dados.</p>'+
       '<div class="campo" style="max-width:260px;margin-bottom:10px"><label>Quantas pessoas além do proponente?</label>'+
       '<input type="number" id="lk-qtd" min="1" max="6" step="1" value="1" onchange="lkQtdMudou()"></div>'+
       '<div id="lk-aviso" class="aviso" style="display:none;margin:0 0 10px"></div>'+
@@ -1271,11 +1279,19 @@ function montarDocs(){
      (mesma regra do portal). Os já enviados continuam na lista, marcados,
      para ninguém achar que sumiram; dá para mandar mais arquivos neles. */
   var linhas=[];
+  /* 31/10 — renda dos compradores: cada comprovante tem coluna própria (CONTRACHEQUES COMPRADOR n…). Os vazios
+     não aparecem soltos — quem pede é o quadro "Comprovantes de renda do comprador n", pela origem dele —
+     e o que já foi enviado não é pedido de novo. */
+  var RENDA_COMP=/^(CONTRACHEQUES|CARTEIRA DE TRABALHO|EXTRATO FGTS|IR|PRO LABORE|MOVIMENTACAO BANCARIA|EXTRATO PLATAFORMA|EXTRATO BENEFICIO) COMPRADOR ([123])$/;
+  var COL_RENDA_C={'CONTRACHEQUES':'CONTRACHEQUES','CARTEIRA DE TRABALHO':'CARTEIRA DE TRABALHO','EXTRATO FGTS':'EXTRATO FGTS','IR + EXTRATOS':'IR',
+                   'PRO LABORE':'PRO LABORE','MOVIMENTACAO BANCARIA':'MOVIMENTACAO BANCARIA','EXTRATO PLATAFORMA':'EXTRATO PLATAFORMA'};
+  var jaRendaC={}; DADOS.documentos.forEach(function(d){ if(RENDA_COMP.test(d.coluna) && d.temArquivo) jaRendaC[d.coluna]=1; });
   DADOS.documentos.forEach(function(d){
+    if(RENDA_COMP.test(d.coluna) && !d.temArquivo) return;
     var regra=REGRA_DOC[d.coluna];
     var fiaN = (/FIADOR ([12])$/.exec(d.coluna)||[])[1];          // 01/10: documento e comprovante de cada fiador
     /* 06/10 (item 3) — cada documento olha a PESSOA dele */
-    var PD=DADOS.pessoasDocs||{}, compN=(/COMPRADOR ([12])$/.exec(d.coluna)||[])[1], baseC=CONJ_BASE[d.coluna];
+    var PD=DADOS.pessoasDocs||{}, compN=(/COMPRADOR ([123])$/.exec(d.coluna)||[])[1], baseC=CONJ_BASE[d.coluna];
     /* r96i — print da tela de aprovação da CAIXA: obrigatório quando há crédito aprovado */
     var ehPrint = d.coluna==='PRINT APROVACAO CAIXA';
     var exigido = (ehPrint && credSim()) || DOC_SEMPRE.indexOf(d.coluna)>=0 ||
@@ -1296,11 +1312,12 @@ function montarDocs(){
     if(baseC && origens[1]) dono='cônjuge · '+origens[1];
     if(!dono && (d.coluna==='CERTIDOES'||d.coluna==='COMPROVANTE DE DIVORCIO')) dono = temConjuge() ? 'proponente e cônjuge' : 'proponente';
     /* 06/10 (item 2) — renda do comprador: um campo para CADA comprovante, pela origem dele */
-    var mRC=/^COMP\. RENDA COMPRADOR ([12])$/.exec(d.coluna);
+    var mRC=/^COMP\. RENDA COMPRADOR ([123])$/.exec(d.coluna);
     if(mRC && !d.temArquivo){
       var selOC=document.getElementById('c-origemRendaComprador'+mRC[1]);
       var oC=(selOC&&selOC.value)||'';   // 31/10: origem vem do card do comprador
-      var basesC=Object.keys(REGRA_DOC).filter(function(b){ return oC && regraTem(REGRA_DOC[b], oC); });
+      var basesC=Object.keys(REGRA_DOC).filter(function(b){ return oC && regraTem(REGRA_DOC[b], oC) &&
+        !jaRendaC[(COL_RENDA_C[b]||b)+' COMPRADOR '+mRC[1]]; });   // 31/10: já enviado não pede de novo
       if(basesC.length){
         basesC.forEach(function(b){
           var nomeC=(ROTULO_DOC[b]||b)+' do comprador '+mRC[1], idC='d-'+b.replace(/\W/g,'')+'C'+mRC[1];
@@ -1325,7 +1342,7 @@ function montarDocs(){
       '<input type="file" accept="image/*,application/pdf" id="'+id+'" data-rotulo="'+esc(d.rotulo)+'" data-col="'+esc(d.coluna)+'" multiple onchange="aoArquivo(this)"></div>');
   });
   /* 06/10 (item 3) — um quadro por pessoa, como na proposta */
-  var gr={}, ord=['Proponente','Cônjuge','Comprador 1','Comprador 2','Dependentes','Fiador 1','Fiador 2'];
+  var gr={}, ord=['Proponente','Cônjuge','Comprador 1','Comprador 2','Comprador 3','Dependentes','Fiador 1','Fiador 2'];
   linhas.forEach(function(h){ var m=/^<!--G:(.*?)-->/.exec(h); var g=m?m[1]:'Proponente'; (gr[g]=gr[g]||[]).push(h.replace(/^<!--G:.*?-->/,'')); });
   linhas = Object.keys(gr).sort(function(a,b){ return (ord.indexOf(a)+99)%99-(ord.indexOf(b)+99)%99; }).map(function(g){
     return '<div style="border:1.5px solid #E7DCC7;border-radius:10px;padding:8px 12px;margin:0 0 12px;background:#FFFDF8">'+
@@ -1461,8 +1478,9 @@ function enviar(){
     return;
   }
   var erroLk=lkErro();   // 31/10 — compradores e dependentes (mesmas regras da proposta)
-  if(erroLk){ mostrarAba('pessoal'); av.style.display='block'; av.className='aviso erro'; av.innerHTML=erroLk;
-    var cxL=document.getElementById('cardPessoasLink'); if(cxL) cxL.scrollIntoView({behavior:'smooth', block:'start'}); return; }
+  if(erroLk){ av.style.display='block'; av.className='aviso erro'; av.innerHTML=erroLk;
+    var cxL=document.getElementById('lkSlot')||document.getElementById('cardPessoasLink');
+    if(cxL){ mostrarAba(cxL.id==='lkSlot' ? 'venda' : 'pessoal'); cxL.scrollIntoView({behavior:'smooth', block:'start'}); } return; }
   var campos={};
   DADOS.campos.forEach(function(c){
     if(/^comprador[12]$/.test(c.grupo||'')) return;   // 31/10: vão em "pessoas"

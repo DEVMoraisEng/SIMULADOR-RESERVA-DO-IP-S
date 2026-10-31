@@ -1843,9 +1843,8 @@
     if(cas && k<0){
       var nComp=lista.filter(function(x){ return x.tipo==='COMPRADOR'; }).length;
       if(nComp>=DEP_MAX_COMP){
-        montarDependentes(lista);
-        depAviso('⚠ <b>'+esc_(p.nome||'Este comprador')+'</b> é casado(a): o cônjuge também entra como comprador e passaria de '+DEP_MAX_COMP+
-          ' compradores além do proponente (o casal conta como 2). Pode: casal + 1 solteiro, ou 3 solteiros. Mude alguém para DEPENDENTE e escolha o estado civil de novo.');
+        montarDependentes(lista);   // 31/10 — o erro aparece no próprio card (depErroCard) e trava o avanço
+        depAviso('');
         return;
       }
       var s={uid:depUid(), par:p.uid, conj:true, tipo:'COMPRADOR', nome:'', cpf:'', rg:'', profissao:'', nacionalidade:'BR',
@@ -1876,9 +1875,17 @@
     var r=document.querySelectorAll('#listaDependentes .dep')[i].querySelector('.dep-regime');
     if(c && r) c.value=r.value;
   }
+  var DEP_ERRO_CARD={};   // uid -> aviso de uma vez no card (ex.: tentou passar do limite)
   function depTipoMudou(i){
     var lista=pessoasExtras(), p=lista[i]; if(!p) return;
     var ordem=lista.map(function(_, j){ return j; });
+    /* 31/10 — acima do limite não vira COMPRADOR: volta para DEPENDENTE e avisa no card */
+    if(p.tipo==='COMPRADOR' && lista.filter(function(x){ return x.tipo==='COMPRADOR'; }).length>DEP_MAX_COMP){
+      p.tipo='DEPENDENTE'; p.estadoCivil=''; p.regimeBens='';
+      DEP_ERRO_CARD[p.uid]='Não dá para incluir mais um comprador: o limite é de <b>'+DEP_MAX_COMP+' compradores</b> além do proponente '+
+        '(o casal conta como 2 — pode casal + 1 solteiro, ou 3 solteiros). Esta pessoa ficou como DEPENDENTE.';
+      montarDependentes(lista); depAviso(''); return;
+    }
     if(p.tipo!=='COMPRADOR' && p.par){
       var k=-1; lista.forEach(function(x, j){ if(x.uid===p.par) k=j; });
       if(k>=0 && lista[k].conj){ lista.splice(k, 1); ordem.splice(k, 1); }
@@ -1888,8 +1895,7 @@
       return;
     }
     montarDependentes(lista);
-    /* 31/10 — limite de compradores */
-    depAviso(lista.filter(function(x){ return x.tipo==='COMPRADOR'; }).length>DEP_MAX_COMP ? depLimiteMsg() : '');
+    depAviso('');
   }
   function montarDependentes(lista, ordem){
     if(lista){
@@ -1910,8 +1916,18 @@
       var obrigComp=(F().creditoAprovadoCaixa.value==='NAO' || conj)?'<span class="obrig">*</span>':'';
       var obrigConj=conj?'<span class="obrig">*</span>':'';
       var lbl='font-size:11px;color:var(--marrom);font-weight:700';
+      /* 31/10 — erro no próprio card: casado sem o cônjuge na lista (limite) ou tentativa de passar do limite */
+      var nCompT=atuais.slice(0, n).filter(function(x){ return x && x.tipo==='COMPRADOR'; }).length;
+      var erroCard=DEP_ERRO_CARD[p.uid] || (comp && cas && !conj && !parOk
+        ? (nCompT>=DEP_MAX_COMP
+            ? '<b>'+esc_(p.nome||'Este comprador')+'</b> é casado(a): o cônjuge também precisa entrar como comprador, mas passaria do limite de <b>'+DEP_MAX_COMP+
+              ' compradores</b> além do proponente (o casal conta como 2). Mude outro comprador para DEPENDENTE ou corrija o estado civil — sem isso não dá para avançar.'
+            : '<b>Falta o cônjuge na lista</b> — escolha o estado civil de novo para ele entrar como comprador. Sem isso não dá para avançar.')
+        : '');
+      delete DEP_ERRO_CARD[p.uid];
       html+='<div class="dep" data-i="'+i+'" data-uid="'+esc_(p.uid)+'" data-par="'+esc_(parOk?p.par:'')+'" data-conj="'+(conj?1:0)+'" style="margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed var(--borda)'+
           (conj?';margin-left:14px;padding-left:10px;border-left:3px solid #C9A227':'')+'">'+
+        (erroCard ? '<div class="dep-erro" style="margin:0 0 8px;padding:8px 10px;border-radius:6px;background:#FDECEA;border:1.5px solid #D9534F;color:#8A2E17;font-size:12.5px;line-height:1.45">⚠ '+erroCard+'</div>' : '')+
         (conj ? '<div style="font-size:12px;font-weight:700;color:var(--marrom);margin:0 0 6px">💍 Cônjuge de '+esc_(nomeDe(p.par)||'comprador acima')+
                 ' — entra como <b>comprador</b>. Preencha todos os dados.</div>' : '')+
         '<div class="dep-grid" style="display:grid;grid-template-columns:1fr 150px 160px;gap:8px">'+
@@ -1929,9 +1945,7 @@
           '<label class="dep-regime-box" style="'+lbl+(cas?'':';display:none')+'">Regime de bens<span class="obrig">*</span><select class="dep-regime" onchange="depRegimeMudou('+i+')"'+(conj?' disabled':'')+'>'+
             '<option value="">Selecione…</option>'+DEP_REGIMES.map(function(o){ return '<option'+(o===(p.regimeBens||'')?' selected':'')+'>'+o+'</option>'; }).join('')+
           '</select></label></div>'+
-          (cas && !conj ? '<span class="ajuda" style="display:block;margin-top:4px">'+(parOk
-              ? 'O cônjuge (<b>'+esc_(nomeDe(p.par)||'card abaixo')+'</b>) entra como comprador no card logo abaixo.'
-              : '<b style="color:#8A2E17">Falta o cônjuge na lista</b> — escolha o estado civil de novo para ele entrar como comprador.')+'</span>' : '')
+          (cas && !conj && parOk ? '<span class="ajuda" style="display:block;margin-top:4px">O cônjuge (<b>'+esc_(nomeDe(p.par)||'card abaixo')+'</b>) entra como comprador no card logo abaixo.</span>' : '')
         : '')+
         /* 30/09: comprador entra no contrato — profissão, nacionalidade e documento (lido na hora) */
         (comp ? '<div class="dep-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">'+
@@ -2799,9 +2813,12 @@
               var regEl=b.querySelector('.dep-regime');
               if(regEl && !regEl.value) return erro('Escolha o <b>regime de bens</b> do comprador '+esc_(nm)+'.', regEl);
               var parB=b.dataset.par && document.querySelector('#listaDependentes .dep[data-uid="'+b.dataset.par+'"]');
-              if(!parB || parB.querySelector('.dep-tipo').value!=='COMPRADOR')
-                return erro('O comprador <b>'+esc_(nm)+'</b> é casado: o <b>cônjuge</b> precisa entrar na lista como comprador. '+
-                            'Escolha o estado civil de novo para ele aparecer.', civEl);
+              if(!parB || parB.querySelector('.dep-tipo').value!=='COMPRADOR'){
+                b.scrollIntoView({behavior:'smooth', block:'center'});
+                return erro('O comprador <b>'+esc_(nm)+'</b> é casado: o <b>cônjuge</b> precisa entrar na lista como comprador'+
+                            (nCompV>=DEP_MAX_COMP ? ', e isso passaria do limite de <b>'+DEP_MAX_COMP+' compradores</b> (o casal conta como 2). Mude outro comprador para DEPENDENTE ou corrija o estado civil.'
+                                                  : '. Escolha o estado civil de novo para ele aparecer.'), civEl);
+              }
             }
             /* 31/10 — o cônjuge de um comprador entra com os dados COMPLETOS */
             if(b.dataset.conj==='1'){

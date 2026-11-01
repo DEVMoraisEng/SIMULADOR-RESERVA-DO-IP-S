@@ -219,6 +219,7 @@
     <img id="mImgBaixa" alt="" decoding="async"><img id="mImg" class="alta" alt="Planta" decoding="async">
     <small>🔍 ampliar</small></div><div class="uns" id="mUns"></div></div></div>
 
+<script src="polling.js?v=c0111"></script>
 <script>
 
   /* Paleta do empreendimento. O rosa #D87890 do Tipo 2 estava perto demais do
@@ -801,7 +802,7 @@
   carregarSVG();      // mapa já, sem esperar os dados
   carregar(true);     // dados em paralelo
   // auto-atualiza a cada 60s (sem atrapalhar se um pop-up estiver aberto)
-  setInterval(function(){ if(!ocupado()) carregar(false); }, 30000);   // 02/10 (item 3): status e valores a cada 30 s
+  pollSoVisivel(function(){ if(!ocupado()) carregar(false); }, 120000);   // 01/11 (cota): a cada 120 s e só com a aba visível
 
 
 /* r60 — Memorial de Incorporação (art. 32, §3º, Lei nº 4.591/1964). Preencha

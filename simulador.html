@@ -413,6 +413,7 @@
   </p>
 </main>
 
+<script src="polling.js?v=c0111"></script>
 <script src="fluxo-calc.js"></script>
 <script src="fluxo-bloco.js"></script>
 <script src="diluir-ui.js"></script>
@@ -1138,18 +1139,19 @@
     /* item 1 (r31) — aviso de spam no fim */
     var AVISO_SPAM='<div style="margin-top:12px;padding:9px 12px;border-radius:6px;background:#FBEEC8;border:1px solid #EFB700;color:#7A4A16;font-size:13px;"><b>📬 Não encontrou o e-mail?</b> Confira a caixa de <b>spam / lixo eletrônico</b> e marque como "não é spam" — assim os próximos chegam na caixa de entrada.</div>';
     mostrarStatus('processando','<strong>Solicitação recebida.</strong><br>Simulando as linhas selecionadas. O resultado chega por e-mail.'+AVISO_SPAM);
-    var timer=setInterval(async function(){
+    var AVISO_TETO='<strong>Ainda processando.</strong><br>Paramos de atualizar esta tela para não sobrecarregar o sistema. O resultado chega por e-mail. Para ver aqui, abra a tela de novo ou atualize a página (F5).'+AVISO_SPAM;
+    var timer=pollSoVisivel(async function(){
       try{
         var s=await apiGet({acao:'status',id:id});
-        if(s.status==='concluido'){clearInterval(timer);if(botao)botao.disabled=false;
+        if(s.status==='concluido'){timer.parar();if(botao)botao.disabled=false;
           var html='<strong>Simulação concluída.</strong>';
           (s.resultados||[]).forEach(function(rr){html+='<div style="margin-top:12px;"><strong>'+(rr.linha||'Linha')+'</strong><ul style="margin:6px 0 0 18px;">';(rr.valores||[]).forEach(function(v){html+='<li>'+v+'</li>';});html+='</ul></div>';});
           if(s.email_enviado)html+='<div style="margin-top:12px;">O resultado foi enviado por e-mail.</div>';
           mostrarStatus('ok',html+AVISO_SPAM);
-        }else if(s.status==='erro'){clearInterval(timer);if(botao)botao.disabled=false;mostrarStatus('erro',s.mensagem||'Não foi possível concluir.');}
+        }else if(s.status==='erro'){timer.parar();if(botao)botao.disabled=false;mostrarStatus('erro',s.mensagem||'Não foi possível concluir.');}
         else if(s.status==='pendente'&&s.posicao_fila>0){mostrarStatus('processando','Na fila — '+s.posicao_fila+' à frente. O resultado chega por e-mail.');}
       }catch(err){}
-    },5000);
+    },15000,{tetoMs:900000,aoEsgotar:function(){ if(botao)botao.disabled=false; mostrarStatus('processando',AVISO_TETO); }});   // 01/11 (cota): a cada 15 s, no máximo 15 min
   }
   /* ===== 31/10/2026 — TRANSFORMAR A SIMULAÇÃO EM PROPOSTA ==================
      Guarda tudo o que foi preenchido aqui (localStorage) e o print da aprovação da
@@ -1253,7 +1255,7 @@
   buscarLocal().then(function(d){aplicarUnidades(d);})
     .catch(function(){aplicarUnidades(FALLBACK);})
     .then(function(){ buscarAoVivo().then(function(d){aplicarUnidades(d);}).catch(function(){}); });
-  verificarServico(); setInterval(verificarServico,60000);
+  verificarServico(); pollSoVisivel(verificarServico,120000);   // 01/11 (cota): só com a aba visível
 
 </script>
 <script>

@@ -70,7 +70,9 @@ test("proposta.html usa as regras e valida sozinha (novalidate)", () => {
   assert.match(h, /<script src="regras-tela\.js\?v=\w+"><\/script>/);
   assert.match(h, /<form id="formProposta"[^>]*\bnovalidate\b/);
   assert.match(h, /RegrasTela\.fiadoresObrigatorios\(/);
-  assert.match(h, /if\(!fiadorInformado\(fn\) && !fiadorExigido\(\)\) continue;/);
+  /* 01/11 (dono): a proposta vai sem fiador — só o fiador informado é conferido; nada cobra fiador vazio */
+  assert.match(h, /if\(!fiadorInformado\(fn\)\) continue;/);
+  assert.doesNotMatch(h, /a proposta precisa de <b>2 fiadores<\/b>/);
   assert.match(h, /RegrasTela\.nomeSemNumero\(/);
   assert.match(h, /RegrasTela\.emailsRepetidos\(/);
   assert.match(h, /RegrasTela\.unidadeDoLink\(/);

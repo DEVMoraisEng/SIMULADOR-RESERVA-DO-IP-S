@@ -757,13 +757,15 @@ function enviar(){
     return proximo();
   }).then(function(){
     ENVIANDO=false;
-    /* 01/11 (#154) — com pendência a página NÃO trava: dá para completar e enviar de novo */
-    if(falhas.length || faltamServ.length){ bt.disabled=false; bt.textContent='Enviar para a Morais'; }
-    else { TRAVADO=true; bt.disabled=true; bt.textContent='Enviado ✓'; }                    // tudo completo: bloqueia
+    /* 01/11 (#154) — só trava ("Enviado ✓") quando nem o servidor nem a tela cobram mais nada e
+       todos os arquivos subiram. Senão a página segue aberta para completar e enviar de novo. */
+    var dep=RegrasTela.depoisDoEnvio(faltamServ, faltaTela, falhas);
+    if(dep.travar){ TRAVADO=true; bt.disabled=true; bt.textContent='Enviado ✓'; }
+    else { bt.disabled=false; bt.textContent='Enviar para a Morais'; }
     av.className='aviso ok';
     av.innerHTML='<b>Enviado.</b> '+(gravados?gravados+' campo(s) atualizados. ':'')+(enviados?enviados+' documento(s) anexados.':'')+
       (falhas.length?'<br><b style="color:#8A2E17">Não subiram:</b> '+falhas.map(esc).join(' · '):'')+
-      (faltamServ.length?'<br><b>Ainda falta:</b> '+faltamServ.map(esc).join(' · ')+
+      (dep.falta.length?'<br><b>Ainda falta:</b> '+dep.falta.map(esc).join(' · ')+
         '<br>O que você enviou ficou guardado. Complete o que falta e clique em <b>Enviar para a Morais</b> de novo, agora ou depois pelo mesmo link.'
         :'<br>A Morais já foi avisada. Se precisar corrigir algo, abra o link de novo.');
     carregar();

@@ -2585,11 +2585,13 @@
       el.style.opacity='';
       if(!j || j.erro){ CEP_ULTIMO[chave]=''; erro('CEP <b>'+fmtCepP(c)+'</b> não encontrado. Confira o número ou preencha o endereço à mão.', el); return; }
       var vals=[j.logradouro, j.bairro, j.localidade];
-      /* 01/11 (#67) — o CEP só preenche campo VAZIO: o que a pessoa digitou fica */
-      var atualC={}, novoC={};
-      alvos.forEach(function(a,i){ if(a){ atualC[i]=a.value; novoC[i]=vals[i]?padrao(vals[i]):''; } });
-      var resC=RegrasTela.preencherCep(atualC, novoC);
-      alvos.forEach(function(a,i){ if(a && !String(a.value||'').trim() && resC[i]){ a.value=resC[i]; a.classList.add('lido'); } });
+      /* 01/11 (#67) — o CEP preenche o vazio e corrige o que um CEP anterior pôs (dataset.cepAuto);
+         o que a pessoa digitou fica */
+      var atualC={}, novoC={}, autoC={};
+      alvos.forEach(function(a,i){ if(a){ atualC[i]=a.value; novoC[i]=vals[i]?padrao(vals[i]):''; autoC[i]=a.dataset.cepAuto||''; } });
+      var resC=RegrasTela.preencherCep(atualC, novoC, autoC);
+      alvos.forEach(function(a,i){ if(a && (i in resC) && resC[i]!==a.value){
+        a.value=resC[i]; a.dataset.cepAuto=resC[i]; a.classList.toggle('lido', !!resC[i]); } });
       var prox=alvos[0] && alvos[0].form ? (alvos[0].form[el.name==='cep'?'numero':(el.name||'').replace('cep','numero')]) : null;
       if(!prox){ var dd=el.closest('.dep'); prox=dd && dd.querySelector('.dep-num'); }
       if(prox && !prox.value) try{ prox.focus(); }catch(e){}

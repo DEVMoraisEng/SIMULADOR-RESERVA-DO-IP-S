@@ -117,3 +117,40 @@ test("completar-venda.html: CONTRATO_JA_GERADO mostra a mensagem e os recusados"
   assert.doesNotMatch(h, /throw new Error\(\(j&&j\.erro\)/);
   assert.match(h, /x&&\(x\.mensagem\|\|x\.erro\)/);   // anexarVenda: mensagem primeiro
 });
+
+/* ---- rodada de conserto 1 (revisão da tarefa 12) ---- */
+test("CEP corrigido troca o que o CEP anterior pôs, nunca o digitado", () => {
+  // vazio -> preenchido
+  assert.deepEqual(puro(R.preencherCep({ rua: "" }, { rua: "RUA NOVA" }, {})), { rua: "RUA NOVA" });
+  // preenchido pelo CEP anterior e não mexido -> trocado
+  assert.deepEqual(puro(R.preencherCep({ rua: "RUA ERRADA", bairro: "SETOR ERRADO" },
+    { rua: "RUA CERTA", bairro: "SETOR CERTO" }, { rua: "RUA ERRADA", bairro: "SETOR ERRADO" })),
+    { rua: "RUA CERTA", bairro: "SETOR CERTO" });
+  // digitado pela pessoa (diferente do que o CEP pôs) -> mantido
+  assert.deepEqual(puro(R.preencherCep({ rua: "RUA DIGITADA", bairro: "SETOR ERRADO" },
+    { rua: "RUA CERTA", bairro: "SETOR CERTO" }, { rua: "RUA ERRADA", bairro: "SETOR ERRADO" })),
+    { rua: "RUA DIGITADA", bairro: "SETOR CERTO" });
+  // o CEP novo não traz o campo: o que o CEP errado pôs é apagado
+  assert.deepEqual(puro(R.preencherCep({ rua: "RUA ERRADA" }, { rua: "" }, { rua: "RUA ERRADA" })), { rua: "" });
+});
+
+test("depois do envio: só trava quando servidor E tela não cobram nada", () => {
+  assert.deepEqual(puro(R.depoisDoEnvio([], [], [])), { travar: true, falta: [] });
+  assert.deepEqual(puro(R.depoisDoEnvio([], ["Comprovante de estado civil"], [])),
+    { travar: false, falta: ["Comprovante de estado civil"] });
+  assert.deepEqual(puro(R.depoisDoEnvio(["Dia de pagamento"], [], [])), { travar: false, falta: ["Dia de pagamento"] });
+  assert.deepEqual(puro(R.depoisDoEnvio(["Dia de pagamento", { rotulo: "RG" }], ["dia de pagamento"], [])),
+    { travar: false, falta: ["Dia de pagamento", "RG"] });
+  assert.equal(R.depoisDoEnvio([], [], ["arquivo: falhou"]).travar, false);
+});
+
+test("completar-venda.html usa depoisDoEnvio; páginas marcam o que o CEP pôs", () => {
+  assert.match(html("completar-venda.html"), /RegrasTela\.depoisDoEnvio\(/);
+  assert.match(html("proposta.html"), /dataset\.cepAuto/);
+  assert.equal((html("completar.html").match(/dataset\.cepAuto/g) || []).length >= 2, true);
+});
+
+test("depois do envio: o rótulo da tela com grupo não repete o do servidor", () => {
+  assert.deepEqual(puro(R.depoisDoEnvio(["RG do proponente"], ["Proponente: RG do proponente", "Comprovante de endereço"], [])).falta,
+    ["RG do proponente", "Comprovante de endereço"]);
+});

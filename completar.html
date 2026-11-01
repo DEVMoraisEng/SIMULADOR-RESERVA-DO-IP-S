@@ -846,11 +846,12 @@ function lkCep(el){
   var c=dig(el.value), d=el.closest('.lk-dep'); if(!d || c.length!==8 || el.dataset.ult===c) return; el.dataset.ult=c;
   fetch('https://viacep.com.br/ws/'+c+'/json/').then(function(r){ return r.json(); }).then(function(j){
     if(!j || j.erro) return;
-    /* 01/11 (#67) — o CEP só preenche campo VAZIO */
-    var cps=[['.lk-logr',j.logradouro],['.lk-setor',j.bairro],['.lk-cid',j.localidade]], at={}, nv={};
-    cps.forEach(function(p,i){ var e=d.querySelector(p[0]); at[i]=e?e.value:''; nv[i]=p[1]?semAcento(p[1]):''; });
-    var res=RegrasTela.preencherCep(at, nv);
-    cps.forEach(function(p,i){ var e=d.querySelector(p[0]); if(e && !String(e.value||'').trim() && res[i]){ e.value=res[i]; e.classList.add('lido'); } });
+    /* 01/11 (#67) — o CEP preenche o vazio e corrige o que um CEP anterior pôs (dataset.cepAuto) */
+    var cps=[['.lk-logr',j.logradouro],['.lk-setor',j.bairro],['.lk-cid',j.localidade]], at={}, nv={}, au={};
+    cps.forEach(function(p,i){ var e=d.querySelector(p[0]); at[i]=e?e.value:''; nv[i]=p[1]?semAcento(p[1]):''; au[i]=e?(e.dataset.cepAuto||''):''; });
+    var res=RegrasTela.preencherCep(at, nv, au);
+    cps.forEach(function(p,i){ var e=d.querySelector(p[0]); if(e && (i in res) && res[i]!==e.value){
+      e.value=res[i]; e.dataset.cepAuto=res[i]; e.classList.toggle('lido', !!res[i]); } });
     atualizarTrava();
   }).catch(function(){ el.dataset.ult=''; });
 }
@@ -970,9 +971,10 @@ function buscarCepLink(el){
   fetch('https://viacep.com.br/ws/'+c+'/json/').then(function(r){ return r.json(); }).then(function(j){
     if(!j || j.erro){ CEP_LINK_ULT[id]=''; return; }
     var g=function(n){ return document.getElementById('c-'+n); }, so=alvo.length===1 || !g(alvo[1]);
-    /* 01/11 (#67) — o CEP só preenche campo VAZIO: o que a pessoa digitou fica */
-    var poe=function(e, v){ if(!e) return; var r=RegrasTela.preencherCep({v:e.value}, {v:v});
-      if(r.v && r.v!==e.value){ e.value=r.v; e.classList.add('lido'); } };
+    /* 01/11 (#67) — o CEP preenche o vazio e corrige o que um CEP anterior pôs (dataset.cepAuto);
+       o que a pessoa digitou fica */
+    var poe=function(e, v){ if(!e) return; var r=RegrasTela.preencherCep({v:e.value}, {v:v}, {v:e.dataset.cepAuto||''});
+      if(('v' in r) && r.v!==e.value){ e.value=r.v; e.dataset.cepAuto=r.v; e.classList.toggle('lido', !!r.v); } };
     var linha=semAcento([j.logradouro,j.bairro,j.localidade].filter(Boolean).join(', '));
     if(so){   // só um campo de endereço: monta a linha inteira
       poe(g(alvo[0]) || g(alvo[3]), linha);

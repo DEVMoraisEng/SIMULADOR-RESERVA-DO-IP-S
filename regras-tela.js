@@ -5,18 +5,36 @@
 var RegrasTela = (function(){
   function vazio(v){ return v == null || String(v).trim() === ''; }
 
-  /* CEP só preenche o campo VAZIO: o que a pessoa digitou não é trocado.
-     atual e novo: {campo: valor}. Devolve o resultado (sem campos vazios dos dois lados). */
-  function preencherCep(atual, novo){
-    atual = atual || {}; novo = novo || {};
+  /* CEP preenche o campo VAZIO e também o campo que um CEP anterior preencheu e a pessoa
+     não mexeu (corrigir o CEP corrige o endereço). O que a pessoa digitou nunca é trocado.
+     atual e novo: {campo: valor}; auto (opcional): {campo: valor que o CEP anterior pôs}.
+     Devolve o resultado; campo do CEP anterior que o CEP novo não traz volta vazio (''). */
+  function preencherCep(atual, novo, auto){
+    atual = atual || {}; novo = novo || {}; auto = auto || {};
     var out = {}, chaves = {};
     Object.keys(atual).forEach(function(k){ chaves[k] = 1; });
     Object.keys(novo).forEach(function(k){ chaves[k] = 1; });
     Object.keys(chaves).forEach(function(k){
-      if(!vazio(atual[k])) out[k] = atual[k];
+      var doCep = !vazio(atual[k]) && !vazio(auto[k]) && String(atual[k]) === String(auto[k]);
+      if(!vazio(atual[k]) && !doCep) out[k] = atual[k];
       else if(!vazio(novo[k])) out[k] = novo[k];
+      else if(doCep) out[k] = '';
     });
     return out;
+  }
+
+  /* depois de um envio do link da venda: o que ainda falta (servidor + tela, sem repetir) e se
+     a página pode travar ("Enviado ✓") — só quando nada falta e nenhum arquivo falhou. */
+  function depoisDoEnvio(faltamServidor, faltamTela, falhas){
+    var falta = [], vistos = {};
+    (faltamServidor || []).concat(faltamTela || []).forEach(function(x){
+      var t = (x && typeof x === 'object') ? (x.rotulo || x.nome || '') : x;
+      t = String(t == null ? '' : t).trim();
+      var k = t.replace(/^[^:]*:\s*/, '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+      if(!t || vistos[k]) return;
+      vistos[k] = 1; falta.push(t);
+    });
+    return {travar: !falta.length && !(falhas || []).length, falta: falta};
   }
 
   /* nome de pessoa não tem número ("TESTE 01" não serve para contrato) */
@@ -62,5 +80,6 @@ var RegrasTela = (function(){
   }
 
   return {preencherCep:preencherCep, nomeSemNumero:nomeSemNumero, emailsRepetidos:emailsRepetidos,
-          fiadoresObrigatorios:fiadoresObrigatorios, unidadeDoLink:unidadeDoLink, certidaoExigida:certidaoExigida};
+          fiadoresObrigatorios:fiadoresObrigatorios, unidadeDoLink:unidadeDoLink, certidaoExigida:certidaoExigida,
+          depoisDoEnvio:depoisDoEnvio};
 })();

@@ -108,6 +108,7 @@
   <p class="rodape">Morais Engenharia e Construção · Condomínio Reserva dos Ipês</p>
 </main>
 
+<script src="polling.js?v=c0111"></script>
 <script>
   var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzwUIApU5nKXi1vG3cEs_V2DWCdkLDwY_vo0zBxO59ZBLbEihIxuOqbHdNLm-8pVVwVJQ/exec';
 
@@ -172,12 +173,10 @@
   }
 
   function acompanhar(id){
-    var tentativas = 0, viuOffline = false;
-    var timer = setInterval(function(){
-      tentativas++;
-      /* r64 — com a preliminar (offline) na tela, continua acompanhando por
-         até 2 h, esperando a definitiva; senão, ~15 min como antes. */
-      if(tentativas > (viuOffline ? 1440 : 180)){ clearInterval(timer); return; }
+    var viuOffline = false;
+    /* 01/11 (cota): consulta a cada 15 s, só com a aba visível, e para em 15 min
+       (tempo real) — inclusive com a preliminar na tela; o resultado vem por e-mail. */
+    var timer = pollSoVisivel(function(){
       fetch(APPS_SCRIPT_URL + '?' + new URLSearchParams({acao:'status', id:id}))
         .then(function(r){ return r.json(); })
         .then(function(s){
@@ -196,14 +195,14 @@
             $('corpo').innerHTML = '<div class="bloco info"><b>PRELIMINAR — valores aproximados.</b> ' +
               esc(s.mensagem || '') + '</div>' + listaResultados(s);
           } else if(s.status === 'concluido'){
-            clearInterval(timer);
+            timer.parar();
             estado('ok', viuOffline ? 'Simulação DEFINITIVA concluída' : 'Simulação concluída',
               s.email_enviado ? 'O resultado foi enviado por e-mail.' : 'O e-mail com o resultado sai em instantes.');
             var html = listaResultados(s);
             if(viuOffline) html = '<div class="bloco ok"><b>Definitiva, feita no sistema online.</b> Substitui a preliminar.</div>' + html;
             $('corpo').innerHTML = html || '<div class="bloco ok">Simulação concluída.</div>';
           } else if(s.status === 'erro'){
-            clearInterval(timer);
+            timer.parar();
             estado('erro', 'Não foi possível concluir a simulação', '');
             $('corpo').innerHTML = '<div class="bloco alerta">' + esc(s.mensagem || 'Erro na simulação.') +
               '<br>Fale com o setor de vendas.</div>';
@@ -213,7 +212,10 @@
           }
         })
         .catch(function(){});
-    }, 5000);
+    }, 15000, {tetoMs: 900000, aoEsgotar: function(){
+      estado('processando', 'Paramos de atualizar esta tela',
+        'A simulação já foi recebida: não precisa enviar de novo. O resultado chega por e-mail. Para ver aqui, abra este endereço de novo ou atualize a página (F5).');
+    }});
   }
 </script>
 </body>

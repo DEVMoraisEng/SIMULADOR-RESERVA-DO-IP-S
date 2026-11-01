@@ -90,6 +90,7 @@
 <div id="modal"><div class="box"><span class="x" onclick="fecharModal()">×</span>
   <h3 id="mTit"></h3><div id="mInfo" style="color:#6B5A45;font-size:14px;"></div><img id="mImg" style="display:none;"></div></div>
 
+<script src="polling.js?v=c0111"></script>
 <script>
 
   // Paleta do empreendimento (flores do ipê): amarelo, rosa, lilás, branco/cinza
@@ -239,7 +240,7 @@
   }
   carregar(true);
   // auto-atualiza a cada 60s (sem atrapalhar se um pop-up estiver aberto)
-  setInterval(function(){ if(!ocupado()) carregar(false); }, 60000);
+  pollSoVisivel(function(){ if(!ocupado()) carregar(false); }, 120000);   // 01/11 (cota): a cada 120 s e só com a aba visível
 
 </script>
 </body>

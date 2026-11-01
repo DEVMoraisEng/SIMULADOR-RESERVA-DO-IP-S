@@ -94,12 +94,13 @@
       <div id="avisoEnvio" class="aviso" style="display:none;margin-top:12px"></div>
       <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <button class="primario" id="btEnviar" onclick="enviar()">Enviar para a Morais</button>
-        <span class="sub" style="margin:0">Envie quando tudo estiver preenchido. Depois do envio o botão fica bloqueado.</span>
+        <span class="sub" style="margin:0">Você pode enviar em partes: cada envio guarda o que foi preenchido e mostra o que ainda falta.</span>
       </div>
     </div>
   </div>
 </main>
 
+<script src="regras-tela.js?v=t1101"></script>
 <script>
 /* =====================================================================
  * COMPLETAR INFORMAÇÕES PARA VENDA (r66)
@@ -229,7 +230,7 @@ function carregar(){
       if(!j || !j.ok){
         estado('erro', j && j.erro==='LINK_INVALIDO'
           ? '<b>Este link expirou ou não vale mais.</b> Peça um novo para a Morais.'
-          : '<b>Não consegui abrir o cadastro da venda.</b> '+esc((j&&j.erro)||''));
+          : '<b>Não consegui abrir o cadastro da venda.</b> '+esc((j&&(j.mensagem||j.erro))||''));
         return;
       }
       DADOS=j; ARQ={};
@@ -637,9 +638,15 @@ function pendencias(){
   document.querySelectorAll('.doc').forEach(function(d){
     if(d.closest('[data-oculto="1"]')) return;
     var g=d.dataset.g||'', cond=COND_GRUPOS.test(g);
-    /* 05/10 (item 4) — nenhum documento é opcional (só "outros documentos"); renda: TODOS os itens da origem */
-    var req = d.dataset.chave==='outrosDocs' ? false : (cond ? !!ativos[g] : true);
+    /* 01/11 (#154) — obrigatório = o que o servidor marcou (data-exigido) + regras da tela:
+       renda com origem conhecida (todos os itens), fiadores quando não dispensados (36x/48x),
+       comprador informado; certidão de estado civil só para quem não é solteiro. */
     var subsD = d.dataset.subs ? d.dataset.subs.split(',') : null;
+    var ch=d.dataset.chave, req;
+    if(ch==='outrosDocs') req=false;
+    else if(ch==='certidoes') req=RegrasTela.certidaoExigida(DADOS && DADOS.estadoCivil);
+    else if(cond) req=!!ativos[g];
+    else req = d.dataset.exigido==='1' || !!subsD || (/^(doc|end)Fiador[12]$/.test(ch) && !fiadorDispensado());
     var tem = d.dataset.enviado==='1' || (subsD
       ? subsD.every(function(sb){ return ((ARQ[d.dataset.chave]||{})[sb]||[]).length>0; })
       : arquivosDe(d.dataset.chave).length>0);
@@ -664,7 +671,7 @@ function atualizarTrava(){
       (TRAVADO ? 'o cadastro já foi enviado.' : 'é só clicar em <b>Enviar para a Morais</b>.');
   } else {
     el.className='trava pend';
-    el.innerHTML='<b>Ainda falta para fechar o cadastro da venda:</b><ul>'+
+    el.innerHTML='<b>Ainda falta para fechar o cadastro da venda.</b> Você já pode enviar o que tem e completar o resto depois, pelo mesmo link.<ul>'+
       (docs.length?'<li><b>Documentos ('+docs.length+'):</b> '+docs.map(esc).join(' · ')+'</li>':'')+
       (campos.length?'<li><b>Dados ('+campos.length+'):</b> '+campos.map(esc).join(' · ')+'</li>':'')+'</ul>';
   }
@@ -699,22 +706,25 @@ function enviar(){
   var lista=todosArquivos();
   var total=lista.reduce(function(a,x){ return a+x.arquivo.size; },0);
   if(total>LIMITE) return erro('Os arquivos somam mais de 20 MB. Reduza ou comprima os arquivos e tente de novo.');
-  /* 30/09: nada é opcional na venda — só envia com tudo preenchido */
-  var pd=pendencias();
-  if(pd.campos.length || pd.docs.length){
+  /* 01/11 (#154) — envio em partes: o servidor grava o que veio e devolve o que falta (faltam).
+     Só nome e CPF preenchidos precisam estar certos (conferidos acima). */
+  var pd=pendencias(), faltaTela=pd.docs.concat(pd.campos);
+  if(faltaTela.length){
     atualizarTrava();
-    return erro('<b>Ainda falta preencher para enviar:</b><br>'+
-      (pd.docs.length?'Documentos: '+pd.docs.map(esc).join(' · ')+'<br>':'')+
-      (pd.campos.length?'Dados: '+pd.campos.map(esc).join(' · '):''));
+    if(!window.confirm('Enviar o que já tem?\n\nAinda faltam: '+faltaTela.join(' · ')+
+                       '\n\nO que você enviar agora fica guardado. Depois é só abrir o mesmo link e completar.')) return;
   }
 
   ENVIANDO=true; bt.disabled=true; bt.textContent='Enviando…';
   av.style.display='block'; av.className='aviso info'; av.innerHTML='<b>Enviando os dados…</b> não feche a página.';
-  var falhas=[], enviados=0, gravados=0;
+  var falhas=[], enviados=0, gravados=0, faltamServ=[];
 
   apiPost({acao:'completarVenda', pageId:ID, token:TOKEN, campos:campos}).then(function(j){
-    if(!j || !j.ok) throw new Error((j&&j.erro)||'erro desconhecido');
+    /* 01/11: mensagem primeiro (DIA_INVALIDO, CONTRATO_JA_GERADO...); o código em erro só se não houver mensagem */
+    if(!j || !j.ok) throw new Error(((j&&(j.mensagem||j.erro))||'erro desconhecido')+
+      ((j&&j.recusados&&j.recusados.length) ? ' Campos que não podem mais ser mudados: '+j.recusados.join(', ')+'.' : ''));
     gravados=(j.gravados||[]).length;
+    faltamServ=j.faltam||j.pendencias||[];
     var chaves=Object.keys(ARQ).filter(function(ch){ return arquivosDe(ch).length && !(ch==='endConjuge' && cbEnd && cbEnd.checked); });
     /* 06/10 — comprovantes de renda: cada documento (contracheques, carteira...) vai para a coluna DELE */
     var LISTA=[];
@@ -741,18 +751,23 @@ function enviar(){
         return apiPost({acao:'anexarVenda', pageId:ID, token:TOKEN, chave:item.envio, anexos:anexos});
       }).then(function(x){
         if(x && x.ok){ enviados+=(x.enviados||0); (x.falhas||[]).forEach(function(f){ falhas.push(f); }); }
-        else falhas.push(nome+': '+((x&&x.erro)||'falhou'));
+        else falhas.push(nome+': '+((x&&(x.mensagem||x.erro))||'falhou'));
       }).catch(function(){ falhas.push(nome+': sem resposta'); }).then(proximo);
     }
     return proximo();
   }).then(function(){
     ENVIANDO=false;
-    if(falhas.length){ bt.disabled=false; bt.textContent='Enviar para a Morais'; }          // algum arquivo não subiu: libera para tentar de novo
-    else { TRAVADO=true; bt.disabled=true; bt.textContent='Enviado ✓'; }                    // enviou: bloqueia
+    /* 01/11 (#154) — só trava ("Enviado ✓") quando nem o servidor nem a tela cobram mais nada e
+       todos os arquivos subiram. Senão a página segue aberta para completar e enviar de novo. */
+    var dep=RegrasTela.depoisDoEnvio(faltamServ, faltaTela, falhas);
+    if(dep.travar){ TRAVADO=true; bt.disabled=true; bt.textContent='Enviado ✓'; }
+    else { bt.disabled=false; bt.textContent='Enviar para a Morais'; }
     av.className='aviso ok';
     av.innerHTML='<b>Enviado.</b> '+(gravados?gravados+' campo(s) atualizados. ':'')+(enviados?enviados+' documento(s) anexados.':'')+
       (falhas.length?'<br><b style="color:#8A2E17">Não subiram:</b> '+falhas.map(esc).join(' · '):'')+
-      '<br>A Morais já foi avisada. Se precisar corrigir algo, abra o link de novo.';
+      (dep.falta.length?'<br><b>Ainda falta:</b> '+dep.falta.map(esc).join(' · ')+
+        '<br>O que você enviou ficou guardado. Complete o que falta e clique em <b>Enviar para a Morais</b> de novo, agora ou depois pelo mesmo link.'
+        :'<br>A Morais já foi avisada. Se precisar corrigir algo, abra o link de novo.');
     carregar();
   }).catch(function(e){
     ENVIANDO=false; bt.disabled=false; bt.textContent='Enviar para a Morais';

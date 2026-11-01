@@ -258,7 +258,7 @@
     <div class="passo" data-p="5" onclick="irPara(5)" title="Ir para este passo">5. Enviar</div>
   </div>
 
-  <form id="formProposta" autocomplete="off">
+  <form id="formProposta" autocomplete="off" novalidate>
 
   <!-- ============================ PASSO 1 ============================ -->
   <section class="card" data-etapa="1">
@@ -874,6 +874,7 @@
 </main>
 
 <script src="base-offline.js?v=r97a"></script>
+<script src="regras-tela.js?v=t1101"></script>
 <script src="diluir-ui.js"></script>
 <script>
   /* =====================================================================
@@ -2069,7 +2070,7 @@
   }
   /* 30/10/2026 — fiador só é exigido quando a entrada tem parcelas pós-chaves
      (prazo de 36 ou 48 meses). Em 24x não há pós-chaves: fiador dispensado. */
-  function fiadorExigido(){ var p=Number(prazoEscolhido())||0; return !p || p>24; }
+  function fiadorExigido(){ return RegrasTela.fiadoresObrigatorios(prazoEscolhido()); }   /* 01/11: regra em regras-tela.js */
   function atualizarFiadorExigido(){
     var ex=fiadorExigido(), a=document.getElementById('fiaDispensado'), b=document.getElementById('fiaObrigatorio'),
         t=document.getElementById('passoFiaTag');
@@ -2584,7 +2585,11 @@
       el.style.opacity='';
       if(!j || j.erro){ CEP_ULTIMO[chave]=''; erro('CEP <b>'+fmtCepP(c)+'</b> não encontrado. Confira o número ou preencha o endereço à mão.', el); return; }
       var vals=[j.logradouro, j.bairro, j.localidade];
-      alvos.forEach(function(a,i){ if(a && vals[i]){ a.value=padrao(vals[i]); a.classList.add('lido'); } });
+      /* 01/11 (#67) — o CEP só preenche campo VAZIO: o que a pessoa digitou fica */
+      var atualC={}, novoC={};
+      alvos.forEach(function(a,i){ if(a){ atualC[i]=a.value; novoC[i]=vals[i]?padrao(vals[i]):''; } });
+      var resC=RegrasTela.preencherCep(atualC, novoC);
+      alvos.forEach(function(a,i){ if(a && !String(a.value||'').trim() && resC[i]){ a.value=resC[i]; a.classList.add('lido'); } });
       var prox=alvos[0] && alvos[0].form ? (alvos[0].form[el.name==='cep'?'numero':(el.name||'').replace('cep','numero')]) : null;
       if(!prox){ var dd=el.closest('.dep'); prox=dd && dd.querySelector('.dep-num'); }
       if(prox && !prox.value) try{ prox.focus(); }catch(e){}
@@ -2810,6 +2815,26 @@
       return p.replace(/[^A-Za-zÀ-ÿ]/g,'').length >= 2;
     }).length >= 2;
   }
+  /* 01/11 (testes e2e) — nome de pessoa não leva número ("TESTE 01"). Devolve a mensagem de erro ou ''. */
+  function nomeComNumero(v, quem){
+    return RegrasTela.nomeSemNumero(v) ? '' : 'O <b>nome '+quem+'</b> não pode ter números. Escreva como está no documento.';
+  }
+  /* 01/11 (testes e2e) — cada pessoa com o seu e-mail (cada um assina o contrato pelo próprio e-mail).
+     Confere proponente, cônjuge, compradores, fiadores e cônjuges dos fiadores; aponta o 2º campo repetido. */
+  function emailRepetidoErro(){
+    var f=F(), itens=[];
+    function add(el){ if(el && String(el.value||'').trim()) itens.push(el); }
+    add(f.emailProponente); if(conjugeAtivo()) add(f.emailConjuge);
+    if(f.maisDeUmComprador && f.maisDeUmComprador.checked) document.querySelectorAll('#listaDependentes .dep-email').forEach(add);
+    [1,2].forEach(function(n){ if(fiadorInformado(n)){ add(f['emailFiador'+n]);
+      if(fiadorCasado(f['estadoCivilFiador'+n].value)) add(f['emailConjugeFiador'+n]); } });
+    var rep=RegrasTela.emailsRepetidos(itens.map(function(el){ return el.value; }));
+    if(!rep.length) return true;
+    var vistos=0, alvo=null;
+    itens.forEach(function(el){ if(String(el.value).trim().toLowerCase()===rep[0]){ vistos++; if(vistos===2 && !alvo) alvo=el; } });
+    return erro('O e-mail <b>'+esc_(rep[0])+'</b> foi usado para mais de uma pessoa. '+
+                'Cada pessoa precisa do <b>próprio e-mail</b> — é por ele que cada um assina o contrato.', alvo);
+  }
   /* r61 — certidão da matrícula 64.602, emitida em 17/04/2026 */
   var REGISTRO_INCORPORACAO = 'R-3 da matrícula nº 64.602 (CNM 028480.2.0064602-49), no Registro de Imóveis da Comarca de Senador Canedo/GO; empreendimento submetido ao regime de patrimônio de afetação (AV-4-64.602)';
   function validarPasso(n){
@@ -2830,11 +2855,13 @@
       if(!f.cliente.value.trim()) return erro('Informe o <b>nome do proponente</b>.', f.cliente);
       if(!nomeCompleto(f.cliente.value))
         return erro('Informe o <b>nome completo</b> do proponente (nome e sobrenome).', f.cliente);
+      if(nomeComNumero(f.cliente.value,'do proponente')) return erro(nomeComNumero(f.cliente.value,'do proponente'), f.cliente);
       /* 01/10 — casado / união estável: regime, nome, CPF, RG e nacionalidade do cônjuge */
       if(conjugeAtivo()){
         if(!f.regimeBens.value) return erro('Escolha o <b>regime de bens</b> do casamento / união estável.', f.regimeBens);
         if(!nomeCompleto(f.conjuge.value))
           return erro('Informe o <b>nome completo</b> do cônjuge (nome e sobrenome).', f.conjuge);
+        if(nomeComNumero(f.conjuge.value,'do cônjuge')) return erro(nomeComNumero(f.conjuge.value,'do cônjuge'), f.conjuge);
         if(!cpfValido(f.cpfConjuge.value)) return erro('<b>CPF do cônjuge</b> inválido. Confira os números.', f.cpfConjuge);
         if(!f.nacionalidadeConjuge.value.trim()) return erro('Informe a <b>nacionalidade do cônjuge</b>.', f.nacionalidadeConjuge);
         if(!f.conjugeMesmoEndereco.checked){
@@ -2857,6 +2884,7 @@
       /* 01/10 — e-mail do proponente obrigatório (vai para o cadastro da venda e para o contrato) */
       if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(f.emailProponente.value||'').trim()))
         return erro('Informe um <b>e-mail válido do proponente</b>.', f.emailProponente);
+      if(!emailRepetidoErro()) return false;
     }
     if(n===2){
       if(f.maisDeUmComprador && f.maisDeUmComprador.checked){
@@ -2864,6 +2892,8 @@
         for(var di=0; di<deps.length; di++){
           if(!nomeCompleto(deps[di].value))
             return erro('Informe o <b>nome completo</b> de cada dependente / 2º comprador.', deps[di]);
+          if(nomeComNumero(deps[di].value,'de '+esc_(deps[di].value.trim())))
+            return erro(nomeComNumero(deps[di].value,'de '+esc_(deps[di].value.trim())), deps[di]);
         }
         /* 02/10 (itens 11 e 12) — dependente pode ir sem CPF; comprador precisa de CPF válido.
            Sem crédito aprovado, o comprador também precisa de nascimento, e-mail, celular, renda e origem. */
@@ -2974,11 +3004,20 @@
     }
     if(n===3){
       /* 01/10 — fiador informado: dados completos (o documento e o comprovante são cobrados no passo 4) */
+      /* 01/11 (#9/#38) — em 36x/48x os DOIS fiadores são obrigatórios (o servidor também recusa: erro FIADORES) */
       for(var fn=1; fn<=2; fn++){
-        if(!fiadorInformado(fn)) continue;
+        if(!fiadorInformado(fn) && !fiadorExigido()) continue;
         var q='do fiador '+fn;
+        if(!fiadorInformado(fn))
+          return erro('Com a entrada em <b>'+(prazoEscolhido()||'36 ou 48')+' meses</b> a proposta precisa de <b>2 fiadores</b>. '+
+                      'Preencha o <b>fiador '+fn+'</b> (nome completo e CPF).', f['fiador'+fn]);
         if(!nomeCompleto(f['fiador'+fn].value)) return erro('Informe o <b>nome completo '+q+'</b>.', f['fiador'+fn]);
+        if(nomeComNumero(f['fiador'+fn].value, q)) return erro(nomeComNumero(f['fiador'+fn].value, q), f['fiador'+fn]);
         if(!cpfValido(f['cpfFiador'+fn].value)) return erro('<b>CPF '+q+'</b> inválido. Confira os números.', f['cpfFiador'+fn]);
+        if(dig(f['cpfFiador'+fn].value)===dig(f.cpf.value))
+          return erro('O <b>CPF '+q+'</b> é o mesmo do proponente. O fiador precisa ser outra pessoa.', f['cpfFiador'+fn]);
+        if(fn===2 && fiadorInformado(1) && dig(f.cpfFiador2.value)===dig(f.cpfFiador1.value))
+          return erro('Os dois fiadores estão com o <b>mesmo CPF</b>. Cada fiador precisa ser uma pessoa diferente.', f.cpfFiador2);
         if(!f['nacionalidadeFiador'+fn].value.trim()) return erro('Informe a <b>nacionalidade '+q+'</b>.', f['nacionalidadeFiador'+fn]);
         if(dig(f['cepFiador'+fn].value).length!==8) return erro('Informe o <b>CEP '+q+'</b>.', f['cepFiador'+fn]);
         if(!f['logradouroFiador'+fn].value.trim()) return erro('Informe o <b>endereço '+q+'</b>.', f['logradouroFiador'+fn]);
@@ -2995,10 +3034,12 @@
           if(!fiadorCasado(f['estadoCivilFiador'+nc].value) || casalF) continue;
           var nm=f['conjugeFiador'+nc], cp=f['cpfConjugeFiador'+nc];
           if(nm.value.trim() && !nomeCompleto(nm.value)) return erro('Informe o <b>nome completo</b> do cônjuge do fiador '+nc+'.', nm);
+          if(nomeComNumero(nm.value, 'do cônjuge do fiador '+nc)) return erro(nomeComNumero(nm.value, 'do cônjuge do fiador '+nc), nm);
           if(dig(cp.value) && !cpfValido(cp.value)) return erro('<b>CPF do cônjuge do fiador '+nc+'</b> inválido. Confira os números.', cp);
         }
       }
     }
+    if(n===3 && !emailRepetidoErro()) return false;
     if(n===4){
       var lista=arquivosAnexados();
       var total=lista.reduce(function(a,x){return a+x.arquivo.size;},0);
@@ -3084,6 +3125,12 @@
 
   /* ---------- máscaras ---------- */
   function ligarMascaras(){
+    /* 01/11 (#29/#31) — o form tem novalidate: sem o balão do navegador, a mensagem própria aparece ao sair do campo */
+    var fE=F();
+    if(fE.email) fE.email.addEventListener('blur', function(){ var v=String(fE.email.value||'').trim();
+      if(v && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) erro('Informe um <b>e-mail válido</b> do corretor (ex.: nome@exemplo.com).', fE.email); });
+    if(fE.celularCorretor) fE.celularCorretor.addEventListener('blur', function(){ var d=dig(fE.celularCorretor.value);
+      if(d && d.length<10) erro('Informe o <b>celular do corretor</b> com DDD.', fE.celularCorretor); });
     ['cpf','cpfConjuge','cpfFiador1','cpfFiador2','cpfConjugeFiador1','cpfConjugeFiador2','cpfCorretor'].forEach(function(nome){
       var el=F()[nome]; if(!el) return;
       el.addEventListener('input',function(e){
@@ -3295,7 +3342,8 @@
        é analisada se houver desistência. */
     var livres=UNIDADES.filter(aceitaProposta);
     var lista=livres.length?livres:UNIDADES;
-    sel.innerHTML=lista.map(function(u){
+    /* 01/11 (#174) — opção vazia no topo: unidade vendida no link NÃO cai na 1ª da lista */
+    sel.innerHTML='<option value="">— escolha a unidade —</option>'+lista.map(function(u){
       return '<option value="'+u.unidade+'">Unidade '+u.unidade+' — T'+(u.tipo||'—')+
              ' · '+brl(u.valorVenda)+(estadoUn(u)==='RESERVADA'?' · RESERVADA':'')+'</option>';
     }).join('');
@@ -3306,19 +3354,19 @@
       var achou=null;
       for(var i=0;i<UNIDADES.length;i++) if(String(UNIDADES[i].unidade)===String(pedida)) achou=UNIDADES[i];
       var est=achou?estadoUn(achou):'BREVE';
-      if(achou && est!=='DISPONIVEL' && est!=='RESERVADA'){
+      var r=RegrasTela.unidadeDoLink(lista, pedida, est==='VENDIDA'?'vendida':'indisponível');
+      sel.value=r.valor;
+      if(r.aviso){
         av.className='status erro';
         av.style.display='block';
-        av.innerHTML='<b>A unidade '+pedida+' está '+
-          (est==='VENDIDA'?'vendida':'indisponível')+
-          '.</b><br>Não dá para enviar proposta para ela. Escolha outra unidade na lista acima — '+
+        av.innerHTML='<b>'+esc_(r.aviso)+'</b><br>Não dá para enviar proposta para ela. Escolha outra unidade na lista acima — '+
           'a <b>simulação</b> continua liberada normalmente pelo mapa.';
       } else {
         av.style.display='none';
-        sel.value=pedida;
       }
     } else {
       av.style.display='none';
+      sel.selectedIndex = lista.length ? 1 : 0;   // sem unidade no link: a 1ª da lista, como antes
     }
     if(!livresDisponiveis()){
       av.className='status erro';
@@ -3517,8 +3565,10 @@
         if(r && r.ok){ posCriacao(r); }
         else {
           bt.disabled=false;
-          mostrar('erro', r && r.erro==='CPF_INVALIDO' ? 'CPF inválido.' :
-            ('Não foi possível enviar: '+((r&&(r.erro||r.mensagem))||'erro desconhecido')));
+          /* 01/11 — FIADORES (36x/48x sem os 2 fiadores) e outros erros trazem a mensagem pronta do servidor */
+          if(r && r.erro==='FIADORES') irPara(3);
+          mostrar('erro', r && r.mensagem ? esc_(r.mensagem) : r && r.erro==='CPF_INVALIDO' ? 'CPF inválido.' :
+            ('Não foi possível enviar: '+esc_((r&&r.erro)||'erro desconhecido')));
         }
       })
       .catch(function(){ confirmarEnvio(bt, 0); });
@@ -3550,7 +3600,7 @@
           .then(function(x){
             if(x && x.ok){ ok+=(x.anexosNotion&&x.anexosNotion.ok)||0;
                            (x.anexosNotion&&x.anexosNotion.falhas||[]).forEach(function(f){ falhas.push(f); }); }
-            else throw new Error((x&&x.erro)||'falhou');
+            else throw new Error((x&&(x.mensagem||x.erro))||'falhou');
           })
           .catch(function(e){ if(n<1) return tentar(n+1); falhas.push(rot+': '+(e.message||'sem resposta')); });
       };

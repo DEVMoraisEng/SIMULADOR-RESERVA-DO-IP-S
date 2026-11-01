@@ -162,7 +162,7 @@
     <div class="passo" data-passo="3" onclick="voltarPasso(3)">3. Enviar</div>
   </div>
 
-  <form id="formSimulacao">
+  <form id="formSimulacao" novalidate>
     <section class="card etapa" data-etapa="1">
       <h2>Unidade e perfil do proponente</h2>
       <div class="linha">
@@ -1062,6 +1062,13 @@
       mostrarStatus('erro','CPF inválido. Confira os números antes de enviar.');
       e.target.cpfCliente.focus(); return;
     }
+    /* 01/11 (#29/#31) — com novalidate, os campos obrigatórios são conferidos aqui, com mensagem própria */
+    if(!String(e.target.corretor.value||'').trim()){ mostrarStatus('erro','Informe o <b>nome do corretor</b>.'); e.target.corretor.focus(); return; }
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(e.target.emailDestino.value||'').trim())){
+      mostrarStatus('erro','Informe um <b>e-mail válido do corretor</b> — é para ele que o resultado vai (ex.: nome@exemplo.com).');
+      e.target.emailDestino.focus(); return;
+    }
+    if(!document.getElementById('aceite').checked){ mostrarStatus('erro','Marque a <b>autorização de uso dos dados</b> para enviar.'); return; }
     var f=e.target,botao=f.querySelector('button[type="submit"]'),textoBotao=botao.textContent;
     var prazo=(document.querySelector('[name="prazoEntrada"]:checked')||{}).value||'48';
     var dados=Object.assign({},TRAVADOS,{
@@ -1139,7 +1146,7 @@
     /* item 1 (r31) — aviso de spam no fim */
     var AVISO_SPAM='<div style="margin-top:12px;padding:9px 12px;border-radius:6px;background:#FBEEC8;border:1px solid #EFB700;color:#7A4A16;font-size:13px;"><b>📬 Não encontrou o e-mail?</b> Confira a caixa de <b>spam / lixo eletrônico</b> e marque como "não é spam" — assim os próximos chegam na caixa de entrada.</div>';
     mostrarStatus('processando','<strong>Solicitação recebida.</strong><br>Simulando as linhas selecionadas. O resultado chega por e-mail.'+AVISO_SPAM);
-    var AVISO_TETO='<strong>Ainda processando.</strong><br>Paramos de atualizar esta tela para não sobrecarregar o sistema. O resultado chega por e-mail. Para ver aqui, abra a tela de novo ou atualize a página (F5).'+AVISO_SPAM;
+    var AVISO_TETO='<strong>Ainda processando.</strong><br>Paramos de atualizar esta tela para não sobrecarregar o sistema. A simulação já foi recebida: <b>não precisa enviar de novo</b>. O resultado chega por e-mail. Para ver aqui, abra a tela de novo ou atualize a página (F5).'+AVISO_SPAM;
     var timer=pollSoVisivel(async function(){
       try{
         var s=await apiGet({acao:'status',id:id});
@@ -1151,7 +1158,7 @@
         }else if(s.status==='erro'){timer.parar();if(botao)botao.disabled=false;mostrarStatus('erro',s.mensagem||'Não foi possível concluir.');}
         else if(s.status==='pendente'&&s.posicao_fila>0){mostrarStatus('processando','Na fila — '+s.posicao_fila+' à frente. O resultado chega por e-mail.');}
       }catch(err){}
-    },15000,{tetoMs:900000,aoEsgotar:function(){ if(botao)botao.disabled=false; mostrarStatus('processando',AVISO_TETO); }});   // 01/11 (cota): a cada 15 s, no máximo 15 min
+    },15000,{tetoMs:900000,aoEsgotar:function(){ /* 01/11: botão segue bloqueado — reenviar duplicaria a simulação */ mostrarStatus('processando',AVISO_TETO); }});   // 01/11 (cota): a cada 15 s, no máximo 15 min
   }
   /* ===== 31/10/2026 — TRANSFORMAR A SIMULAÇÃO EM PROPOSTA ==================
      Guarda tudo o que foi preenchido aqui (localStorage) e o print da aprovação da

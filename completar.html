@@ -231,6 +231,7 @@
 <script src="fluxo-calc.js"></script>
 <script src="fluxo-bloco.js"></script>
 <script src="diluir-ui.js"></script>
+<script src="regras-tela.js?v=t1101"></script>
 <script>
 /* =====================================================================
  * COMPLETAR PROPOSTA (r49)
@@ -356,7 +357,7 @@ function carregar(){
       if(!j || !j.ok){
         estado('erro', j && j.erro==='LINK_INVALIDO'
           ? '<b>Este link expirou ou não vale mais.</b> Peça um novo para a Morais.'
-          : '<b>Não consegui abrir a proposta.</b> '+esc((j&&j.erro)||'')); 
+          : '<b>Não consegui abrir a proposta.</b> '+esc((j&&(j.mensagem||j.erro))||'')); 
         return;
       }
       DADOS=j; pintar();
@@ -845,7 +846,11 @@ function lkCep(el){
   var c=dig(el.value), d=el.closest('.lk-dep'); if(!d || c.length!==8 || el.dataset.ult===c) return; el.dataset.ult=c;
   fetch('https://viacep.com.br/ws/'+c+'/json/').then(function(r){ return r.json(); }).then(function(j){
     if(!j || j.erro) return;
-    [['.lk-logr',j.logradouro],['.lk-setor',j.bairro],['.lk-cid',j.localidade]].forEach(function(p){ var e=d.querySelector(p[0]); if(e && p[1]){ e.value=semAcento(p[1]); e.classList.add('lido'); } });
+    /* 01/11 (#67) — o CEP só preenche campo VAZIO */
+    var cps=[['.lk-logr',j.logradouro],['.lk-setor',j.bairro],['.lk-cid',j.localidade]], at={}, nv={};
+    cps.forEach(function(p,i){ var e=d.querySelector(p[0]); at[i]=e?e.value:''; nv[i]=p[1]?semAcento(p[1]):''; });
+    var res=RegrasTela.preencherCep(at, nv);
+    cps.forEach(function(p,i){ var e=d.querySelector(p[0]); if(e && !String(e.value||'').trim() && res[i]){ e.value=res[i]; e.classList.add('lido'); } });
     atualizarTrava();
   }).catch(function(){ el.dataset.ult=''; });
 }
@@ -965,11 +970,15 @@ function buscarCepLink(el){
   fetch('https://viacep.com.br/ws/'+c+'/json/').then(function(r){ return r.json(); }).then(function(j){
     if(!j || j.erro){ CEP_LINK_ULT[id]=''; return; }
     var g=function(n){ return document.getElementById('c-'+n); }, so=alvo.length===1 || !g(alvo[1]);
+    /* 01/11 (#67) — o CEP só preenche campo VAZIO: o que a pessoa digitou fica */
+    var poe=function(e, v){ if(!e) return; var r=RegrasTela.preencherCep({v:e.value}, {v:v});
+      if(r.v && r.v!==e.value){ e.value=r.v; e.classList.add('lido'); } };
+    var linha=semAcento([j.logradouro,j.bairro,j.localidade].filter(Boolean).join(', '));
     if(so){   // só um campo de endereço: monta a linha inteira
-      var un=g(alvo[0]) || g(alvo[3]); if(un){ un.value=semAcento([j.logradouro,j.bairro,j.localidade].filter(Boolean).join(', ')); un.classList.add('lido'); }
+      poe(g(alvo[0]) || g(alvo[3]), linha);
     } else {
-      [[alvo[0],j.logradouro],[alvo[1],j.bairro],[alvo[2],j.localidade]].forEach(function(p){ var e=g(p[0]); if(e && p[1]){ e.value=semAcento(p[1]); e.classList.add('lido'); } });
-      if(!g(alvo[0]) && alvo[3] && g(alvo[3])){ g(alvo[3]).value=semAcento([j.logradouro,j.bairro,j.localidade].filter(Boolean).join(', ')); }
+      [[alvo[0],j.logradouro],[alvo[1],j.bairro],[alvo[2],j.localidade]].forEach(function(p){ if(p[1]) poe(g(p[0]), semAcento(p[1])); });
+      if(!g(alvo[0]) && alvo[3] && g(alvo[3])) poe(g(alvo[3]), linha);
     }
     atualizarTrava();
   }).catch(function(){ CEP_LINK_ULT[id]=''; });
@@ -1614,7 +1623,7 @@ function enviar(){
       carregar();   // recarrega para mostrar o que ficou gravado
     } else {
       av.className='aviso erro';
-      av.innerHTML='Não consegui gravar: '+esc((j&&j.erro)||'erro desconhecido');
+      av.innerHTML='Não consegui gravar: '+esc((j&&(j.mensagem||j.erro))||'erro desconhecido');
     }
   }).catch(function(){
     bt.disabled=false;

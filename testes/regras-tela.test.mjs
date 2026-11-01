@@ -154,3 +154,16 @@ test("depois do envio: o rótulo da tela com grupo não repete o do servidor", (
   assert.deepEqual(puro(R.depoisDoEnvio(["RG do proponente"], ["Proponente: RG do proponente", "Comprovante de endereço"], [])).falta,
     ["RG do proponente", "Comprovante de endereço"]);
 });
+
+/* ---- rodada de conserto 2: a pessoa faz parte da chave ---- */
+test("depois do envio: itens de pessoas diferentes nunca se juntam", () => {
+  assert.deepEqual(puro(R.depoisDoEnvio([], ["Fiador 1: Nome", "Fiador 2: Nome", "Comprador 1: CPF", "Comprador 2: CPF"], [])).falta,
+    ["Fiador 1: Nome", "Fiador 2: Nome", "Comprador 1: CPF", "Comprador 2: CPF"]);
+  assert.deepEqual(puro(R.depoisDoEnvio(["Nome do fiador 1"], ["Fiador 1: Nome do fiador 1", "Fiador 2: Nome do fiador 2"], [])).falta,
+    ["Nome do fiador 1", "Fiador 2: Nome do fiador 2"]);
+  // tela + servidor, mesmo item: uma vez só
+  assert.deepEqual(puro(R.depoisDoEnvio(["RG do proponente"], ["Proponente: RG do proponente"], [])).falta, ["RG do proponente"]);
+  // rótulo que não dá para ligar à pessoa: fica (duplicado é melhor que sumir)
+  assert.deepEqual(puro(R.depoisDoEnvio(["Data de nascimento"], ["Proponente: Data de nascimento"], [])).falta,
+    ["Data de nascimento", "Proponente: Data de nascimento"]);
+});

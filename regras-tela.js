@@ -24,13 +24,27 @@ var RegrasTela = (function(){
   }
 
   /* depois de um envio do link da venda: o que ainda falta (servidor + tela, sem repetir) e se
-     a página pode travar ("Enviado ✓") — só quando nada falta e nenhum arquivo falhou. */
+     a página pode travar ("Enviado ✓") — só quando nada falta e nenhum arquivo falhou.
+     Chave de repetição = PESSOA + campo. A tela escreve "Grupo: rótulo" (ex.: "Fiador 1: Nome");
+     o servidor escreve o rótulo sozinho (ex.: "Nome do fiador 1"). Os dois só viram o mesmo item
+     quando o rótulo já nomeia a pessoa do grupo ("Proponente: RG do proponente" = "RG do proponente").
+     Rótulo que não dá para ligar fica: mostrar repetido é melhor que esconder o que falta. */
+  function palavras(x){
+    return String(x).normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim();
+  }
+  function chaveFalta(t){
+    var i = t.indexOf(':');
+    if(i < 0) return palavras(t);
+    var grupo = palavras(t.slice(0, i)), campo = palavras(t.slice(i + 1));
+    if(!grupo) return campo;
+    return (' ' + campo + ' ').indexOf(' ' + grupo + ' ') >= 0 ? campo : grupo + '|' + campo;
+  }
   function depoisDoEnvio(faltamServidor, faltamTela, falhas){
     var falta = [], vistos = {};
     (faltamServidor || []).concat(faltamTela || []).forEach(function(x){
       var t = (x && typeof x === 'object') ? (x.rotulo || x.nome || '') : x;
       t = String(t == null ? '' : t).trim();
-      var k = t.replace(/^[^:]*:\s*/, '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+      var k = t && chaveFalta(t);
       if(!t || vistos[k]) return;
       vistos[k] = 1; falta.push(t);
     });

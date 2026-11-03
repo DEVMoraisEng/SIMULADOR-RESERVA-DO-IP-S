@@ -202,10 +202,10 @@
     "planta": "assets/plantas/tipo-2.jpg",
     "informacoes": "",
     "decorado": false,
-    "disponivel": true,
+    "disponivel": false,
     "reservado": false,
-    "vendido": false,
-    "vendidaCru": "NAO"
+    "vendido": true,
+    "vendidaCru": "SIM"
   },
   {
     "unidade": "17",
@@ -314,7 +314,7 @@
   {
     "unidade": "25",
     "tipo": "3",
-    "valorVenda": 320000,
+    "valorVenda": 325000,
     "avaliacao": 306000,
     "planta": "assets/plantas/tipo-3.jpg",
     "informacoes": "",
@@ -366,7 +366,7 @@
   {
     "unidade": "29",
     "tipo": "3",
-    "valorVenda": 330000,
+    "valorVenda": 320000,
     "avaliacao": 306000,
     "planta": "assets/plantas/tipo-3.jpg",
     "informacoes": "",
@@ -379,7 +379,7 @@
   {
     "unidade": "30",
     "tipo": "3",
-    "valorVenda": 330000,
+    "valorVenda": 320000,
     "avaliacao": 306000,
     "planta": "assets/plantas/tipo-3.jpg",
     "informacoes": "",
@@ -704,7 +704,7 @@
   {
     "unidade": "55",
     "tipo": "5",
-    "valorVenda": 350000,
+    "valorVenda": 345000,
     "avaliacao": 306000,
     "planta": "assets/plantas/tipo-5.jpg",
     "informacoes": "",

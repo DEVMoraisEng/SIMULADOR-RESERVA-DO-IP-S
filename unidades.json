@@ -190,9 +190,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "reservado": false,
-    "vendido": true,
-    "vendidaCru": "SIM"
+    "reservado": true,
+    "vendido": false,
+    "vendidaCru": "RESERVADA"
   },
   {
     "unidade": "16",
@@ -203,9 +203,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "reservado": false,
-    "vendido": true,
-    "vendidaCru": "SIM"
+    "reservado": true,
+    "vendido": false,
+    "vendidaCru": "RESERVADA"
   },
   {
     "unidade": "17",
@@ -411,9 +411,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "reservado": false,
-    "vendido": true,
-    "vendidaCru": "SIM"
+    "reservado": true,
+    "vendido": false,
+    "vendidaCru": "RESERVADA"
   },
   {
     "unidade": "33",

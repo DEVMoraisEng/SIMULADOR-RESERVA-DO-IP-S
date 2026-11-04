@@ -23611,3 +23611,11 @@ CASA,PRICE,46,5500,04/05/1980,04/11/2026,ok,CCSBPE SFH PF - TR - Apoio a Produç
 CASA,PRICE,50,5500,04/05/1976,04/11/2026,ok,CCSBPE SFH PF - TR - Apoio a Produção Com PJ - Unidade Complementar Residencial,134960.54,1375.0,360.0,360.0,25.0,44.1,171039.46,TR + 10.9259% a.a.,TR + 11.49% a.a.,SBPE SFH - TR - AQUISIÇÃO DE IMÓVEL RESIDENCIAL NOVO | SBPE SFH - TR - UNIDADE PF VINCULADA A EMPREENDIMENTO FINANCIADO NA CAIXA,,41.3,b7
 CASA,PRICE,18,5750,04/05/2008,04/11/2026,ok,CCSBPE SFH PF - TR - Apoio a Produção Com PJ - Unidade Complementar Residencial,145634.22,1437.5,360.0,360.0,25.0,47.59,160365.78,TR + 10.9259% a.a.,TR + 11.49% a.a.,SBPE SFH - TR - AQUISIÇÃO DE IMÓVEL RESIDENCIAL NOVO | SBPE SFH - TR - UNIDADE PF VINCULADA A EMPREENDIMENTO FINANCIADO NA CAIXA,,331.3,b7
 CASA,PRICE,22,5750,04/05/2004,04/11/2026,ok,CCSBPE SFH PF - TR - Apoio a Produção Com PJ - Unidade Complementar Residencial,145634.22,1437.5,360.0,360.0,25.0,47.59,160365.78,TR + 10.9259% a.a.,TR + 11.49% a.a.,SBPE SFH - TR - AQUISIÇÃO DE IMÓVEL RESIDENCIAL NOVO | SBPE SFH - TR - UNIDADE PF VINCULADA A EMPREENDIMENTO FINANCIADO NA CAIXA,,441.7,b7
+CASA,PRICE,18,5000,04/05/2008,04/11/2026,ok,CCSBPE SFH PF - TR - Apoio a Produção Com PJ - Unidade Complementar Residencial,126021.83,1250.0,360.0,360.0,25.0,41.18,179978.17,TR + 10.9259% a.a.,TR + 11.49% a.a.,SBPE SFH - TR - AQUISIÇÃO DE IMÓVEL RESIDENCIAL NOVO | SBPE SFH - TR - UNIDADE PF VINCULADA A EMPREENDIMENTO FINANCIADO NA CAIXA,,505.3,b7
+CASA,PRICE,22,5000,,04/11/2026,erro,,,,,,,,,,,,iframe 'simuladorIntranet' não encontrado - confirme que a tela de Identificação estava aberta antes de apertar Enter.,357.3,b7
+CASA,PRICE,26,5000,,04/11/2026,erro,,,,,,,,,,,,"Falha de rede ao falar com o SIOP. [Error: Page.goto: net::ERR_NAME_NOT_RESOLVED at https://habitacao.caixa.gov.br/siopiweb-web/siopientrada.do
+Call log:
+  - navigating to ""https://habitacao.caixa.gov.br/siopiweb-web/siopientrada.do"", waiting ]",0.0,b7
+CASA,PRICE,30,5000,,04/11/2026,erro,,,,,,,,,,,,"Falha de rede ao falar com o SIOP. [Error: Page.goto: net::ERR_NAME_NOT_RESOLVED at https://habitacao.caixa.gov.br/siopiweb-web/siopientrada.do
+Call log:
+  - navigating to ""https://habitacao.caixa.gov.br/siopiweb-web/siopientrada.do"", waiting ]",0.2,b7

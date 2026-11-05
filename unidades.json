@@ -190,9 +190,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "reservado": true,
-    "vendido": false,
-    "vendidaCru": "RESERVADA"
+    "reservado": false,
+    "vendido": true,
+    "vendidaCru": "SIM"
   },
   {
     "unidade": "16",
@@ -203,9 +203,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "reservado": true,
-    "vendido": false,
-    "vendidaCru": "RESERVADA"
+    "reservado": false,
+    "vendido": true,
+    "vendidaCru": "SIM"
   },
   {
     "unidade": "17",

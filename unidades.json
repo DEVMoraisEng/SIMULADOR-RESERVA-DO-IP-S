@@ -176,10 +176,10 @@
     "planta": "assets/plantas/tipo-2.jpg",
     "informacoes": "",
     "decorado": false,
-    "disponivel": true,
-    "reservado": false,
+    "disponivel": false,
+    "reservado": true,
     "vendido": false,
-    "vendidaCru": "NAO"
+    "vendidaCru": "RESERVADA"
   },
   {
     "unidade": "15",
@@ -717,7 +717,7 @@
   {
     "unidade": "56",
     "tipo": "5",
-    "valorVenda": 350000,
+    "valorVenda": 345000,
     "avaliacao": 306000,
     "planta": "assets/plantas/tipo-5.jpg",
     "informacoes": "",

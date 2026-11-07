@@ -143,7 +143,7 @@
           gravado na proposta quando você clicar em <b>Enviar para a Morais</b>.</p>
         <div class="v-secao">1. Financiamento</div>
         <div class="grade">
-          <div class="campo"><label>Valor financiado (R$)</label><input id="v-financiado" readonly>
+          <div class="campo"><label>Valor financiado (R$)</label><input id="v-financiado" inputmode="numeric">
             <span class="ajuda" id="v-notaFin"></span></div>
         </div>
         <div class="v-secao">2. Valor para o sinal</div>
@@ -994,6 +994,9 @@ function buscarCepLink(el){
  * se algo mudou. Enquanto nada muda, a tela mostra o fluxo GRAVADO.
  * =================================================================== */
 var VENDA0=null, VDIL=[0,0];
+/* 07/11/2026 (dono) — sem crédito aprovado o valor financiado fica LIVRE para editar, limitado a 80% da avaliação.
+   FIN_EDIT = o que foi digitado aqui (null = não mexeu: vale o gravado na proposta). */
+var FIN_EDIT=null;
 /* 27/10/2026 — UNIDADE da proposta: mostra tipo, número e valor e deixa trocar por outra
    DISPONÍVEL. A troca refaz preço, comissão e fluxo (aba Dados da venda) e só é gravada no
    envio — o servidor confere de novo se a unidade ainda está disponível. */
@@ -1082,21 +1085,39 @@ function vendaIniciar(){
     el.addEventListener('input', function(){ mascarar(el); vendaPintar(); });
   });
   var bc=document.getElementById('v-boxFgtsConj'); if(bc) bc.style.display = (temConjuge() || Number(v.saldoFgtsConjuge)) ? '' : 'none';
+  /* 07/11/2026 — valor financiado editável sem crédito aprovado (até 80% da avaliação) */
+  var vf=document.getElementById('v-financiado');
+  if(vf && !vf.dataset.venda){
+    vf.dataset.venda='1'; vf.dataset.tipo='numero';
+    vf.addEventListener('input', function(){ if(credSim()) return; mascarar(vf); FIN_EDIT=simLinkNum('v-financiado'); vendaPintar(); });
+    vf.addEventListener('blur', function(){ if(credSim()) return;
+      var F=vendaFin(); if(FIN_EDIT!==null && F.teto && FIN_EDIT>F.teto) FIN_EDIT=Math.round(F.teto*100)/100;
+      vendaPintar(); });
+  }
   VENDA0=vendaEstado();
   vendaPintar();
 }
 function vendaEstado(){
   return JSON.stringify([simLinkNum('sl-valorEntrada'), simLinkNum('sl-saldoFgts'), simLinkNum('sl-saldoFgtsConjuge'),
-    simLinkNum('sl-subsidio'), vPrazo(), vSinal(), VDIL]);
+    simLinkNum('sl-subsidio'), vPrazo(), vSinal(), VDIL, credSim() ? null : FIN_EDIT]);   // 07/11 — financiado editado também refaz o fluxo
 }
 function vendaMudou(){ return !!UN_NOVA || (VENDA0!==null && vendaEstado()!==VENDA0); }   // 27/10 — trocar a unidade refaz o fluxo
 function vendaFin(){
-  var v=vendaDados(), aval=Number(v.avaliacao)||simLinkAval(), teto=aval*0.8;
+  var v=vendaDados(), aval=(UN_NOVA && Number(UN_NOVA.avaliacao)) || Number(v.avaliacao)||simLinkAval(), teto=aval*0.8;   // 07/11 — unidade trocada: teto da nova
   var cr=document.getElementById('c-creditoAprovado'), cred=cr ? simLinkNumTxt(cr.value) : 0;
   if(credSim() && cred>0) return {fin: teto ? Math.min(cred, teto) : cred,
     nota: (teto && cred>teto+0.5) ? 'crédito de '+brlL(cred)+' limitado a 80% da avaliação' : 'crédito aprovado na CAIXA'};
+  /* 07/11/2026 — valor digitado pelo corretor (sem crédito aprovado): até 80% da avaliação */
+  if(FIN_EDIT!==null && FIN_EDIT>0){
+    var fe = teto ? Math.min(FIN_EDIT, teto) : FIN_EDIT;
+    return {fin:Math.round(fe*100)/100, teto:teto, nota: (teto && FIN_EDIT>teto+0.5)
+      ? 'limitado a 80% da avaliação ('+brlL(teto)+') — não pode passar disso'
+      : 'valor informado (estimativa sem crédito aprovado) · máximo 80% da avaliação: '+brlL(teto)};
+  }
   var f=Number(v.financiado)||teto;
-  return {fin:f, nota: Number(v.financiado) ? 'valor financiado gravado na proposta (estimativa sem crédito aprovado)' : 'estimativa: teto de 80% da avaliação'};
+  if(teto && f>teto) f=teto;   // 07/11 — unidade trocada por uma de avaliação menor
+  return {fin:f, teto:teto, nota: (Number(v.financiado) ? 'valor financiado gravado na proposta (estimativa sem crédito aprovado)' : 'estimativa: teto de 80% da avaliação')+
+    (teto ? ' · pode alterar, até 80% da avaliação: '+brlL(teto) : '')};
 }
 function vendaCalc(){
   var v=vendaDados(), F=vendaFin(), hoje=new Date();
@@ -1124,7 +1145,9 @@ function vendaEsquema(fl){ return fl.map(function(x){ return x[0]+': '+brlL(x[1]
 function vendaPintar(){
   if(!DADOS || !document.getElementById('vComp')) return;
   var v=vendaDados(), c=vendaCalc(), mudou=vendaMudou();
-  document.getElementById('v-financiado').value=brlL(c.F.fin);
+  var vfEl=document.getElementById('v-financiado'), vfCred=credSim();
+  vfEl.readOnly=vfCred;   // 07/11 — com crédito aprovado continua travado (vem do print da CAIXA)
+  if(document.activeElement!==vfEl) vfEl.value = vfCred ? brlL(c.F.fin) : Number(c.F.fin||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   document.getElementById('v-notaFin').textContent=c.F.nota;
   document.getElementById('v-ajudaSinal').innerHTML='Todo este valor vai para o sinal. Mínimo <b>'+brlL(c.min)+'</b> (sinal mínimo), máximo <b>'+brlL(c.max)+'</b> (a entrada inteira).';
   var av=document.getElementById('v-aviso');

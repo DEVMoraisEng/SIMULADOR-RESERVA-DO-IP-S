@@ -170,7 +170,9 @@
 
   <h2 class="sec">Mapa de unidades</h2>
   <!-- 07/11/2026 (dono) — planilha do fluxo padrão de todas as unidades à venda -->
-  <div class="bar-planilha"><button class="bt-planilha" id="btPlanilha" onclick="baixarPlanilhaFluxo()">⬇ Baixar planilha do fluxo padrão</button>
+  <div class="bar-planilha"><b style="color:#4A2A0C">Fluxo padrão:</b>
+    <button class="bt-planilha" id="btPlanilha" onclick="baixarPlanilhaFluxo('pdf')">⬇ PDF</button>
+    <button class="bt-planilha" id="btPlanilhaX" onclick="baixarPlanilhaFluxo('xlsx')">⬇ Excel</button>
     <span id="stPlanilha">valor, avaliação, financiamento (80% da avaliação) e o fluxo padrão de cada unidade à venda</span></div>
   <div class="layout">
     <div class="mapbox">
@@ -226,7 +228,7 @@
     <small>🔍 ampliar</small></div><div class="uns" id="mUns"></div></div></div>
 
 <script src="polling.js?v=c0111"></script>
-<script src="planilha-fluxo.js?v=r1"></script>
+<script src="planilha-fluxo.js?v=r2"></script>
 <script>
 
   /* Paleta do empreendimento. O rosa #D87890 do Tipo 2 estava perto demais do
@@ -334,12 +336,12 @@
 
   var UNIDADES=[];
   /* 07/11/2026 (dono) — botão "Baixar planilha do fluxo padrão" (planilha-fluxo.js) */
-  function baixarPlanilhaFluxo(){
-    var b=document.getElementById('btPlanilha'), st=document.getElementById('stPlanilha');
+  function baixarPlanilhaFluxo(formato){
+    var b=document.getElementById(formato==='pdf'?'btPlanilha':'btPlanilhaX'), st=document.getElementById('stPlanilha');
     if(!unidadesProntas || !UNIDADES.length){ st.textContent='Aguarde o mapa terminar de carregar e clique de novo.'; return; }
     if(typeof planilhaFluxoPadrao!=='function'){ st.textContent='Não consegui carregar o gerador da planilha. Recarregue a página.'; return; }
-    b.disabled=true; st.textContent='Gerando a planilha…';
-    planilhaFluxoPadrao(UNIDADES).then(function(n){ st.textContent='Planilha baixada: '+n+' unidades à venda.'; })
+    b.disabled=true; st.textContent='Gerando '+(formato==='pdf'?'o PDF':'a planilha')+'…';
+    planilhaFluxoPadrao(UNIDADES, formato).then(function(n){ st.textContent=(formato==='pdf'?'PDF':'Planilha')+' baixado: '+n+' unidades à venda.'; })
       .catch(function(e){ st.textContent='Não consegui gerar a planilha: '+((e&&e.message)||e); })
       .then(function(){ b.disabled=false; });
   }

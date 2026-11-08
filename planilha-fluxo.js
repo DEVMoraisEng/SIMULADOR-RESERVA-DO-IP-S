@@ -9,8 +9,9 @@
  * O fluxo é o padrão do simulador (fluxo-calc.js, fpcGerar): financiamento
  * de 80% da avaliação, sem FGTS e sem subsídio, sinal em 4x e entrada em
  * 48 meses, com as datas do mês em que a planilha é gerada.
- * Uso: planilhaFluxoPadrao(listaDeUnidades) — cada unidade com
- *      {unidade, tipo, valorVenda, avaliacao, disponivel, reservado, vendido}
+ * Uso: planilhaFluxoPadrao(listaDeUnidades, formato) — formato 'xlsx' (padrão) ou 'pdf';
+ *      cada unidade com {unidade, tipo, valorVenda, avaliacao, disponivel, reservado, vendido}
+ * 08/11/2026 (dono): também em PDF (jsPDF + autoTable), mesmas colunas e avisos.
  * ------------------------------------------------------------------- */
 (function(){
   var BASE = 'https://devmoraiseng.github.io/SIMULADOR-RESERVA-DO-IP-S/';
@@ -23,9 +24,18 @@
       document.head.appendChild(s);
     });
   }
-  function prontos(){
+  function prontos(formato){
     var p = [];
     if(typeof fpcGerar !== 'function') p.push(carregar(BASE + 'fluxo-calc.js?v=' + Date.now()));
+    if(formato === 'pdf'){
+      if(!(window.jspdf && window.jspdf.jsPDF)){
+        return Promise.all(p.concat([carregar('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js')]))
+          .then(function(){ return carregar('https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js'); });
+      }
+      if(!(window.jspdf.jsPDF.API && window.jspdf.jsPDF.API.autoTable))
+        p.push(carregar('https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js'));
+      return Promise.all(p);
+    }
     if(typeof ExcelJS === 'undefined') p.push(carregar('https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js'));
     return Promise.all(p);
   }
@@ -65,15 +75,66 @@
     lista.forEach(function(l){ var v = l[campo]; if(v === '' || v === 0 || v == null) return; c[v] = (c[v] || 0) + 1; if(c[v] > n){ n = c[v]; melhor = v; } });
     return melhor;
   }
-  function baixar(buf, nome){
-    var blob = new Blob([buf], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  function baixar(buf, nome, tipo){
+    var blob = buf instanceof Blob ? buf : new Blob([buf], {type: tipo || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome;
     document.body.appendChild(a); a.click();
     setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
   }
 
-  window.planilhaFluxoPadrao = async function(unidades){
-    await prontos();
+  var AVISOS = ['Valores de referência (estimativa), calculados pelo fluxo padrão do simulador. As parcelas e os valores podem mudar conforme a data de assinatura do contrato.',
+     'Sinal de no mínimo R$ 10.000,00; acima de uma entrada padrão o sinal cresce na proporção do fluxo. FGTS, subsídio ou valor para o sinal maior mudam o fluxo — para o fluxo do cliente, faça a simulação ou a proposta.',
+     'Financiamento não garantido: sujeito à análise e aprovação de crédito pela CAIXA e à avaliação do imóvel. Se o crédito aprovado for menor, a entrada e/ou o saldo devido à incorporadora aumentam.',
+     'ITBI e registro grátis para a aquisição do primeiro imóvel, conforme proposta assinada.'];
+  var SUBTIT = 'Financiamento de 80% da avaliação · sem FGTS e sem subsídio · sinal em 4x · entrada em 48 meses';
+
+  function brl(v){ return 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
+  /* PDF: A4 deitado, cabeçalho na cor da Morais, tabela com as mesmas colunas da planilha */
+  function gerarPdf(lista, cab, dataBr){
+    var JS = window.jspdf.jsPDF, doc = new JS({orientation: 'landscape', unit: 'mm', format: 'a4'});
+    var W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
+    var limpo = function(t){ return String(t).replace(/\u2014/g, '-'); };
+    function topo(){
+      doc.setFillColor(42, 40, 95); doc.rect(0, 0, W, 18, 'F');
+      doc.setFillColor(129, 201, 192); doc.rect(0, 18, W, 1.2, 'F');
+      doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(14);
+      doc.text('CONDOMÍNIO RESERVA DO IPÊS - FLUXO PADRÃO POR UNIDADE', 10, 11.5);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+      doc.text('Morais Engenharia e Construção · ' + dataBr, W - 10, 11.5, {align: 'right'});
+      doc.setTextColor(27, 81, 115); doc.setFont('helvetica', 'italic'); doc.setFontSize(9);
+      doc.text(limpo(SUBTIT), 10, 25);
+    }
+    doc.autoTable({
+      head: [cab.map(limpo)],
+      body: lista.map(function(l){ return [String(l.unidade), brl(l.preco), brl(l.aval), brl(l.fin), brl(l.sinal), brl(l.p1), brl(l.b1), brl(l.p2), brl(l.b2), brl(l.pos)]; }),
+      startY: 29, margin: {top: 29, left: 8, right: 8, bottom: 14},
+      theme: 'grid',
+      styles: {font: 'helvetica', fontSize: 8.2, cellPadding: 1.25, overflow: 'visible', halign: 'right', valign: 'middle', lineColor: [213, 221, 227], lineWidth: 0.15, textColor: [30, 40, 50]},
+      headStyles: {fillColor: [27, 81, 115], textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 7.6, overflow: 'linebreak'},
+      alternateRowStyles: {fillColor: [244, 247, 248]},
+      columnStyles: (function(){ var w = [17, 29, 29, 31, 31, 27, 29, 27, 33, 28], o = {};   // 281 mm = A4 deitado menos as margens
+        w.forEach(function(x, i){ o[i] = {cellWidth: x}; });
+        o[0].halign = 'center'; o[0].fontStyle = 'bold'; o[3].fillColor = [204, 232, 230];
+        return o; })(),
+      didDrawPage: function(){
+        topo();
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(110, 120, 130);
+        doc.text('Página ' + doc.internal.getNumberOfPages(), W - 10, H - 6, {align: 'right'});
+      }
+    });
+    var y = doc.lastAutoTable.finalY + 6;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.8); doc.setTextColor(90, 106, 118);
+    AVISOS.forEach(function(t){
+      var linhas = doc.splitTextToSize(limpo(t), W - 20);
+      if(y + linhas.length * 3.6 > H - 12){ doc.addPage(); topo(); y = 32; doc.setFont('helvetica', 'normal'); doc.setFontSize(7.8); doc.setTextColor(90, 106, 118); }
+      doc.text(linhas, 10, y); y += linhas.length * 3.6 + 1.5;
+    });
+    baixar(doc.output('blob'), 'Fluxo padrão - Reserva do Ipês - ' + dataBr.replace(/\//g, '-') + '.pdf', 'application/pdf');
+  }
+
+  window.planilhaFluxoPadrao = async function(unidades, formato){
+    formato = formato === 'pdf' ? 'pdf' : 'xlsx';
+    await prontos(formato);
     var hoje = new Date();
     var lista = (unidades || []).filter(aVenda)
       .sort(function(a, b){ return (parseInt(a.unidade, 10) || 0) - (parseInt(b.unidade, 10) || 0); })
@@ -89,6 +150,7 @@
       'PARCELA 2' + (q2 ? ' (' + q2 + 'x)' : ''),
       'BALÃO' + (b2q ? ' (' + String(b2q).toLowerCase() + ')' : ''),
       'PÓS-CHAVES' + (qp ? ' (' + qp + 'x)' : '')];
+    if(formato === 'pdf'){ gerarPdf(lista, cab, dataBr); return lista.length; }
 
     var wb = new ExcelJS.Workbook();
     wb.creator = 'Morais Engenharia e Construção'; wb.created = hoje;
@@ -106,7 +168,7 @@
 
     ws.mergeCells(2, 1, 2, ncol);
     var s = ws.getCell(2, 1);
-    s.value = 'Financiamento de 80% da avaliação · sem FGTS e sem subsídio · sinal em 4x · entrada em 48 meses · gerado em ' + dataBr;
+    s.value = SUBTIT + ' · gerado em ' + dataBr;
     s.font = {italic: true, size: 10, color: {argb: 'FF1B5173'}};
     s.alignment = {vertical: 'middle', horizontal: 'left', indent: 1};
 
@@ -137,11 +199,7 @@
     });
 
     var fim = 5 + lista.length + 1;
-    ['Valores de referência (estimativa), calculados pelo fluxo padrão do simulador. As parcelas e os valores podem mudar conforme a data de assinatura do contrato.',
-     'Sinal de no mínimo R$ 10.000,00; acima de uma entrada padrão o sinal cresce na proporção do fluxo. FGTS, subsídio ou valor para o sinal maior mudam o fluxo — para o fluxo do cliente, faça a simulação ou a proposta.',
-     'Financiamento não garantido: sujeito à análise e aprovação de crédito pela CAIXA e à avaliação do imóvel. Se o crédito aprovado for menor, a entrada e/ou o saldo devido à incorporadora aumentam.',
-     'ITBI e registro grátis para a aquisição do primeiro imóvel, conforme proposta assinada.'
-    ].forEach(function(txt, i){
+    AVISOS.forEach(function(txt, i){
       ws.mergeCells(fim + i, 1, fim + i, ncol);
       var c = ws.getCell(fim + i, 1);
       c.value = txt; c.font = {size: 9, color: {argb: 'FF5A6A76'}};

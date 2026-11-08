@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tabela de disponibilidades — Reserva do Ipês</title>
+<!-- 08/11/2026 (dono) — TABELA DE DISPONIBILIDADES em página: os botões SIMULAR e SUBIR PASTA
+     de cada linha abrem em NOVA ABA (no PDF o navegador abre o link na mesma aba, e isso não
+     dá para mudar de dentro do arquivo). Daqui também baixa o PDF e o Excel. -->
+<style>
+  :root{--marrom:#7A4A16;--marrom2:#A86018;--amarelo:#EFB700;--texto:#2A2118;--suave:#6B5A45;--borda:#E7DCC7;--fundo:#FBF7EE;
+        --navy:#2A285F;--petroleo:#1B5173;--menta:#CCE8E6;--verde:#27AE60;--verde2:#1E8449;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:var(--fundo);color:var(--texto)}
+  header{background:linear-gradient(135deg,var(--marrom),var(--marrom2));color:#fff;padding:14px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header h1{font-size:18px;margin:0;flex:1;min-width:240px}
+  header span{font-size:12px;color:var(--amarelo);font-weight:600;display:block}
+  .bts{display:flex;gap:8px;flex-wrap:wrap}
+  .bt{border:0;border-radius:10px;padding:10px 16px;font-weight:800;font-size:14px;font-family:inherit;cursor:pointer;background:#fff;color:var(--marrom)}
+  .bt.v{background:var(--verde);color:#fff}.bt:disabled{opacity:.6;cursor:wait}
+  main{max-width:1400px;margin:18px auto 60px;padding:0 16px}
+  .sub{font-size:13px;color:var(--petroleo);font-style:italic;margin:0 0 10px}
+  .atencao{background:#FFF4D6;border-left:5px solid #B7791F;border-radius:8px;padding:12px 14px;color:#7A4A16;font-weight:700;font-size:14px;line-height:1.45;margin-bottom:14px}
+  .wrap{overflow-x:auto;background:#fff;border:1px solid var(--borda);border-radius:12px}
+  table{border-collapse:collapse;width:100%;min-width:1100px;font-size:13px}
+  th{background:var(--petroleo);color:#fff;font-size:11.5px;text-transform:uppercase;padding:9px 8px;text-align:center;position:sticky;top:0}
+  td{padding:6px 8px;border-bottom:1px solid #EDE5D5;text-align:right;white-space:nowrap}
+  td.un{text-align:center;font-weight:800}
+  td.fin{background:var(--menta)}
+  tr:nth-child(even) td:not(.fin){background:#FAF6EE}
+  td.ac{text-align:center;padding:4px 5px}
+  a.btn{display:inline-block;border-radius:7px;padding:6px 10px;font-weight:800;font-size:12px;text-decoration:none;white-space:nowrap}
+  a.sim{background:var(--amarelo);color:#7A4A16}a.sim:hover{background:#D8A818}
+  a.prop{background:var(--verde);color:#fff}a.prop:hover{background:var(--verde2)}
+  .tag{display:inline-block;margin-left:4px;font-size:10px;font-weight:800;color:#1F6FB2;background:#EAF2FA;border:1px solid #BBD5EC;border-radius:5px;padding:1px 4px}
+  .avisos{font-size:12px;color:var(--suave);line-height:1.5;margin-top:12px}
+  .avisos p{margin:4px 0}
+  #st{font-size:12.5px;color:#fff;opacity:.9}
+  .carregando{padding:30px;text-align:center;color:var(--suave)}
+  @media print{header .bts,#st{display:none}body{background:#fff}.wrap{border:0}th{position:static}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Tabela de disponibilidades<span>Condomínio Reserva do Ipês · Morais Engenharia e Construção · <b id="data"></b></span></h1>
+  <div class="bts">
+    <button class="bt" id="bPdf" onclick="baixar('pdf')">⬇ PDF</button>
+    <button class="bt v" id="bXls" onclick="baixar('xlsx')">⬇ Excel</button>
+  </div>
+  <div id="st" style="width:100%"></div>
+</header>
+<main>
+  <p class="sub" id="sub"></p>
+  <div class="atencao" id="atencao"></div>
+  <div class="wrap"><div class="carregando" id="tab">Carregando as unidades…</div></div>
+  <div class="avisos" id="avisos"></div>
+</main>
+<script src="fluxo-calc.js"></script>
+<script src="planilha-fluxo.js?v=r5"></script>
+<script>
+  /* mesmo endereço do mapa (index.html) */
+  var APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbzwUIApU5nKXi1vG3cEs_V2DWCdkLDwY_vo0zBxO59ZBLbEihIxuOqbHdNLm-8pVVwVJQ/exec';
+  var UNIDADES=[];
+  function esc(t){ return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function brl(v){ return 'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function aoVivo(){
+    return fetch(APPS_SCRIPT_URL+'?acao=unidades').then(function(r){return r.json();})
+      .then(function(j){ if(j&&j.ok&&j.unidades&&j.unidades.length) return j.unidades; throw 0; });
+  }
+  function local(){ return fetch('unidades.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():Promise.reject();}); }
+  async function montar(){
+    try{ UNIDADES = await aoVivo(); }
+    catch(e){ try{ UNIDADES = await local(); }catch(e2){ UNIDADES = []; } }
+    var tab=document.getElementById('tab');
+    if(!UNIDADES.length){ tab.textContent='Não consegui carregar as unidades. Recarregue a página.'; return; }
+    var D = await tabelaDisponibilidadesDados(UNIDADES);
+    document.getElementById('data').textContent = D.dataBr;
+    document.getElementById('sub').textContent = D.subtitulo;
+    document.getElementById('atencao').textContent = D.atencao;
+    document.getElementById('avisos').innerHTML = D.avisos.map(function(a){ return '<p>'+esc(a)+'</p>'; }).join('');
+    if(!D.lista.length){ tab.textContent='Nenhuma unidade à venda no momento.'; return; }
+    var h = '<table><thead><tr>'+D.cab.map(function(c){return '<th>'+esc(c)+'</th>';}).join('')+'<th>Simular</th><th>Subir pasta</th></tr></thead><tbody>';
+    D.lista.forEach(function(l){
+      h += '<tr><td class="un">'+esc(l.unidade)+(l.reservada?'<span class="tag" title="Reservada: a proposta só é analisada se houver desistência">RESERVADA</span>':'')+'</td>'+
+        '<td>'+brl(l.preco)+'</td><td>'+brl(l.aval)+'</td><td class="fin">'+brl(l.fin)+'</td><td>'+brl(l.sinal)+'</td>'+
+        '<td>'+brl(l.p1)+'</td><td>'+brl(l.b1)+'</td><td>'+brl(l.p2)+'</td><td>'+brl(l.b2)+'</td><td>'+brl(l.pos)+'</td>'+
+        '<td class="ac"><a class="btn sim" target="_blank" rel="noopener" href="'+esc(D.link('simulador.html',l))+'">SIMULAR</a></td>'+
+        '<td class="ac"><a class="btn prop" target="_blank" rel="noopener" href="'+esc(D.link('proposta.html',l))+'">SUBIR PASTA</a></td></tr>';
+    });
+    tab.outerHTML = h+'</tbody></table>';
+  }
+  function baixar(formato){
+    var b=document.getElementById(formato==='pdf'?'bPdf':'bXls'), st=document.getElementById('st');
+    if(!UNIDADES.length){ st.textContent='Aguarde as unidades carregarem.'; return; }
+    b.disabled=true; st.textContent='Gerando…';
+    planilhaFluxoPadrao(UNIDADES, formato).then(function(n){ st.textContent='Baixado ('+(formato==='pdf'?'PDF':'Excel')+'): '+n+' unidades.'; })
+      .catch(function(e){ st.textContent='Não consegui gerar: '+((e&&e.message)||e); })
+      .then(function(){ b.disabled=false; });
+  }
+  montar();
+</script>
+</body>
+</html>

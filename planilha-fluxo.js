@@ -27,6 +27,7 @@
   function prontos(formato){
     var p = [];
     if(typeof fpcGerar !== 'function') p.push(carregar(BASE + 'fluxo-calc.js?v=' + Date.now()));
+    if(formato === 'dados') return Promise.all(p);
     if(formato === 'pdf'){
       if(!(window.jspdf && window.jspdf.jsPDF)){
         return Promise.all(p.concat([carregar('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js')]))
@@ -87,6 +88,10 @@
      'Financiamento não garantido: sujeito à análise e aprovação de crédito pela CAIXA e à avaliação do imóvel. Se o crédito aprovado for menor, a entrada e/ou o saldo devido à incorporadora aumentam.',
      'ITBI e registro grátis para a aquisição do primeiro imóvel, conforme proposta assinada.',
      '(R) = unidade reservada: aceita simulação e proposta, mas a proposta só é analisada se houver desistência.'];
+  /* 08/11/2026 (dono) — texto de ATENÇÃO no topo (PDF, Excel e página) */
+  var ATENCAO = 'ATENÇÃO: este é o FLUXO PADRÃO, considerando que o crédito liberado pela CAIXA será de 80% da avaliação do imóvel. ' +
+    'Esse valor NÃO é garantido — o crédito real só é conhecido depois da análise de crédito do cliente. ' +
+    'Se o crédito aprovado for menor, a entrada e o fluxo de pagamento mudam: para o fluxo do cliente, faça a simulação ou a proposta.';
   var SUBTIT = 'Financiamento de 80% da avaliação · sem FGTS e sem subsídio · sinal em 4x · entrada em 48 meses';
 
   /* 08/11/2026 (dono) — botões SIMULAR e SUBIR PASTA em cada linha: abrem o simulador / a proposta com a unidade já escolhida */
@@ -106,11 +111,16 @@
       doc.text('Morais Engenharia e Construção · ' + dataBr, W - 10, 11.5, {align: 'right'});
       doc.setTextColor(27, 81, 115); doc.setFont('helvetica', 'italic'); doc.setFontSize(9);
       doc.text(limpo(SUBTIT), 10, 25);
+      /* faixa de ATENÇÃO */
+      doc.setFillColor(255, 244, 214); doc.rect(8, 28, W - 16, 11, 'F');
+      doc.setFillColor(183, 121, 31); doc.rect(8, 28, 1.4, 11, 'F');
+      doc.setTextColor(122, 74, 22); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.2);
+      doc.text(doc.splitTextToSize(limpo(ATENCAO), W - 24), 12, 32);
     }
     doc.autoTable({
       head: [['UN.'].concat(cab.slice(1).map(limpo), ['SIMULAR', 'SUBIR PASTA'])],
       body: lista.map(function(l){ return [String(l.unidade) + (l.reservada ? ' (R)' : ''), brl(l.preco), brl(l.aval), brl(l.fin), brl(l.sinal), brl(l.p1), brl(l.b1), brl(l.p2), brl(l.b2), brl(l.pos), 'SIMULAR', 'SUBIR PASTA']; }),
-      startY: 29, margin: {top: 29, left: 8, right: 8, bottom: 14},
+      startY: 42, margin: {top: 42, left: 8, right: 8, bottom: 14},
       theme: 'grid',
       styles: {font: 'helvetica', fontSize: 7.6, cellPadding: 1.25, overflow: 'visible', halign: 'right', valign: 'middle', lineColor: [213, 221, 227], lineWidth: 0.15, textColor: [30, 40, 50]},
       headStyles: {fillColor: [27, 81, 115], textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 7.6, overflow: 'linebreak'},
@@ -139,16 +149,32 @@
     });
     var y = doc.lastAutoTable.finalY + 6;
     doc.setFont('helvetica', 'bold'); doc.setFontSize(7.8); doc.setTextColor(27, 81, 115);
-    doc.text('Clique em SIMULAR ou SUBIR PASTA na linha da unidade para abrir o simulador / a proposta já com a unidade escolhida.', 10, y);
+    doc.text('Clique em SIMULAR ou SUBIR PASTA na linha da unidade para abrir o simulador / a proposta já com a unidade escolhida (no navegador, Ctrl + clique abre em nova aba).', 10, y);
     y += 5;
     doc.setFont('helvetica', 'normal'); doc.setFontSize(7.8); doc.setTextColor(90, 106, 118);
     AVISOS.forEach(function(t){
       var linhas = doc.splitTextToSize(limpo(t), W - 20);
-      if(y + linhas.length * 3.6 > H - 12){ doc.addPage(); topo(); y = 32; doc.setFont('helvetica', 'normal'); doc.setFontSize(7.8); doc.setTextColor(90, 106, 118); }
+      if(y + linhas.length * 3.6 > H - 12){ doc.addPage(); topo(); y = 45; doc.setFont('helvetica', 'normal'); doc.setFontSize(7.8); doc.setTextColor(90, 106, 118); }
       doc.text(linhas, 10, y); y += linhas.length * 3.6 + 1.5;
     });
     baixar(doc.output('blob'), 'Tabela de disponibilidades - Reserva do Ipês - ' + dataBr.replace(/\//g, '-') + '.pdf', 'application/pdf');
   }
+
+  /* 08/11/2026 — os dados da tabela (usados também pela página tabela.html) */
+  window.tabelaDisponibilidadesDados = async function(unidades){
+    await prontos('dados');
+    var hoje = new Date();
+    var lista = (unidades || []).filter(aVenda)
+      .sort(function(a, b){ return (parseInt(a.unidade, 10) || 0) - (parseInt(b.unidade, 10) || 0); })
+      .map(function(u){ return linhaDa(u, hoje); });
+    var q1 = moda(lista, 'q1'), q2 = moda(lista, 'q2'), qp = moda(lista, 'qp'), b1q = moda(lista, 'b1q'), b2q = moda(lista, 'b2q');
+    return {lista: lista, dataBr: hoje.toLocaleDateString('pt-BR'), atencao: ATENCAO, subtitulo: SUBTIT, avisos: AVISOS.slice(),
+      cab: ['UNIDADE', 'VALOR', 'AVALIAÇÃO', 'FINANCIAMENTO (80% DA AVALIAÇÃO)', 'SINAL (ato + 30/60/90 dias)',
+        'PARCELA 1' + (q1 ? ' (' + q1 + 'x)' : ''), 'BALÃO' + (b1q ? ' (' + b1q + ')' : ''),
+        'PARCELA 2' + (q2 ? ' (' + q2 + 'x)' : ''), 'BALÃO' + (b2q ? ' (' + String(b2q).toLowerCase() + ')' : ''),
+        'PÓS-CHAVES' + (qp ? ' (' + qp + 'x)' : '')],
+      link: function(pag, l){ return linkDe(pag, l); }};
+  };
 
   window.planilhaFluxoPadrao = async function(unidades, formato){
     formato = formato === 'pdf' ? 'pdf' : 'xlsx';
@@ -190,6 +216,15 @@
     s.value = SUBTIT + ' · gerado em ' + dataBr;
     s.font = {italic: true, size: 10, color: {argb: 'FF1B5173'}};
     s.alignment = {vertical: 'middle', horizontal: 'left', indent: 1};
+
+    ws.mergeCells(3, 1, 3, ncol);
+    var at = ws.getCell(3, 1);
+    at.value = ATENCAO;
+    at.font = {bold: true, size: 10, color: {argb: 'FF7A4A16'}};
+    at.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FFFFF4D6'}};
+    at.alignment = {vertical: 'middle', horizontal: 'left', wrapText: true, indent: 1};
+    at.border = {left: {style: 'thick', color: {argb: 'FFB7791F'}}};
+    ws.getRow(3).height = 46;
 
     var hr = ws.getRow(4);
     cab.forEach(function(h, i){

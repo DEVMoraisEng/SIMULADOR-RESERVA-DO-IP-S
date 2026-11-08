@@ -61,7 +61,7 @@
       else if(grupo === 'pos') pos.push(x);
     });
     return {
-      unidade: u.unidade, preco: preco, aval: aval, fin: fin, sinal: r2(sinal),
+      unidade: u.unidade, tipo: String(u.tipo || ''), reservada: !!u.reservado, preco: preco, aval: aval, fin: fin, sinal: r2(sinal),
       p1: obra[0] ? r2(obra[0][1]) : 0, q1: obra[0] ? qtd(obra[0][0]) : 0,
       b1: balao[0] ? r2(balao[0][1]) : 0, b1q: balao[0] ? String(balao[0][0]) : '',
       p2: obra[1] ? r2(obra[1][1]) : 0, q2: obra[1] ? qtd(obra[1][0]) : 0,
@@ -85,9 +85,12 @@
   var AVISOS = ['Valores de referência (estimativa), calculados pelo fluxo padrão do simulador. As parcelas e os valores podem mudar conforme a data de assinatura do contrato.',
      'Sinal de no mínimo R$ 10.000,00; acima de uma entrada padrão o sinal cresce na proporção do fluxo. FGTS, subsídio ou valor para o sinal maior mudam o fluxo — para o fluxo do cliente, faça a simulação ou a proposta.',
      'Financiamento não garantido: sujeito à análise e aprovação de crédito pela CAIXA e à avaliação do imóvel. Se o crédito aprovado for menor, a entrada e/ou o saldo devido à incorporadora aumentam.',
-     'ITBI e registro grátis para a aquisição do primeiro imóvel, conforme proposta assinada.'];
+     'ITBI e registro grátis para a aquisição do primeiro imóvel, conforme proposta assinada.',
+     '(R) = unidade reservada: aceita simulação e proposta, mas a proposta só é analisada se houver desistência.'];
   var SUBTIT = 'Financiamento de 80% da avaliação · sem FGTS e sem subsídio · sinal em 4x · entrada em 48 meses';
 
+  /* 08/11/2026 (dono) — botões SIMULAR e SUBIR PASTA em cada linha: abrem o simulador / a proposta com a unidade já escolhida */
+  function linkDe(pag, l){ return BASE + pag + '?tipo=' + encodeURIComponent(l.tipo || '') + '&unidade=' + encodeURIComponent(String(l.unidade)); }
   function brl(v){ return 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
   /* PDF: A4 deitado, cabeçalho na cor da Morais, tabela com as mesmas colunas da planilha */
   function gerarPdf(lista, cab, dataBr){
@@ -105,17 +108,29 @@
       doc.text(limpo(SUBTIT), 10, 25);
     }
     doc.autoTable({
-      head: [cab.map(limpo)],
-      body: lista.map(function(l){ return [String(l.unidade), brl(l.preco), brl(l.aval), brl(l.fin), brl(l.sinal), brl(l.p1), brl(l.b1), brl(l.p2), brl(l.b2), brl(l.pos)]; }),
+      head: [['UN.'].concat(cab.slice(1).map(limpo), ['SIMULAR', 'SUBIR PASTA'])],
+      body: lista.map(function(l){ return [String(l.unidade) + (l.reservada ? ' (R)' : ''), brl(l.preco), brl(l.aval), brl(l.fin), brl(l.sinal), brl(l.p1), brl(l.b1), brl(l.p2), brl(l.b2), brl(l.pos), 'SIMULAR', 'SUBIR PASTA']; }),
       startY: 29, margin: {top: 29, left: 8, right: 8, bottom: 14},
       theme: 'grid',
-      styles: {font: 'helvetica', fontSize: 8.2, cellPadding: 1.25, overflow: 'visible', halign: 'right', valign: 'middle', lineColor: [213, 221, 227], lineWidth: 0.15, textColor: [30, 40, 50]},
+      styles: {font: 'helvetica', fontSize: 7.6, cellPadding: 1.25, overflow: 'visible', halign: 'right', valign: 'middle', lineColor: [213, 221, 227], lineWidth: 0.15, textColor: [30, 40, 50]},
       headStyles: {fillColor: [27, 81, 115], textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 7.6, overflow: 'linebreak'},
       alternateRowStyles: {fillColor: [244, 247, 248]},
-      columnStyles: (function(){ var w = [17, 29, 29, 31, 31, 27, 29, 27, 33, 28], o = {};   // 281 mm = A4 deitado menos as margens
+      columnStyles: (function(){ var w = [14, 24, 24, 26, 25, 22, 25, 21, 25, 22, 24, 29], o = {};   // 281 mm = A4 deitado menos as margens
         w.forEach(function(x, i){ o[i] = {cellWidth: x}; });
         o[0].halign = 'center'; o[0].fontStyle = 'bold'; o[3].fillColor = [204, 232, 230];
+        o[10].halign = 'center'; o[10].fontStyle = 'bold'; o[10].fillColor = [239, 183, 0]; o[10].textColor = [122, 74, 22];
+        o[11].halign = 'center'; o[11].fontStyle = 'bold'; o[11].fillColor = [39, 174, 96]; o[11].textColor = [255, 255, 255];
         return o; })(),
+      didParseCell: function(d){   // o zebrado não pinta por cima dos botões
+        if(d.section === 'body' && d.column.index >= 10) d.cell.styles.fillColor = d.column.index === 10 ? [239, 183, 0] : [39, 174, 96];
+        if(d.section === 'body' && d.column.index >= 10) d.cell.styles.lineColor = [255, 255, 255];
+        if(d.section === 'body' && d.column.index >= 10) d.cell.styles.lineWidth = 0.8;
+      },
+      didDrawCell: function(d){   // a célula inteira vira link
+        if(d.section !== 'body' || d.column.index < 10) return;
+        var l = lista[d.row.index]; if(!l) return;
+        doc.link(d.cell.x, d.cell.y, d.cell.width, d.cell.height, {url: linkDe(d.column.index === 10 ? 'simulador.html' : 'proposta.html', l)});
+      },
       didDrawPage: function(){
         topo();
         doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(110, 120, 130);
@@ -123,6 +138,9 @@
       }
     });
     var y = doc.lastAutoTable.finalY + 6;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(7.8); doc.setTextColor(27, 81, 115);
+    doc.text('Clique em SIMULAR ou SUBIR PASTA na linha da unidade para abrir o simulador / a proposta já com a unidade escolhida.', 10, y);
+    y += 5;
     doc.setFont('helvetica', 'normal'); doc.setFontSize(7.8); doc.setTextColor(90, 106, 118);
     AVISOS.forEach(function(t){
       var linhas = doc.splitTextToSize(limpo(t), W - 20);
@@ -151,6 +169,7 @@
       'BALÃO' + (b2q ? ' (' + String(b2q).toLowerCase() + ')' : ''),
       'PÓS-CHAVES' + (qp ? ' (' + qp + 'x)' : '')];
     if(formato === 'pdf'){ gerarPdf(lista, cab, dataBr); return lista.length; }
+    cab = cab.concat(['SIMULAR', 'SUBIR PASTA']);
 
     var wb = new ExcelJS.Workbook();
     wb.creator = 'Morais Engenharia e Construção'; wb.created = hoje;
@@ -196,6 +215,17 @@
         c.border = {bottom: {style: 'hair', color: {argb: 'FFD5DDE3'}}};
       });
       row.getCell(4).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: MENTA}};
+      if(l.reservada){ var cu = row.getCell(1); cu.value = un + ' (R)'; }
+      /* botões da linha: links para o simulador e a proposta com a unidade escolhida */
+      [[11, 'SIMULAR', 'simulador.html', 'FFEFB700', 'FF7A4A16'], [12, 'SUBIR PASTA', 'proposta.html', 'FF27AE60', 'FFFFFFFF']].forEach(function(bt){
+        var c = row.getCell(bt[0]);
+        c.value = {text: bt[1], hyperlink: linkDe(bt[2], l), tooltip: bt[1] + ' — unidade ' + un};
+        c.font = {bold: true, color: {argb: bt[4]}};
+        c.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bt[3]}};
+        c.alignment = {vertical: 'middle', horizontal: 'center'};
+        c.border = {top: {style: 'thin', color: {argb: 'FFFFFFFF'}}, bottom: {style: 'thin', color: {argb: 'FFFFFFFF'}},
+                    left: {style: 'thin', color: {argb: 'FFFFFFFF'}}, right: {style: 'thin', color: {argb: 'FFFFFFFF'}}};
+      });
     });
 
     var fim = 5 + lista.length + 1;
@@ -207,7 +237,7 @@
       ws.getRow(fim + i).height = 26;
     });
 
-    [11, 16, 16, 20, 16, 15, 16, 15, 18, 15].forEach(function(w, i){ ws.getColumn(i + 1).width = w; });
+    [11, 16, 16, 20, 16, 15, 16, 15, 18, 15, 13, 15].forEach(function(w, i){ ws.getColumn(i + 1).width = w; });
     ws.autoFilter = {from: {row: 4, column: 1}, to: {row: 4 + lista.length, column: ncol}};
 
     var buf = await wb.xlsx.writeBuffer();

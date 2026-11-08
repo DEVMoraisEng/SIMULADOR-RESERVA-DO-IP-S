@@ -1,6 +1,6 @@
 /* =====================================================================
  * planilha-fluxo.js — 07/11/2026 (dono)
- * PLANILHA DO FLUXO PADRÃO POR UNIDADE (.xlsx)
+ * TABELA DE DISPONIBILIDADES (.pdf / .xlsx) — fluxo padrão por unidade (nome mudado em 08/11/2026)
  * ---------------------------------------------------------------------
  * Usada no mapa de vendas (index.html) e na aba Propostas do portal.
  * Uma linha por unidade à venda (disponível ou reservada):
@@ -98,7 +98,7 @@
       doc.setFillColor(42, 40, 95); doc.rect(0, 0, W, 18, 'F');
       doc.setFillColor(129, 201, 192); doc.rect(0, 18, W, 1.2, 'F');
       doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(14);
-      doc.text('CONDOMÍNIO RESERVA DO IPÊS - FLUXO PADRÃO POR UNIDADE', 10, 11.5);
+      doc.text('CONDOMÍNIO RESERVA DO IPÊS - TABELA DE DISPONIBILIDADES', 10, 11.5);
       doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
       doc.text('Morais Engenharia e Construção · ' + dataBr, W - 10, 11.5, {align: 'right'});
       doc.setTextColor(27, 81, 115); doc.setFont('helvetica', 'italic'); doc.setFontSize(9);
@@ -129,7 +129,7 @@
       if(y + linhas.length * 3.6 > H - 12){ doc.addPage(); topo(); y = 32; doc.setFont('helvetica', 'normal'); doc.setFontSize(7.8); doc.setTextColor(90, 106, 118); }
       doc.text(linhas, 10, y); y += linhas.length * 3.6 + 1.5;
     });
-    baixar(doc.output('blob'), 'Fluxo padrão - Reserva do Ipês - ' + dataBr.replace(/\//g, '-') + '.pdf', 'application/pdf');
+    baixar(doc.output('blob'), 'Tabela de disponibilidades - Reserva do Ipês - ' + dataBr.replace(/\//g, '-') + '.pdf', 'application/pdf');
   }
 
   window.planilhaFluxoPadrao = async function(unidades, formato){
@@ -154,13 +154,13 @@
 
     var wb = new ExcelJS.Workbook();
     wb.creator = 'Morais Engenharia e Construção'; wb.created = hoje;
-    var ws = wb.addWorksheet('Fluxo padrão', {views: [{state: 'frozen', ySplit: 4}], pageSetup: {orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0}});
+    var ws = wb.addWorksheet('Tabela de disponibilidades', {views: [{state: 'frozen', ySplit: 4}], pageSetup: {orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0}});
     var NAVY = 'FF2A285F', PETROLEO = 'FF1B5173', MENTA = 'FFCCE8E6', CINZA = 'FFF4F7F8';
     var ncol = cab.length;
 
     ws.mergeCells(1, 1, 1, ncol);
     var t = ws.getCell(1, 1);
-    t.value = 'CONDOMÍNIO RESERVA DO IPÊS — FLUXO PADRÃO POR UNIDADE';
+    t.value = 'CONDOMÍNIO RESERVA DO IPÊS — TABELA DE DISPONIBILIDADES';
     t.font = {bold: true, size: 15, color: {argb: 'FFFFFFFF'}};
     t.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: NAVY}};
     t.alignment = {vertical: 'middle', horizontal: 'left', indent: 1};
@@ -211,7 +211,7 @@
     ws.autoFilter = {from: {row: 4, column: 1}, to: {row: 4 + lista.length, column: ncol}};
 
     var buf = await wb.xlsx.writeBuffer();
-    baixar(buf, 'Fluxo padrão - Reserva do Ipês - ' + dataBr.replace(/\//g, '-') + '.xlsx');
+    baixar(buf, 'Tabela de disponibilidades - Reserva do Ipês - ' + dataBr.replace(/\//g, '-') + '.xlsx');
     return lista.length;
   };
 })();

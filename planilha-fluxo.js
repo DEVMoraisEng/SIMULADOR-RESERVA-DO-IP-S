@@ -12,6 +12,7 @@
  * Uso: planilhaFluxoPadrao(listaDeUnidades, formato) — formato 'xlsx' (padrão) ou 'pdf';
  *      cada unidade com {unidade, tipo, valorVenda, avaliacao, disponivel, reservado, vendido}
  * 08/11/2026 (dono): também em PDF (jsPDF + autoTable), mesmas colunas e avisos.
+ * 10/11/2026 (dono): Excel travado (proteção da planilha, senha ipes2026).
  * 10/11/2026 (dono): cores da logo do Reserva do Ipês e a logo (assets/logo-ipes-arvore.jpg) no topo.
  * ------------------------------------------------------------------- */
 (function(){
@@ -306,6 +307,11 @@
 
     [11, 16, 16, 20, 16, 15, 16, 15, 18, 15, 13, 15].forEach(function(w, i){ ws.getColumn(i + 1).width = w; });
     ws.autoFilter = {from: {row: 4, column: 1}, to: {row: 4 + lista.length, column: ncol}};
+    /* 10/11/2026 (dono): planilha TRAVADA — ninguém altera valores nem colunas; dá para selecionar, copiar,
+       filtrar e clicar nos botões SIMULAR / SUBIR PASTA. Senha para destravar: ipes2026 */
+    await ws.protect('ipes2026', {spinCount: 1000, selectLockedCells: true, selectUnlockedCells: true, autoFilter: true, sort: false,
+      formatCells: false, formatColumns: false, formatRows: false, insertColumns: false, insertRows: false, insertHyperlinks: false,
+      deleteColumns: false, deleteRows: false, pivotTables: false, objects: false, scenarios: false});
 
     var buf = await wb.xlsx.writeBuffer();
     baixar(buf, 'Tabela de disponibilidades - Reserva do Ipês - ' + dataBr.replace(/\//g, '-') + '.xlsx');

@@ -12,6 +12,10 @@
  * Uso: planilhaFluxoPadrao(listaDeUnidades, formato) — formato 'xlsx' (padrão) ou 'pdf';
  *      cada unidade com {unidade, tipo, valorVenda, avaliacao, disponivel, reservado, vendido}
  * 08/11/2026 (dono): também em PDF (jsPDF + autoTable), mesmas colunas e avisos.
+ * 10/11/2026 (dono): opção de entrada em 48, 36 ou 24 vezes e FGTS já abatido da entrada (página tabela.html: escolha
+ *   no topo; PDF/Excel saem com a escolha). O Excel traz uma aba por prazo (48x, 36x e 24x), a escolhida primeiro.
+ *   Uso: planilhaFluxoPadrao(unidades, formato, {prazo: 48|36|24, fgts: valor, fin: valor, finPor: {unidade: valor}})
+ *   e tabelaDisponibilidadesDados(unidades, opcoes). fin/finPor = financiamento editado, sempre até 80% da avaliação.
  * 10/11/2026 (dono): Excel travado (proteção da planilha, senha ipes2026).
  * 10/11/2026 (dono): cores da logo do Reserva do Ipês e a logo (assets/logo-ipes-arvore.jpg) no topo.
  * ------------------------------------------------------------------- */
@@ -64,12 +68,23 @@
     if(!(Number(u.valorVenda) > 0) || !(Number(u.avaliacao) > 0)) return false;
     return !!(u.disponivel || u.reservado);
   }
+  var PRAZOS = [48, 36, 24];
+  function opcoesDe(o){
+    o = o || {};
+    var pz = Number(o.prazo); if(PRAZOS.indexOf(pz) < 0) pz = 48;
+    var por = {};
+    if(o.finPor) Object.keys(o.finPor).forEach(function(k){ var v = r2(o.finPor[k]); if(v > 0) por[String(k)] = v; });
+    return {prazo: pz, fgts: Math.max(0, r2(o.fgts)), fin: Math.max(0, r2(o.fin)), finPor: por};
+  }
 
   /* fluxo padrão de uma unidade → as colunas da planilha */
-  function linhaDa(u, hoje){
-    var preco = Number(u.valorVenda) || 0, aval = Number(u.avaliacao) || 0, fin = r2(aval * 0.8);
-    var g = fpcGerar({preco: preco, financiado: fin, fgts: 0, subsidio: 0, informado: 0, nSinal: 4,
-                      prazoEntrada: 48, ano: hoje.getFullYear(), mes: hoje.getMonth() + 1});
+  function linhaDa(u, hoje, op){
+    /* 10/11/2026 (dono): o financiamento pode ser editado (o geral para todas ou o de cada unidade), sempre até 80% da avaliação */
+    var preco = Number(u.valorVenda) || 0, aval = Number(u.avaliacao) || 0, teto = r2(aval * 0.8);
+    var pedido = op.finPor[String(u.unidade)] || op.fin || teto, fin = Math.min(pedido, teto);
+    var fgts = Math.min(op.fgts, Math.max(0, r2(preco - fin)));   // o FGTS não passa da entrada
+    var g = fpcGerar({preco: preco, financiado: fin, fgts: fgts, subsidio: 0, informado: 0, nSinal: 4,
+                      prazoEntrada: op.prazo, ano: hoje.getFullYear(), mes: hoje.getMonth() + 1});
     var sinal = 0, obra = [], balao = [], pos = [];
     (g.fluxo || []).forEach(function(x){
       var grupo = x[3];
@@ -79,7 +94,8 @@
       else if(grupo === 'pos') pos.push(x);
     });
     return {
-      unidade: u.unidade, tipo: String(u.tipo || ''), reservada: !!u.reservado, preco: preco, aval: aval, fin: fin, sinal: r2(sinal),
+      unidade: u.unidade, tipo: String(u.tipo || ''), reservada: !!u.reservado, preco: preco, aval: aval, fin: fin, teto: teto, finEditado: fin < teto,
+      fgts: fgts, sinal: r2(sinal),
       p1: obra[0] ? r2(obra[0][1]) : 0, q1: obra[0] ? qtd(obra[0][0]) : 0,
       b1: balao[0] ? r2(balao[0][1]) : 0, b1q: balao[0] ? String(balao[0][0]) : '',
       p2: obra[1] ? r2(obra[1][1]) : 0, q2: obra[1] ? qtd(obra[1][0]) : 0,
@@ -99,26 +115,69 @@
     document.body.appendChild(a); a.click();
     setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
   }
+  function brl(v){ return 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
 
-  var AVISOS = ['Valores de referência (estimativa), calculados pelo fluxo padrão do simulador. As parcelas e os valores podem mudar conforme a data de assinatura do contrato.',
+  function avisosDe(op, lista){
+    var a = ['Valores de referência (estimativa), calculados pelo fluxo padrão do simulador. As parcelas e os valores podem mudar conforme a data de assinatura do contrato.',
      'Sinal de no mínimo R$ 10.000,00; acima de uma entrada padrão o sinal cresce na proporção do fluxo. FGTS, subsídio ou valor para o sinal maior mudam o fluxo — para o fluxo do cliente, faça a simulação ou a proposta.',
-     'Financiamento não garantido: sujeito à análise e aprovação de crédito pela CAIXA e à avaliação do imóvel. Se o crédito aprovado for menor, a entrada e/ou o saldo devido à incorporadora aumentam.',
-     'ITBI e registro grátis para a aquisição do primeiro imóvel, conforme proposta assinada.',
-     '(R) = unidade reservada: aceita simulação e proposta, mas a proposta só é analisada se houver desistência.'];
+     'Financiamento não garantido: sujeito à análise e aprovação de crédito pela CAIXA e à avaliação do imóvel. Se o crédito aprovado for menor, a entrada e/ou o saldo devido à incorporadora aumentam.'];
+    if((lista || []).some(function(l){ return l.finEditado; }))
+      a.push('Financiamento informado: onde ele é menor que 80% da avaliação, a diferença vai para a entrada (sinal, parcelas e balões aumentam).');
+    if(op.fgts > 0) a.push('FGTS de ' + brl(op.fgts) + ' já abatido da entrada de cada unidade (nunca mais que a entrada). O uso do FGTS depende das regras e da liberação pela CAIXA.');
+    a.push('ITBI e registro grátis para a aquisição do primeiro imóvel, conforme proposta assinada.',
+     '(R) = unidade reservada: aceita simulação e proposta, mas a proposta só é analisada se houver desistência.');
+    return a;
+  }
   /* 08/11/2026 (dono) — texto de ATENÇÃO no topo (PDF, Excel e página) */
   var ATENCAO = 'ATENÇÃO: este é o FLUXO PADRÃO, considerando que o crédito liberado pela CAIXA será de 80% da avaliação do imóvel. ' +
     'Esse valor NÃO é garantido — o crédito real só é conhecido depois da análise de crédito do cliente. ' +
     'Se o crédito aprovado for menor, a entrada e o fluxo de pagamento mudam: para o fluxo do cliente, faça a simulação ou a proposta.';
-  var SUBTIT = 'Financiamento de 80% da avaliação · sem FGTS e sem subsídio · sinal em 4x · entrada em 48 meses';
+  function subtituloDe(op, lista){
+    var ed = (lista || []).some(function(l){ return l.finEditado; });
+    return (ed ? 'Financiamento informado (no máximo 80% da avaliação)' : 'Financiamento de 80% da avaliação') + ' · ' + (op.fgts > 0 ? 'FGTS de ' + brl(op.fgts) + ' abatido' : 'sem FGTS') +
+      ' · sem subsídio · sinal em 4x · entrada em ' + op.prazo + ' meses';
+  }
 
-  /* 08/11/2026 (dono) — botões SIMULAR e SUBIR PASTA em cada linha: abrem o simulador / a proposta com a unidade já escolhida */
-  function linkDe(pag, l){ return BASE + pag + '?tipo=' + encodeURIComponent(l.tipo || '') + '&unidade=' + encodeURIComponent(String(l.unidade)); }
-  function brl(v){ return 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
-  /* PDF: A4 deitado, cabeçalho na cor da Morais, tabela com as mesmas colunas da planilha */
-  function gerarPdf(lista, cab, dataBr, lg){
+  /* 08/11/2026 (dono) — botões SIMULAR e SUBIR PASTA em cada linha: abrem o simulador / a proposta com a unidade já
+     escolhida (10/11: e com o prazo; o simulador recebe também o FGTS) */
+  function linkDe(pag, l, op){
+    var u = BASE + pag + '?tipo=' + encodeURIComponent(l.tipo || '') + '&unidade=' + encodeURIComponent(String(l.unidade));
+    if(op && op.prazo) u += '&prazo=' + op.prazo;
+    if(op && op.fgts > 0 && pag === 'simulador.html') u += '&fgts=' + op.fgts.toFixed(2);
+    if(l.finEditado && pag === 'simulador.html') u += '&fin=' + Number(l.fin).toFixed(2);
+    return u;
+  }
+
+  /* as colunas: o FGTS só aparece quando há FGTS; o PÓS-CHAVES some na entrada em 24x (não tem pós-chaves) */
+  function montar(unidades, opcoes){
+    var op = opcoesDe(opcoes), hoje = new Date();
+    var lista = (unidades || []).filter(aVenda)
+      .sort(function(a, b){ return (parseInt(a.unidade, 10) || 0) - (parseInt(b.unidade, 10) || 0); })
+      .map(function(u){ return linhaDa(u, hoje, op); });
+    var q1 = moda(lista, 'q1'), q2 = moda(lista, 'q2'), qp = moda(lista, 'qp'), b1q = moda(lista, 'b1q'), b2q = moda(lista, 'b2q');
+    var cols = [{k: 'unidade', t: 'UNIDADE', w: 14}, {k: 'preco', t: 'VALOR', w: 24}, {k: 'aval', t: 'AVALIAÇÃO', w: 24},
+                {k: 'fin', t: lista.some(function(l){ return l.finEditado; }) ? 'FINANCIAMENTO (ATÉ 80% DA AVALIAÇÃO)' : 'FINANCIAMENTO (80% DA AVALIAÇÃO)', w: 26, destaque: true}];
+    if(op.fgts > 0) cols.push({k: 'fgts', t: 'FGTS (abatido)', w: 22, destaque: true});
+    cols.push({k: 'sinal', t: 'SINAL (ato + 30/60/90 dias)', w: 25},
+      {k: 'p1', t: 'PARCELA 1' + (q1 ? ' (' + q1 + 'x)' : ''), w: 22},
+      {k: 'b1', t: 'BALÃO' + (b1q ? ' (' + b1q + ')' : ''), w: 25},
+      {k: 'p2', t: 'PARCELA 2' + (q2 ? ' (' + q2 + 'x)' : ''), w: 21},
+      {k: 'b2', t: 'BALÃO' + (b2q ? ' (' + String(b2q).toLowerCase() + ')' : ''), w: 25});
+    if(lista.some(function(l){ return l.pos > 0; })) cols.push({k: 'pos', t: 'PÓS-CHAVES' + (qp ? ' (' + qp + 'x)' : ''), w: 22});
+    return {op: op, lista: lista, cols: cols, cab: cols.map(function(c){ return c.t; }), hoje: hoje, dataBr: hoje.toLocaleDateString('pt-BR'),
+            subtitulo: subtituloDe(op, lista), avisos: avisosDe(op, lista)};
+  }
+  function nomeArq(M, ext){
+    return 'Tabela de disponibilidades - Reserva do Ipês - ' + (ext === 'xlsx' ? '' : M.op.prazo + 'x - ') +
+      (M.op.fgts > 0 ? 'FGTS ' + M.op.fgts.toLocaleString('pt-BR') + ' - ' : '') + M.dataBr.replace(/\//g, '-') + '.' + ext;
+  }
+
+  /* PDF: A4 deitado, cabeçalho com a logo, tabela com as mesmas colunas da planilha */
+  function gerarPdf(M, lg){
+    var lista = M.lista, cols = M.cols, dataBr = M.dataBr, op = M.op, nc = cols.length;
     var JS = window.jspdf.jsPDF, doc = new JS({orientation: 'landscape', unit: 'mm', format: 'a4'});
     var W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
-    var limpo = function(t){ return String(t).replace(/\u2014/g, '-'); };
+    var limpo = function(t){ return String(t).replace(/—/g, '-'); };
     function cor(fn, c){ doc[fn](c[0], c[1], c[2]); }
     function topo(){
       /* cabeçalho branco com a logo, título no marrom do tronco e a faixa com as cores das flores */
@@ -127,7 +186,7 @@
       cor('setTextColor', COR.marrom); doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
       doc.text('CONDOMÍNIO RESERVA DO IPÊS', xt, 10.5);
       cor('setTextColor', COR.marromEsc); doc.setFont('helvetica', 'normal'); doc.setFontSize(10.5);
-      doc.text('TABELA DE DISPONIBILIDADES', xt, 16.5);
+      doc.text('TABELA DE DISPONIBILIDADES · ENTRADA EM ' + op.prazo + 'x', xt, 16.5);
       doc.setFontSize(8.5); cor('setTextColor', [120, 100, 80]);
       doc.text('Morais Engenharia e Construção', W - 10, 10.5, {align: 'right'});
       doc.setFont('helvetica', 'bold'); cor('setTextColor', COR.marrom);
@@ -135,36 +194,45 @@
       var fx = [COR.amarelo, COR.rosa, COR.lilas, COR.cinza], wf = W / fx.length;
       fx.forEach(function(c, i){ cor('setFillColor', c); doc.rect(i * wf, 22, wf + 0.1, 1.6, 'F'); });
       cor('setTextColor', COR.marromEsc); doc.setFont('helvetica', 'italic'); doc.setFontSize(9);
-      doc.text(limpo(SUBTIT), 10, 29);
+      doc.text(limpo(M.subtitulo), 10, 29);
       /* faixa de ATENÇÃO */
       cor('setFillColor', COR.amareloClaro); doc.rect(8, 31.5, W - 16, 11, 'F');
       cor('setFillColor', COR.marrom); doc.rect(8, 31.5, 1.4, 11, 'F');
       cor('setTextColor', COR.marromEsc); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.2);
       doc.text(doc.splitTextToSize(limpo(ATENCAO), W - 24), 12, 35.5);
     }
+    /* larguras: as das colunas + os 2 botões, ajustadas para os 281 mm do A4 deitado menos as margens */
+    var ws = cols.map(function(c){ return c.w; }).concat([24, 29]), soma = ws.reduce(function(a, b){ return a + b; }, 0);
+    ws = ws.map(function(x){ return x * 281 / soma; });
+    var iSim = nc, iProp = nc + 1;
     doc.autoTable({
-      head: [['UN.'].concat(cab.slice(1).map(limpo), ['SIMULAR', 'SUBIR PASTA'])],
-      body: lista.map(function(l){ return [String(l.unidade) + (l.reservada ? ' (R)' : ''), brl(l.preco), brl(l.aval), brl(l.fin), brl(l.sinal), brl(l.p1), brl(l.b1), brl(l.p2), brl(l.b2), brl(l.pos), 'SIMULAR', 'SUBIR PASTA']; }),
+      head: [['UN.'].concat(cols.slice(1).map(function(c){
+        if(c.k === 'fin') return 'FINANCIAM. (' + (/ATÉ/.test(c.t) ? 'ATÉ ' : '') + '80% DA AVALIAÇÃO)';   // cabe na coluna sem quebrar a palavra
+        return limpo(c.t); }), ['SIMULAR', 'SUBIR PASTA'])],
+      body: lista.map(function(l){
+        return cols.map(function(c){ return c.k === 'unidade' ? String(l.unidade) + (l.reservada ? ' (R)' : '') : brl(l[c.k]); }).concat(['SIMULAR', 'SUBIR PASTA']);
+      }),
       startY: 46, margin: {top: 46, left: 8, right: 8, bottom: 14},
       theme: 'grid',
-      styles: {font: 'helvetica', fontSize: 7.6, cellPadding: 1.25, overflow: 'visible', halign: 'right', valign: 'middle', lineColor: COR.linha, lineWidth: 0.15, textColor: [60, 40, 25]},
-      headStyles: {fillColor: COR.marrom, textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 7.6, overflow: 'linebreak'},
+      styles: {font: 'helvetica', fontSize: nc > 11 ? 7.2 : 7.6, cellPadding: 1.25, overflow: 'visible', halign: 'right', valign: 'middle', lineColor: COR.linha, lineWidth: 0.15, textColor: [60, 40, 25]},
+      headStyles: {fillColor: COR.marrom, textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: nc > 11 ? 7.2 : 7.6, overflow: 'linebreak'},
       alternateRowStyles: {fillColor: COR.creme},
-      columnStyles: (function(){ var w = [14, 24, 24, 26, 25, 22, 25, 21, 25, 22, 24, 29], o = {};   // 281 mm = A4 deitado menos as margens
-        w.forEach(function(x, i){ o[i] = {cellWidth: x}; });
-        o[0].halign = 'center'; o[0].fontStyle = 'bold'; o[0].textColor = COR.marrom; o[3].fillColor = COR.lilasClaro;
-        o[10].halign = 'center'; o[10].fontStyle = 'bold'; o[10].fillColor = COR.amarelo; o[10].textColor = COR.marromEsc;
-        o[11].halign = 'center'; o[11].fontStyle = 'bold'; o[11].fillColor = COR.roxo; o[11].textColor = [255, 255, 255];
+      columnStyles: (function(){ var o = {};
+        ws.forEach(function(x, i){ o[i] = {cellWidth: x}; });
+        o[0].halign = 'center'; o[0].fontStyle = 'bold'; o[0].textColor = COR.marrom;
+        cols.forEach(function(c, i){ if(c.destaque) o[i].fillColor = COR.lilasClaro; });
+        o[iSim].halign = 'center'; o[iSim].fontStyle = 'bold'; o[iSim].fillColor = COR.amarelo; o[iSim].textColor = COR.marromEsc;
+        o[iProp].halign = 'center'; o[iProp].fontStyle = 'bold'; o[iProp].fillColor = COR.roxo; o[iProp].textColor = [255, 255, 255];
         return o; })(),
       didParseCell: function(d){   // o zebrado não pinta por cima dos botões
-        if(d.section === 'body' && d.column.index >= 10) d.cell.styles.fillColor = d.column.index === 10 ? COR.amarelo : COR.roxo;
-        if(d.section === 'body' && d.column.index >= 10) d.cell.styles.lineColor = [255, 255, 255];
-        if(d.section === 'body' && d.column.index >= 10) d.cell.styles.lineWidth = 0.8;
+        if(d.section !== 'body' || d.column.index < iSim) return;
+        d.cell.styles.fillColor = d.column.index === iSim ? COR.amarelo : COR.roxo;
+        d.cell.styles.lineColor = [255, 255, 255]; d.cell.styles.lineWidth = 0.8;
       },
       didDrawCell: function(d){   // a célula inteira vira link
-        if(d.section !== 'body' || d.column.index < 10) return;
+        if(d.section !== 'body' || d.column.index < iSim) return;
         var l = lista[d.row.index]; if(!l) return;
-        doc.link(d.cell.x, d.cell.y, d.cell.width, d.cell.height, {url: linkDe(d.column.index === 10 ? 'simulador.html' : 'proposta.html', l)});
+        doc.link(d.cell.x, d.cell.y, d.cell.width, d.cell.height, {url: linkDe(d.column.index === iSim ? 'simulador.html' : 'proposta.html', l, op)});
       },
       didDrawPage: function(){
         topo();
@@ -177,63 +245,26 @@
     doc.text('Clique em SIMULAR ou SUBIR PASTA na linha da unidade para abrir o simulador / a proposta já com a unidade escolhida (no navegador, Ctrl + clique abre em nova aba).', 10, y);
     y += 5;
     doc.setFont('helvetica', 'normal'); doc.setFontSize(7.8); cor('setTextColor', [110, 90, 70]);
-    AVISOS.forEach(function(t){
+    M.avisos.forEach(function(t){
       var linhas = doc.splitTextToSize(limpo(t), W - 20);
       if(y + linhas.length * 3.6 > H - 12){ doc.addPage(); topo(); y = 49; doc.setFont('helvetica', 'normal'); doc.setFontSize(7.8); cor('setTextColor', [110, 90, 70]); }
       doc.text(linhas, 10, y); y += linhas.length * 3.6 + 1.5;
     });
-    baixar(doc.output('blob'), 'Tabela de disponibilidades - Reserva do Ipês - ' + dataBr.replace(/\//g, '-') + '.pdf', 'application/pdf');
+    baixar(doc.output('blob'), nomeArq(M, 'pdf'), 'application/pdf');
   }
 
-  /* 08/11/2026 — os dados da tabela (usados também pela página tabela.html) */
-  window.tabelaDisponibilidadesDados = async function(unidades){
-    await prontos('dados');
-    var hoje = new Date();
-    var lista = (unidades || []).filter(aVenda)
-      .sort(function(a, b){ return (parseInt(a.unidade, 10) || 0) - (parseInt(b.unidade, 10) || 0); })
-      .map(function(u){ return linhaDa(u, hoje); });
-    var q1 = moda(lista, 'q1'), q2 = moda(lista, 'q2'), qp = moda(lista, 'qp'), b1q = moda(lista, 'b1q'), b2q = moda(lista, 'b2q');
-    return {lista: lista, dataBr: hoje.toLocaleDateString('pt-BR'), atencao: ATENCAO, subtitulo: SUBTIT, avisos: AVISOS.slice(),
-      cab: ['UNIDADE', 'VALOR', 'AVALIAÇÃO', 'FINANCIAMENTO (80% DA AVALIAÇÃO)', 'SINAL (ato + 30/60/90 dias)',
-        'PARCELA 1' + (q1 ? ' (' + q1 + 'x)' : ''), 'BALÃO' + (b1q ? ' (' + b1q + ')' : ''),
-        'PARCELA 2' + (q2 ? ' (' + q2 + 'x)' : ''), 'BALÃO' + (b2q ? ' (' + String(b2q).toLowerCase() + ')' : ''),
-        'PÓS-CHAVES' + (qp ? ' (' + qp + 'x)' : '')],
-      link: function(pag, l){ return linkDe(pag, l); }, logoUrl: LOGO_URL};
-  };
-
-  window.planilhaFluxoPadrao = async function(unidades, formato){
-    formato = formato === 'pdf' ? 'pdf' : 'xlsx';
-    await prontos(formato);
-    var hoje = new Date();
-    var lista = (unidades || []).filter(aVenda)
-      .sort(function(a, b){ return (parseInt(a.unidade, 10) || 0) - (parseInt(b.unidade, 10) || 0); })
-      .map(function(u){ return linhaDa(u, hoje); });
-    if(!lista.length) throw new Error('Nenhuma unidade à venda com valor e avaliação preenchidos.');
-
-    var q1 = moda(lista, 'q1'), q2 = moda(lista, 'q2'), qp = moda(lista, 'qp'), b1q = moda(lista, 'b1q'), b2q = moda(lista, 'b2q');
-    var dataBr = hoje.toLocaleDateString('pt-BR');
-    var cab = ['UNIDADE', 'VALOR', 'AVALIAÇÃO', 'FINANCIAMENTO (80% DA AVALIAÇÃO)',
-      'SINAL (ato + 30/60/90 dias)',
-      'PARCELA 1' + (q1 ? ' (' + q1 + 'x)' : ''),
-      'BALÃO' + (b1q ? ' (' + b1q + ')' : ''),
-      'PARCELA 2' + (q2 ? ' (' + q2 + 'x)' : ''),
-      'BALÃO' + (b2q ? ' (' + String(b2q).toLowerCase() + ')' : ''),
-      'PÓS-CHAVES' + (qp ? ' (' + qp + 'x)' : '')];
-    var lg = await logo();
-    if(formato === 'pdf'){ gerarPdf(lista, cab, dataBr, lg); return lista.length; }
-    cab = cab.concat(['SIMULAR', 'SUBIR PASTA']);
-
-    var wb = new ExcelJS.Workbook();
-    wb.creator = 'Morais Engenharia e Construção'; wb.created = hoje;
-    var ws = wb.addWorksheet('Tabela de disponibilidades', {views: [{state: 'frozen', ySplit: 4}], pageSetup: {orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0}});
+  /* uma aba do Excel (um prazo) */
+  async function abaExcel(wb, M, lg){
+    var lista = M.lista, op = M.op, dataBr = M.dataBr;
+    var cab = M.cab.concat(['SIMULAR', 'SUBIR PASTA']), ncol = cab.length, nc = M.cols.length;
+    var ws = wb.addWorksheet('Entrada ' + op.prazo + 'x', {views: [{state: 'frozen', ySplit: 4}], pageSetup: {orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0}});
     var MARROM = argb(COR.marrom), MARROM_ESC = argb(COR.marromEsc), LILAS_CLARO = argb(COR.lilasClaro), CREME = argb(COR.creme);
-    var ncol = cab.length;
 
     /* logo na 1ª coluna, título ao lado; a linha de baixo do título leva as cores das flores */
     ws.mergeCells(1, 2, 1, ncol);
     var t = ws.getCell(1, 2);
     t.value = {richText: [{text: 'CONDOMÍNIO RESERVA DO IPÊS', font: {bold: true, size: 16, color: {argb: MARROM}}},
-                          {text: '\nTABELA DE DISPONIBILIDADES', font: {size: 11, color: {argb: MARROM_ESC}}}]};
+                          {text: '\nTABELA DE DISPONIBILIDADES · ENTRADA EM ' + op.prazo + 'x', font: {size: 11, color: {argb: MARROM_ESC}}}]};
     t.alignment = {vertical: 'middle', horizontal: 'left', indent: 1, wrapText: true};
     ws.getRow(1).height = 52;
     if(lg){
@@ -246,7 +277,7 @@
 
     ws.mergeCells(2, 1, 2, ncol);
     var s = ws.getCell(2, 1);
-    s.value = SUBTIT + ' · gerado em ' + dataBr;
+    s.value = M.subtitulo + ' · gerado em ' + dataBr;
     s.font = {italic: true, size: 10, color: {argb: MARROM_ESC}};
     s.alignment = {vertical: 'middle', horizontal: 'left', indent: 1};
 
@@ -274,7 +305,7 @@
     lista.forEach(function(l, k){
       var row = ws.getRow(5 + k);
       var un = String(l.unidade).trim();
-      row.values = [/^\d+$/.test(un) ? Number(un) : un, l.preco, l.aval, l.fin, l.sinal, l.p1, l.b1, l.p2, l.b2, l.pos];
+      row.values = M.cols.map(function(c){ return c.k === 'unidade' ? (/^\d+$/.test(un) ? Number(un) : un) : l[c.k]; });
       row.eachCell(function(c, col){
         c.alignment = {vertical: 'middle', horizontal: col === 1 ? 'center' : 'right'};
         if(col > 1) c.numFmt = MOEDA;
@@ -282,12 +313,12 @@
         if(k % 2) c.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: CREME}};
         c.border = {bottom: {style: 'hair', color: {argb: argb(COR.linha)}}};
       });
-      row.getCell(4).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: LILAS_CLARO}};
+      M.cols.forEach(function(c, i){ if(c.destaque) row.getCell(i + 1).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: LILAS_CLARO}}; });
       if(l.reservada){ var cu = row.getCell(1); cu.value = un + ' (R)'; }
       /* botões da linha: links para o simulador e a proposta com a unidade escolhida */
-      [[11, 'SIMULAR', 'simulador.html', argb(COR.amarelo), MARROM_ESC], [12, 'SUBIR PASTA', 'proposta.html', argb(COR.roxo), 'FFFFFFFF']].forEach(function(bt){
+      [[nc + 1, 'SIMULAR', 'simulador.html', argb(COR.amarelo), MARROM_ESC], [nc + 2, 'SUBIR PASTA', 'proposta.html', argb(COR.roxo), 'FFFFFFFF']].forEach(function(bt){
         var c = row.getCell(bt[0]);
-        c.value = {text: bt[1], hyperlink: linkDe(bt[2], l), tooltip: bt[1] + ' — unidade ' + un};
+        c.value = {text: bt[1], hyperlink: linkDe(bt[2], l, op), tooltip: bt[1] + ' — unidade ' + un};
         c.font = {bold: true, color: {argb: bt[4]}};
         c.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bt[3]}};
         c.alignment = {vertical: 'middle', horizontal: 'center'};
@@ -297,7 +328,7 @@
     });
 
     var fim = 5 + lista.length + 1;
-    AVISOS.forEach(function(txt, i){
+    M.avisos.forEach(function(txt, i){
       ws.mergeCells(fim + i, 1, fim + i, ncol);
       var c = ws.getCell(fim + i, 1);
       c.value = txt; c.font = {size: 9, color: {argb: 'FF6E5A46'}};
@@ -305,16 +336,41 @@
       ws.getRow(fim + i).height = 26;
     });
 
-    [11, 16, 16, 20, 16, 15, 16, 15, 18, 15, 13, 15].forEach(function(w, i){ ws.getColumn(i + 1).width = w; });
+    var larg = {unidade: 11, preco: 16, aval: 16, fin: 20, fgts: 16, sinal: 16, p1: 15, b1: 16, p2: 15, b2: 18, pos: 15};
+    M.cols.map(function(c){ return larg[c.k] || 15; }).concat([13, 15]).forEach(function(w, i){ ws.getColumn(i + 1).width = w; });
     ws.autoFilter = {from: {row: 4, column: 1}, to: {row: 4 + lista.length, column: ncol}};
     /* 10/11/2026 (dono): planilha TRAVADA — ninguém altera valores nem colunas; dá para selecionar, copiar,
        filtrar e clicar nos botões SIMULAR / SUBIR PASTA. Senha para destravar: ipes2026 */
     await ws.protect('ipes2026', {spinCount: 1000, selectLockedCells: true, selectUnlockedCells: true, autoFilter: true, sort: false,
       formatCells: false, formatColumns: false, formatRows: false, insertColumns: false, insertRows: false, insertHyperlinks: false,
       deleteColumns: false, deleteRows: false, pivotTables: false, objects: false, scenarios: false});
+  }
 
+  /* 08/11/2026 — os dados da tabela (usados também pela página tabela.html) */
+  window.tabelaDisponibilidadesDados = async function(unidades, opcoes){
+    await prontos('dados');
+    var M = montar(unidades, opcoes);
+    return {lista: M.lista, cols: M.cols, cab: M.cab, opcoes: M.op, prazos: PRAZOS.slice(), dataBr: M.dataBr, atencao: ATENCAO,
+      subtitulo: M.subtitulo, avisos: M.avisos, link: function(pag, l){ return linkDe(pag, l, M.op); }, logoUrl: LOGO_URL};
+  };
+
+  window.planilhaFluxoPadrao = async function(unidades, formato, opcoes){
+    formato = formato === 'pdf' ? 'pdf' : 'xlsx';
+    await prontos(formato);
+    var M = montar(unidades, opcoes);
+    if(!M.lista.length) throw new Error('Nenhuma unidade à venda com valor e avaliação preenchidos.');
+    var lg = await logo();
+    if(formato === 'pdf'){ gerarPdf(M, lg); return M.lista.length; }
+
+    var wb = new ExcelJS.Workbook();
+    wb.creator = 'Morais Engenharia e Construção'; wb.created = M.hoje;
+    /* uma aba por prazo — a escolhida primeiro */
+    var ordem = [M.op.prazo].concat(PRAZOS.filter(function(p){ return p !== M.op.prazo; }));
+    for(var i = 0; i < ordem.length; i++){
+      await abaExcel(wb, i === 0 ? M : montar(unidades, {prazo: ordem[i], fgts: M.op.fgts, fin: M.op.fin, finPor: M.op.finPor}), lg);
+    }
     var buf = await wb.xlsx.writeBuffer();
-    baixar(buf, 'Tabela de disponibilidades - Reserva do Ipês - ' + dataBr.replace(/\//g, '-') + '.xlsx');
-    return lista.length;
+    baixar(buf, nomeArq(M, 'xlsx'));
+    return M.lista.length;
   };
 })();

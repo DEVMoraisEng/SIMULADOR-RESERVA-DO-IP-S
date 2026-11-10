@@ -40,6 +40,25 @@
   .avisos{font-size:12px;color:var(--suave);line-height:1.5;margin-top:12px}
   .avisos p{margin:4px 0}
   #st{font-size:12.5px;color:var(--marromEsc)}
+  /* 10/11/2026 (dono): escolha do prazo da entrada e do FGTS */
+  .opcoes{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px 22px;background:#fff;border:1px solid var(--borda);border-radius:12px;padding:12px 16px;margin-bottom:12px}
+  .opcoes .grp{display:flex;flex-direction:column;gap:5px}
+  .opcoes label.t{font-size:11.5px;font-weight:800;color:var(--marromEsc);text-transform:uppercase;letter-spacing:.4px}
+  .seg{display:inline-flex;border:1.5px solid var(--marrom);border-radius:9px;overflow:hidden}
+  .seg button{border:0;background:#fff;color:var(--marrom);font:inherit;font-weight:800;font-size:14px;padding:8px 16px;cursor:pointer}
+  .seg button+button{border-left:1.5px solid var(--marrom)}
+  .seg button.on{background:var(--marrom);color:#fff}
+  .fgts{display:flex;align-items:center;border:1.5px solid var(--borda);border-radius:9px;background:#fff;padding:0 10px}
+  .fgts:focus-within{border-color:var(--marrom)}
+  .fgts span{font-weight:800;color:var(--suave);font-size:14px}
+  .fgts input{border:0;outline:0;font:inherit;font-size:15px;font-weight:700;color:var(--texto);padding:8px 6px;width:140px;background:transparent}
+  td.fin input{width:118px;border:1.5px solid #CDBBE3;border-radius:7px;padding:4px 6px;font:inherit;font-size:13px;font-weight:700;text-align:right;color:var(--texto);background:#fff}
+  td.fin input:focus{outline:0;border-color:var(--roxo)}
+  td.fin input.ed{border-color:var(--roxo);background:#F7F3FC}
+  td.fin small{display:block;font-size:10px;color:var(--suave);margin-top:2px}
+  td.fin small.teto{color:var(--suave)}
+  .bt-mini{border:1.5px solid var(--marrom);background:#fff;color:var(--marrom);border-radius:8px;padding:7px 10px;font:inherit;font-weight:800;font-size:12.5px;cursor:pointer}
+  .opcoes .dica{font-size:12px;color:var(--suave);max-width:420px;line-height:1.4}
   .carregando{padding:30px;text-align:center;color:var(--suave)}
   @media print{header .bts,#st{display:none}body{background:#fff}.wrap{border:0}th{position:static}}
 </style>
@@ -55,50 +74,127 @@
   <div id="st" style="width:100%"></div>
 </header>
 <main>
+  <div class="opcoes" id="opcoes">
+    <div class="grp"><label class="t">Entrada em</label>
+      <div class="seg" id="segPrazo"><button type="button" data-p="48" class="on">48x</button><button type="button" data-p="36">36x</button><button type="button" data-p="24">24x</button></div></div>
+    <div class="grp"><label class="t" for="fgts">FGTS do cliente (abate da entrada)</label>
+      <div class="fgts"><span>R$</span><input id="fgts" inputmode="numeric" placeholder="0,00" autocomplete="off"></div></div>
+    <div class="grp"><label class="t" for="finGeral">Financiamento (todas as unidades)</label>
+      <div class="fgts"><span>R$</span><input id="finGeral" inputmode="numeric" placeholder="80% da avaliação" autocomplete="off"></div></div>
+    <div class="grp"><label class="t">&nbsp;</label><button type="button" class="bt-mini" id="bFin80">Voltar a 80%</button></div>
+    <div class="dica">O financiamento vai até 80% da avaliação: dá para mudar aqui para todas ou na própria linha da unidade. Tudo recalcula na hora, e o PDF e o Excel saem como está na tela (o Excel com uma aba para cada prazo).</div>
+  </div>
   <p class="sub" id="sub"></p>
   <div class="atencao" id="atencao"></div>
   <div class="wrap"><div class="carregando" id="tab">Carregando as unidades…</div></div>
   <div class="avisos" id="avisos"></div>
 </main>
 <script src="fluxo-calc.js"></script>
-<script src="planilha-fluxo.js?v=r7"></script>
+<script src="planilha-fluxo.js?v=r8"></script>
 <script>
   /* mesmo endereço do mapa (index.html) */
   var APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbzwUIApU5nKXi1vG3cEs_V2DWCdkLDwY_vo0zBxO59ZBLbEihIxuOqbHdNLm-8pVVwVJQ/exec';
-  var UNIDADES=[];
+  var UNIDADES=[], OP={prazo:48, fgts:0, fin:0, finPor:{}};
   function esc(t){ return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
   function brl(v){ return 'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function num(v){ return (Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function parseMoeda(s){ s=String(s||'').replace(/\./g,'').replace(',','.').replace(/[^0-9.]/g,''); return parseFloat(s)||0; }
+  function mascara(el){ var d=el.value.replace(/\D/g,''); el.value = d ? num(Number(d)/100) : ''; return parseMoeda(el.value); }
   function aoVivo(){
     return fetch(APPS_SCRIPT_URL+'?acao=unidades').then(function(r){return r.json();})
       .then(function(j){ if(j&&j.ok&&j.unidades&&j.unidades.length) return j.unidades; throw 0; });
   }
   function local(){ return fetch('unidades.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():Promise.reject();}); }
+  /* 10/11/2026 (dono): prazo, FGTS e financiamento escolhidos no topo (também pelo endereço: ?prazo=36&fgts=15000&fin=200000) */
+  (function(){
+    var q=new URLSearchParams(location.search), p=Number(q.get('prazo')), f=parseFloat(q.get('fgts')), fi=parseFloat(q.get('fin'));
+    if([48,36,24].indexOf(p)>=0) OP.prazo=p;
+    if(f>0){ OP.fgts=Math.round(f*100)/100; document.getElementById('fgts').value=num(OP.fgts); }
+    if(fi>0){ OP.fin=Math.round(fi*100)/100; document.getElementById('finGeral').value=num(OP.fin); }
+    marcarPrazo();
+  })();
+  function marcarPrazo(){ document.querySelectorAll('#segPrazo button').forEach(function(b){ b.classList.toggle('on', Number(b.dataset.p)===OP.prazo); }); }
+  document.getElementById('segPrazo').addEventListener('click', function(e){
+    var b=e.target.closest('button'); if(!b) return; OP.prazo=Number(b.dataset.p); marcarPrazo(); pintar();
+  });
+  var tm;
+  function depois(){ clearTimeout(tm); tm=setTimeout(pintar, 250); }
+  document.getElementById('fgts').addEventListener('input', function(){ OP.fgts=mascara(this); depois(); });
+  /* o geral vale para todas: apaga o que foi mudado linha a linha */
+  document.getElementById('finGeral').addEventListener('input', function(){ OP.fin=mascara(this); OP.finPor={}; depois(); });
+  document.getElementById('bFin80').addEventListener('click', function(){ OP.fin=0; OP.finPor={}; document.getElementById('finGeral').value=''; pintar(); });
+  /* financiamento na linha da unidade (até 80% da avaliação) */
+  document.addEventListener('input', function(e){
+    var el=e.target; if(!el.matches || !el.matches('input[data-fin]')) return;
+    var v=mascara(el), teto=Number(el.dataset.teto)||0;
+    if(v>teto){ v=teto; el.value=num(teto); }
+    if(v>0) OP.finPor[el.dataset.fin]=v; else delete OP.finPor[el.dataset.fin];
+    depois();
+  });
+  document.addEventListener('blur', function(e){
+    var el=e.target; if(el.matches && el.matches('input[data-fin]')) pintar();
+  }, true);
   async function montar(){
     try{ UNIDADES = await aoVivo(); }
     catch(e){ try{ UNIDADES = await local(); }catch(e2){ UNIDADES = []; } }
-    var tab=document.getElementById('tab');
-    if(!UNIDADES.length){ tab.textContent='Não consegui carregar as unidades. Recarregue a página.'; return; }
-    var D = await tabelaDisponibilidadesDados(UNIDADES);
+    if(!UNIDADES.length){ document.getElementById('tab').textContent='Não consegui carregar as unidades. Recarregue a página.'; return; }
+    pintar();
+  }
+  function celula(c, l){
+    if(c.k==='unidade') return esc(l.unidade)+(l.reservada?'<span class="tag" title="Reservada: a proposta só é analisada se houver desistência">RESERVADA</span>':'');
+    if(c.k==='fin') return '<input data-fin="'+esc(l.unidade)+'" data-teto="'+l.teto+'" inputmode="numeric" value="'+num(l.fin)+'" class="'+(l.finEditado?'ed':'')+'" title="Até '+brl(l.teto)+' (80% da avaliação)">'+
+      '<small class="'+(l.finEditado?'':'teto')+'">'+(l.finEditado?'máx. '+brl(l.teto):'80% da avaliação')+'</small>';
+    return brl(l[c.k]);
+  }
+  var ASSIN='';
+  async function pintar(){
+    if(!UNIDADES.length) return;
+    var D = await tabelaDisponibilidadesDados(UNIDADES, OP);
+    try{ var q=new URLSearchParams(location.search); q.set('prazo',OP.prazo);
+         if(OP.fgts>0) q.set('fgts',OP.fgts); else q.delete('fgts'); if(OP.fin>0) q.set('fin',OP.fin); else q.delete('fin');
+         history.replaceState(null,'',location.pathname+'?'+q.toString()); }catch(e){}
     document.getElementById('data').textContent = D.dataBr;
     document.getElementById('sub').textContent = D.subtitulo;
     document.getElementById('atencao').textContent = D.atencao;
     document.getElementById('avisos').innerHTML = D.avisos.map(function(a){ return '<p>'+esc(a)+'</p>'; }).join('');
-    if(!D.lista.length){ tab.textContent='Nenhuma unidade à venda no momento.'; return; }
-    var h = '<table><thead><tr>'+D.cab.map(function(c){return '<th>'+esc(c)+'</th>';}).join('')+'<th>Simular</th><th>Subir pasta</th></tr></thead><tbody>';
+    var tab=document.getElementById('tab');
+    if(!D.lista.length){ tab.outerHTML='<div class="carregando" id="tab">Nenhuma unidade à venda no momento.</div>'; ASSIN=''; return; }
+    var assin = D.cols.map(function(c){return c.k;}).join(',')+'|'+D.lista.map(function(l){return l.unidade;}).join(',');
+    var foco = document.activeElement;
+    if(assin===ASSIN && tab.tagName==='TABLE'){
+      /* mesma tabela: só troca os valores (não tira o cursor da caixa que a pessoa está digitando) */
+      D.lista.forEach(function(l, i){
+        var tr=tab.tBodies[0].rows[i]; if(!tr) return;
+        D.cols.forEach(function(c, j){
+          var td=tr.cells[j];
+          if(c.k==='fin'){
+            var inp=td.querySelector('input'), sm=td.querySelector('small');
+            if(inp!==foco) inp.value=num(l.fin);
+            inp.className=l.finEditado?'ed':''; sm.className=l.finEditado?'':'teto'; sm.textContent=l.finEditado?'máx. '+brl(l.teto):'80% da avaliação';
+          } else if(c.k!=='unidade') td.textContent=brl(l[c.k]);
+        });
+        tr.cells[D.cols.length].firstChild.href=D.link('simulador.html',l);
+        tr.cells[D.cols.length+1].firstChild.href=D.link('proposta.html',l);
+      });
+      tab.tHead.rows[0].cells[3].textContent=D.cols[3].t;
+      return;
+    }
+    var h = '<table id="tab"><thead><tr>'+D.cols.map(function(c){return '<th>'+esc(c.t)+'</th>';}).join('')+'<th>Simular</th><th>Subir pasta</th></tr></thead><tbody>';
     D.lista.forEach(function(l){
-      h += '<tr><td class="un">'+esc(l.unidade)+(l.reservada?'<span class="tag" title="Reservada: a proposta só é analisada se houver desistência">RESERVADA</span>':'')+'</td>'+
-        '<td>'+brl(l.preco)+'</td><td>'+brl(l.aval)+'</td><td class="fin">'+brl(l.fin)+'</td><td>'+brl(l.sinal)+'</td>'+
-        '<td>'+brl(l.p1)+'</td><td>'+brl(l.b1)+'</td><td>'+brl(l.p2)+'</td><td>'+brl(l.b2)+'</td><td>'+brl(l.pos)+'</td>'+
+      h += '<tr>'+D.cols.map(function(c){
+        return '<td class="'+(c.k==='unidade'?'un':(c.destaque?'fin':''))+'">'+celula(c, l)+'</td>';
+      }).join('')+
         '<td class="ac"><a class="btn sim" target="_blank" rel="noopener" href="'+esc(D.link('simulador.html',l))+'">SIMULAR</a></td>'+
         '<td class="ac"><a class="btn prop" target="_blank" rel="noopener" href="'+esc(D.link('proposta.html',l))+'">SUBIR PASTA</a></td></tr>';
     });
     tab.outerHTML = h+'</tbody></table>';
+    ASSIN=assin;
   }
   function baixar(formato){
     var b=document.getElementById(formato==='pdf'?'bPdf':'bXls'), st=document.getElementById('st');
     if(!UNIDADES.length){ st.textContent='Aguarde as unidades carregarem.'; return; }
     b.disabled=true; st.textContent='Gerando…';
-    planilhaFluxoPadrao(UNIDADES, formato).then(function(n){ st.textContent='Baixado ('+(formato==='pdf'?'PDF':'Excel')+'): '+n+' unidades.'; })
+    planilhaFluxoPadrao(UNIDADES, formato, OP).then(function(n){ st.textContent='Baixado ('+(formato==='pdf'?'PDF, entrada em '+OP.prazo+'x':'Excel, abas 48x, 36x e 24x')+(OP.fgts>0?', FGTS '+brl(OP.fgts):'')+'): '+n+' unidades.'; })
       .catch(function(e){ st.textContent='Não consegui gerar: '+((e&&e.message)||e); })
       .then(function(){ b.disabled=false; });
   }

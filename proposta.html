@@ -899,6 +899,12 @@
   function fmt(v){return (Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
   function brl(v){return 'R$ '+fmt(v);}
   function param(n){return new URLSearchParams(location.search).get(n)||'';}
+  /* 10/11/2026 (dono) — link da TABELA DE DISPONIBILIDADES: já vem com o prazo da entrada escolhido */
+  document.addEventListener('DOMContentLoaded', function(){
+    var pz=param('prazo'); if(!pz) return;
+    var r=document.querySelector('#formProposta input[name="prazoEntrada"][value="'+pz+'"]');
+    if(r && !document.querySelector('#formProposta input[name="prazoEntrada"]:checked')){ r.checked=true; try{ atualizarComissao(); }catch(e){} }
+  });
   var F = function(){ return document.getElementById('formProposta'); };
 
   /* ---------- padronização: MAIÚSCULO sem acento ----------

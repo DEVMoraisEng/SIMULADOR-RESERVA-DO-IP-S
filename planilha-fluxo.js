@@ -12,6 +12,7 @@
  * Uso: planilhaFluxoPadrao(listaDeUnidades, formato) — formato 'xlsx' (padrão) ou 'pdf';
  *      cada unidade com {unidade, tipo, valorVenda, avaliacao, disponivel, reservado, vendido}
  * 08/11/2026 (dono): também em PDF (jsPDF + autoTable), mesmas colunas e avisos.
+ * 10/11/2026 (dono): cores da logo do Reserva do Ipês e a logo (assets/logo-ipes-arvore.jpg) no topo.
  * ------------------------------------------------------------------- */
 (function(){
   var BASE = 'https://devmoraiseng.github.io/SIMULADOR-RESERVA-DO-IP-S/';
@@ -39,6 +40,21 @@
     }
     if(typeof ExcelJS === 'undefined') p.push(carregar('https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js'));
     return Promise.all(p);
+  }
+  /* 10/11/2026 (dono): cores da LOGO do Reserva do Ipês (marrom do tronco + flores amarela, rosa, lilás e cinza) e a
+     logo na tabela (PDF, Excel e página). */
+  var COR = {marrom: [168, 97, 35], marromEsc: [110, 62, 20], amarelo: [236, 195, 43], rosa: [233, 131, 169],
+             lilas: [168, 143, 193], roxo: [126, 93, 175], cinza: [218, 223, 220], creme: [251, 246, 236],
+             lilasClaro: [239, 233, 246], amareloClaro: [253, 243, 207], linha: [232, 220, 200]};
+  function argb(c){ return 'FF' + c.map(function(x){ return ('0' + x.toString(16)).slice(-2); }).join('').toUpperCase(); }
+  var LOGO_URL = BASE + 'assets/logo-ipes-arvore.jpg', logoB64 = null;
+  function logo(){   // base64 (sem o prefixo) ou '' se não carregar — a tabela sai sem a logo
+    if(logoB64 !== null) return Promise.resolve(logoB64);
+    return fetch(LOGO_URL).then(function(r){ if(!r.ok) throw 0; return r.arrayBuffer(); }).then(function(buf){
+      var b = new Uint8Array(buf), t = '';
+      for(var i = 0; i < b.length; i += 0x8000) t += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000));
+      return (logoB64 = btoa(t));
+    }).catch(function(){ return (logoB64 = ''); });
   }
   function r2(v){ return Math.round((Number(v) || 0) * 100) / 100; }
   function qtd(q){ var m = String(q || '').match(/^(\d+)\s*X$/i); return m ? Number(m[1]) : 1; }
@@ -98,41 +114,49 @@
   function linkDe(pag, l){ return BASE + pag + '?tipo=' + encodeURIComponent(l.tipo || '') + '&unidade=' + encodeURIComponent(String(l.unidade)); }
   function brl(v){ return 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
   /* PDF: A4 deitado, cabeçalho na cor da Morais, tabela com as mesmas colunas da planilha */
-  function gerarPdf(lista, cab, dataBr){
+  function gerarPdf(lista, cab, dataBr, lg){
     var JS = window.jspdf.jsPDF, doc = new JS({orientation: 'landscape', unit: 'mm', format: 'a4'});
     var W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
     var limpo = function(t){ return String(t).replace(/\u2014/g, '-'); };
+    function cor(fn, c){ doc[fn](c[0], c[1], c[2]); }
     function topo(){
-      doc.setFillColor(42, 40, 95); doc.rect(0, 0, W, 18, 'F');
-      doc.setFillColor(129, 201, 192); doc.rect(0, 18, W, 1.2, 'F');
-      doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(14);
-      doc.text('CONDOMÍNIO RESERVA DO IPÊS - TABELA DE DISPONIBILIDADES', 10, 11.5);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
-      doc.text('Morais Engenharia e Construção · ' + dataBr, W - 10, 11.5, {align: 'right'});
-      doc.setTextColor(27, 81, 115); doc.setFont('helvetica', 'italic'); doc.setFontSize(9);
-      doc.text(limpo(SUBTIT), 10, 25);
+      /* cabeçalho branco com a logo, título no marrom do tronco e a faixa com as cores das flores */
+      var xt = 10;
+      if(lg){ try{ doc.addImage('data:image/jpeg;base64,' + lg, 'JPEG', 8, 2.2, 16.7, 18, 'logoIpes', 'FAST'); xt = 28; }catch(e){} }
+      cor('setTextColor', COR.marrom); doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
+      doc.text('CONDOMÍNIO RESERVA DO IPÊS', xt, 10.5);
+      cor('setTextColor', COR.marromEsc); doc.setFont('helvetica', 'normal'); doc.setFontSize(10.5);
+      doc.text('TABELA DE DISPONIBILIDADES', xt, 16.5);
+      doc.setFontSize(8.5); cor('setTextColor', [120, 100, 80]);
+      doc.text('Morais Engenharia e Construção', W - 10, 10.5, {align: 'right'});
+      doc.setFont('helvetica', 'bold'); cor('setTextColor', COR.marrom);
+      doc.text(dataBr, W - 10, 16.5, {align: 'right'});
+      var fx = [COR.amarelo, COR.rosa, COR.lilas, COR.cinza], wf = W / fx.length;
+      fx.forEach(function(c, i){ cor('setFillColor', c); doc.rect(i * wf, 22, wf + 0.1, 1.6, 'F'); });
+      cor('setTextColor', COR.marromEsc); doc.setFont('helvetica', 'italic'); doc.setFontSize(9);
+      doc.text(limpo(SUBTIT), 10, 29);
       /* faixa de ATENÇÃO */
-      doc.setFillColor(255, 244, 214); doc.rect(8, 28, W - 16, 11, 'F');
-      doc.setFillColor(183, 121, 31); doc.rect(8, 28, 1.4, 11, 'F');
-      doc.setTextColor(122, 74, 22); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.2);
-      doc.text(doc.splitTextToSize(limpo(ATENCAO), W - 24), 12, 32);
+      cor('setFillColor', COR.amareloClaro); doc.rect(8, 31.5, W - 16, 11, 'F');
+      cor('setFillColor', COR.marrom); doc.rect(8, 31.5, 1.4, 11, 'F');
+      cor('setTextColor', COR.marromEsc); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.2);
+      doc.text(doc.splitTextToSize(limpo(ATENCAO), W - 24), 12, 35.5);
     }
     doc.autoTable({
       head: [['UN.'].concat(cab.slice(1).map(limpo), ['SIMULAR', 'SUBIR PASTA'])],
       body: lista.map(function(l){ return [String(l.unidade) + (l.reservada ? ' (R)' : ''), brl(l.preco), brl(l.aval), brl(l.fin), brl(l.sinal), brl(l.p1), brl(l.b1), brl(l.p2), brl(l.b2), brl(l.pos), 'SIMULAR', 'SUBIR PASTA']; }),
-      startY: 42, margin: {top: 42, left: 8, right: 8, bottom: 14},
+      startY: 46, margin: {top: 46, left: 8, right: 8, bottom: 14},
       theme: 'grid',
-      styles: {font: 'helvetica', fontSize: 7.6, cellPadding: 1.25, overflow: 'visible', halign: 'right', valign: 'middle', lineColor: [213, 221, 227], lineWidth: 0.15, textColor: [30, 40, 50]},
-      headStyles: {fillColor: [27, 81, 115], textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 7.6, overflow: 'linebreak'},
-      alternateRowStyles: {fillColor: [244, 247, 248]},
+      styles: {font: 'helvetica', fontSize: 7.6, cellPadding: 1.25, overflow: 'visible', halign: 'right', valign: 'middle', lineColor: COR.linha, lineWidth: 0.15, textColor: [60, 40, 25]},
+      headStyles: {fillColor: COR.marrom, textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 7.6, overflow: 'linebreak'},
+      alternateRowStyles: {fillColor: COR.creme},
       columnStyles: (function(){ var w = [14, 24, 24, 26, 25, 22, 25, 21, 25, 22, 24, 29], o = {};   // 281 mm = A4 deitado menos as margens
         w.forEach(function(x, i){ o[i] = {cellWidth: x}; });
-        o[0].halign = 'center'; o[0].fontStyle = 'bold'; o[3].fillColor = [204, 232, 230];
-        o[10].halign = 'center'; o[10].fontStyle = 'bold'; o[10].fillColor = [239, 183, 0]; o[10].textColor = [122, 74, 22];
-        o[11].halign = 'center'; o[11].fontStyle = 'bold'; o[11].fillColor = [39, 174, 96]; o[11].textColor = [255, 255, 255];
+        o[0].halign = 'center'; o[0].fontStyle = 'bold'; o[0].textColor = COR.marrom; o[3].fillColor = COR.lilasClaro;
+        o[10].halign = 'center'; o[10].fontStyle = 'bold'; o[10].fillColor = COR.amarelo; o[10].textColor = COR.marromEsc;
+        o[11].halign = 'center'; o[11].fontStyle = 'bold'; o[11].fillColor = COR.roxo; o[11].textColor = [255, 255, 255];
         return o; })(),
       didParseCell: function(d){   // o zebrado não pinta por cima dos botões
-        if(d.section === 'body' && d.column.index >= 10) d.cell.styles.fillColor = d.column.index === 10 ? [239, 183, 0] : [39, 174, 96];
+        if(d.section === 'body' && d.column.index >= 10) d.cell.styles.fillColor = d.column.index === 10 ? COR.amarelo : COR.roxo;
         if(d.section === 'body' && d.column.index >= 10) d.cell.styles.lineColor = [255, 255, 255];
         if(d.section === 'body' && d.column.index >= 10) d.cell.styles.lineWidth = 0.8;
       },
@@ -143,18 +167,18 @@
       },
       didDrawPage: function(){
         topo();
-        doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(110, 120, 130);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); cor('setTextColor', [140, 115, 90]);
         doc.text('Página ' + doc.internal.getNumberOfPages(), W - 10, H - 6, {align: 'right'});
       }
     });
     var y = doc.lastAutoTable.finalY + 6;
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(7.8); doc.setTextColor(27, 81, 115);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(7.8); cor('setTextColor', COR.marrom);
     doc.text('Clique em SIMULAR ou SUBIR PASTA na linha da unidade para abrir o simulador / a proposta já com a unidade escolhida (no navegador, Ctrl + clique abre em nova aba).', 10, y);
     y += 5;
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.8); doc.setTextColor(90, 106, 118);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.8); cor('setTextColor', [110, 90, 70]);
     AVISOS.forEach(function(t){
       var linhas = doc.splitTextToSize(limpo(t), W - 20);
-      if(y + linhas.length * 3.6 > H - 12){ doc.addPage(); topo(); y = 45; doc.setFont('helvetica', 'normal'); doc.setFontSize(7.8); doc.setTextColor(90, 106, 118); }
+      if(y + linhas.length * 3.6 > H - 12){ doc.addPage(); topo(); y = 49; doc.setFont('helvetica', 'normal'); doc.setFontSize(7.8); cor('setTextColor', [110, 90, 70]); }
       doc.text(linhas, 10, y); y += linhas.length * 3.6 + 1.5;
     });
     baixar(doc.output('blob'), 'Tabela de disponibilidades - Reserva do Ipês - ' + dataBr.replace(/\//g, '-') + '.pdf', 'application/pdf');
@@ -173,7 +197,7 @@
         'PARCELA 1' + (q1 ? ' (' + q1 + 'x)' : ''), 'BALÃO' + (b1q ? ' (' + b1q + ')' : ''),
         'PARCELA 2' + (q2 ? ' (' + q2 + 'x)' : ''), 'BALÃO' + (b2q ? ' (' + String(b2q).toLowerCase() + ')' : ''),
         'PÓS-CHAVES' + (qp ? ' (' + qp + 'x)' : '')],
-      link: function(pag, l){ return linkDe(pag, l); }};
+      link: function(pag, l){ return linkDe(pag, l); }, logoUrl: LOGO_URL};
   };
 
   window.planilhaFluxoPadrao = async function(unidades, formato){
@@ -194,36 +218,44 @@
       'PARCELA 2' + (q2 ? ' (' + q2 + 'x)' : ''),
       'BALÃO' + (b2q ? ' (' + String(b2q).toLowerCase() + ')' : ''),
       'PÓS-CHAVES' + (qp ? ' (' + qp + 'x)' : '')];
-    if(formato === 'pdf'){ gerarPdf(lista, cab, dataBr); return lista.length; }
+    var lg = await logo();
+    if(formato === 'pdf'){ gerarPdf(lista, cab, dataBr, lg); return lista.length; }
     cab = cab.concat(['SIMULAR', 'SUBIR PASTA']);
 
     var wb = new ExcelJS.Workbook();
     wb.creator = 'Morais Engenharia e Construção'; wb.created = hoje;
     var ws = wb.addWorksheet('Tabela de disponibilidades', {views: [{state: 'frozen', ySplit: 4}], pageSetup: {orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0}});
-    var NAVY = 'FF2A285F', PETROLEO = 'FF1B5173', MENTA = 'FFCCE8E6', CINZA = 'FFF4F7F8';
+    var MARROM = argb(COR.marrom), MARROM_ESC = argb(COR.marromEsc), LILAS_CLARO = argb(COR.lilasClaro), CREME = argb(COR.creme);
     var ncol = cab.length;
 
-    ws.mergeCells(1, 1, 1, ncol);
-    var t = ws.getCell(1, 1);
-    t.value = 'CONDOMÍNIO RESERVA DO IPÊS — TABELA DE DISPONIBILIDADES';
-    t.font = {bold: true, size: 15, color: {argb: 'FFFFFFFF'}};
-    t.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: NAVY}};
-    t.alignment = {vertical: 'middle', horizontal: 'left', indent: 1};
-    ws.getRow(1).height = 28;
+    /* logo na 1ª coluna, título ao lado; a linha de baixo do título leva as cores das flores */
+    ws.mergeCells(1, 2, 1, ncol);
+    var t = ws.getCell(1, 2);
+    t.value = {richText: [{text: 'CONDOMÍNIO RESERVA DO IPÊS', font: {bold: true, size: 16, color: {argb: MARROM}}},
+                          {text: '\nTABELA DE DISPONIBILIDADES', font: {size: 11, color: {argb: MARROM_ESC}}}]};
+    t.alignment = {vertical: 'middle', horizontal: 'left', indent: 1, wrapText: true};
+    ws.getRow(1).height = 52;
+    if(lg){
+      try{ ws.addImage(wb.addImage({base64: lg, extension: 'jpeg'}), {tl: {col: 0.12, row: 0.08}, ext: {width: 60, height: 65}, editAs: 'oneCell'}); }catch(e){}
+    }
+    var fx = [COR.amarelo, COR.rosa, COR.lilas, COR.cinza];
+    for(var cc = 1; cc <= ncol; cc++){
+      ws.getCell(1, cc).border = {bottom: {style: 'thick', color: {argb: argb(fx[Math.min(fx.length - 1, Math.floor((cc - 1) * fx.length / ncol))])}}};
+    }
 
     ws.mergeCells(2, 1, 2, ncol);
     var s = ws.getCell(2, 1);
     s.value = SUBTIT + ' · gerado em ' + dataBr;
-    s.font = {italic: true, size: 10, color: {argb: 'FF1B5173'}};
+    s.font = {italic: true, size: 10, color: {argb: MARROM_ESC}};
     s.alignment = {vertical: 'middle', horizontal: 'left', indent: 1};
 
     ws.mergeCells(3, 1, 3, ncol);
     var at = ws.getCell(3, 1);
     at.value = ATENCAO;
-    at.font = {bold: true, size: 10, color: {argb: 'FF7A4A16'}};
-    at.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FFFFF4D6'}};
+    at.font = {bold: true, size: 10, color: {argb: MARROM_ESC}};
+    at.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: argb(COR.amareloClaro)}};
     at.alignment = {vertical: 'middle', horizontal: 'left', wrapText: true, indent: 1};
-    at.border = {left: {style: 'thick', color: {argb: 'FFB7791F'}}};
+    at.border = {left: {style: 'thick', color: {argb: MARROM}}};
     ws.getRow(3).height = 46;
 
     var hr = ws.getRow(4);
@@ -231,9 +263,9 @@
       var c = hr.getCell(i + 1);
       c.value = h;
       c.font = {bold: true, size: 10, color: {argb: 'FFFFFFFF'}};
-      c.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: PETROLEO}};
+      c.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: MARROM}};
       c.alignment = {vertical: 'middle', horizontal: 'center', wrapText: true};
-      c.border = {bottom: {style: 'medium', color: {argb: 'FF81C9C0'}}};
+      c.border = {bottom: {style: 'medium', color: {argb: argb(COR.amarelo)}}};
     });
     hr.height = 34;
 
@@ -245,14 +277,14 @@
       row.eachCell(function(c, col){
         c.alignment = {vertical: 'middle', horizontal: col === 1 ? 'center' : 'right'};
         if(col > 1) c.numFmt = MOEDA;
-        if(col === 1) c.font = {bold: true};
-        if(k % 2) c.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: CINZA}};
-        c.border = {bottom: {style: 'hair', color: {argb: 'FFD5DDE3'}}};
+        c.font = col === 1 ? {bold: true, color: {argb: MARROM}} : {color: {argb: 'FF3C2819'}};
+        if(k % 2) c.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: CREME}};
+        c.border = {bottom: {style: 'hair', color: {argb: argb(COR.linha)}}};
       });
-      row.getCell(4).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: MENTA}};
+      row.getCell(4).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: LILAS_CLARO}};
       if(l.reservada){ var cu = row.getCell(1); cu.value = un + ' (R)'; }
       /* botões da linha: links para o simulador e a proposta com a unidade escolhida */
-      [[11, 'SIMULAR', 'simulador.html', 'FFEFB700', 'FF7A4A16'], [12, 'SUBIR PASTA', 'proposta.html', 'FF27AE60', 'FFFFFFFF']].forEach(function(bt){
+      [[11, 'SIMULAR', 'simulador.html', argb(COR.amarelo), MARROM_ESC], [12, 'SUBIR PASTA', 'proposta.html', argb(COR.roxo), 'FFFFFFFF']].forEach(function(bt){
         var c = row.getCell(bt[0]);
         c.value = {text: bt[1], hyperlink: linkDe(bt[2], l), tooltip: bt[1] + ' — unidade ' + un};
         c.font = {bold: true, color: {argb: bt[4]}};
@@ -267,7 +299,7 @@
     AVISOS.forEach(function(txt, i){
       ws.mergeCells(fim + i, 1, fim + i, ncol);
       var c = ws.getCell(fim + i, 1);
-      c.value = txt; c.font = {size: 9, color: {argb: 'FF5A6A76'}};
+      c.value = txt; c.font = {size: 9, color: {argb: 'FF6E5A46'}};
       c.alignment = {wrapText: true, vertical: 'top', indent: 1};
       ws.getRow(fim + i).height = 26;
     });

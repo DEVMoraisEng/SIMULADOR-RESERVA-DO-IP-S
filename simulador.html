@@ -493,6 +493,19 @@
     var pt=qs('tipo'); if(pt&&tipos.indexOf(pt)>=0) selT.value=pt;
     preencherUnidades();
     var pu=qs('unidade'); if(pu){document.getElementById('unidade').value=pu; aoTrocarUnidade();}
+    doLinkTabela();
+  }
+  /* 10/11/2026 (dono) — link da TABELA DE DISPONIBILIDADES: já vem com o prazo, o FGTS e o financiamento (até 80%) escolhidos */
+  var LINK_TABELA_OK=false;
+  function doLinkTabela(){
+    if(LINK_TABELA_OK) return; LINK_TABELA_OK=true;
+    try{
+      var f=document.getElementById('formSimulacao'), pz=qs('prazo'), fg=parseFloat(qs('fgts')), fi=parseFloat(qs('fin')), mudou=false;
+      if(pz){ var r=f.querySelector('[name="prazoEntrada"][value="'+pz+'"]'); if(r){ r.checked=true; atualizarComissao(); mudou=true; } }
+      if(fg>0){ f.fgtsDisponivel.value=fmt(fg); mudou=true; }
+      if(fi>0){ f.desejadoSim.checked=true; desejSimMudou(); f.valorDesejado.value=fmt(fi); mudou=true; }
+      if(mudou) estimar();
+    }catch(e){}
   }
   function preencherUnidades(){
     var t=document.getElementById('tipo').value;

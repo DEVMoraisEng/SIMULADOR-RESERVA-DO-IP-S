@@ -8,40 +8,45 @@
      de cada linha abrem em NOVA ABA (no PDF o navegador abre o link na mesma aba, e isso não
      dá para mudar de dentro do arquivo). Daqui também baixa o PDF e o Excel. -->
 <style>
-  :root{--marrom:#7A4A16;--marrom2:#A86018;--amarelo:#EFB700;--texto:#2A2118;--suave:#6B5A45;--borda:#E7DCC7;--fundo:#FBF7EE;
-        --navy:#2A285F;--petroleo:#1B5173;--menta:#CCE8E6;--verde:#27AE60;--verde2:#1E8449;}
+  /* 10/11/2026 (dono): cores da logo do Reserva do Ipês — tronco marrom e flores amarela, rosa, lilás e cinza */
+  :root{--marrom:#A86123;--marromEsc:#6E3E14;--amarelo:#ECC32B;--amarelo2:#D9AE17;--rosa:#E983A9;--lilas:#A88FC1;--cinza:#DADFDC;
+        --roxo:#7E5DAF;--roxo2:#694A97;--lilasClaro:#EFE9F6;--amareloClaro:#FDF3CF;--creme:#FBF6EC;
+        --texto:#3C2819;--suave:#6E5A46;--borda:#E8DCC8;--fundo:#FBF7EE;}
   *{box-sizing:border-box}
   body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:var(--fundo);color:var(--texto)}
-  header{background:linear-gradient(135deg,var(--marrom),var(--marrom2));color:#fff;padding:14px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  header h1{font-size:18px;margin:0;flex:1;min-width:240px}
-  header span{font-size:12px;color:var(--amarelo);font-weight:600;display:block}
+  header{background:#fff;color:var(--marrom);padding:10px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:relative;
+         border-bottom:5px solid transparent;border-image:linear-gradient(90deg,var(--amarelo) 0 25%,var(--rosa) 25% 50%,var(--lilas) 50% 75%,var(--cinza) 75% 100%) 1}
+  header img.logo{height:64px;width:auto;display:block}
+  header h1{font-size:20px;margin:0;flex:1;min-width:240px;color:var(--marrom);letter-spacing:.3px}
+  header span{font-size:12.5px;color:var(--marromEsc);font-weight:600;display:block;letter-spacing:0}
   .bts{display:flex;gap:8px;flex-wrap:wrap}
-  .bt{border:0;border-radius:10px;padding:10px 16px;font-weight:800;font-size:14px;font-family:inherit;cursor:pointer;background:#fff;color:var(--marrom)}
-  .bt.v{background:var(--verde);color:#fff}.bt:disabled{opacity:.6;cursor:wait}
+  .bt{border:0;border-radius:10px;padding:10px 16px;font-weight:800;font-size:14px;font-family:inherit;cursor:pointer;background:var(--marrom);color:#fff}
+  .bt.v{background:var(--roxo);color:#fff}.bt:disabled{opacity:.6;cursor:wait}
   main{max-width:1400px;margin:18px auto 60px;padding:0 16px}
-  .sub{font-size:13px;color:var(--petroleo);font-style:italic;margin:0 0 10px}
-  .atencao{background:#FFF4D6;border-left:5px solid #B7791F;border-radius:8px;padding:12px 14px;color:#7A4A16;font-weight:700;font-size:14px;line-height:1.45;margin-bottom:14px}
+  .sub{font-size:13px;color:var(--marromEsc);font-style:italic;margin:0 0 10px}
+  .atencao{background:var(--amareloClaro);border-left:5px solid var(--marrom);border-radius:8px;padding:12px 14px;color:var(--marromEsc);font-weight:700;font-size:14px;line-height:1.45;margin-bottom:14px}
   .wrap{overflow-x:auto;background:#fff;border:1px solid var(--borda);border-radius:12px}
   table{border-collapse:collapse;width:100%;min-width:1100px;font-size:13px}
-  th{background:var(--petroleo);color:#fff;font-size:11.5px;text-transform:uppercase;padding:9px 8px;text-align:center;position:sticky;top:0}
-  td{padding:6px 8px;border-bottom:1px solid #EDE5D5;text-align:right;white-space:nowrap}
-  td.un{text-align:center;font-weight:800}
-  td.fin{background:var(--menta)}
-  tr:nth-child(even) td:not(.fin){background:#FAF6EE}
+  th{background:var(--marrom);color:#fff;border-bottom:3px solid var(--amarelo);font-size:11.5px;text-transform:uppercase;padding:9px 8px;text-align:center;position:sticky;top:0}
+  td{padding:6px 8px;border-bottom:1px solid #EFE4D2;text-align:right;white-space:nowrap}
+  td.un{text-align:center;font-weight:800;color:var(--marrom)}
+  td.fin{background:var(--lilasClaro)}
+  tr:nth-child(even) td:not(.fin){background:var(--creme)}
   td.ac{text-align:center;padding:4px 5px}
   a.btn{display:inline-block;border-radius:7px;padding:6px 10px;font-weight:800;font-size:12px;text-decoration:none;white-space:nowrap}
-  a.sim{background:var(--amarelo);color:#7A4A16}a.sim:hover{background:#D8A818}
-  a.prop{background:var(--verde);color:#fff}a.prop:hover{background:var(--verde2)}
-  .tag{display:inline-block;margin-left:4px;font-size:10px;font-weight:800;color:#1F6FB2;background:#EAF2FA;border:1px solid #BBD5EC;border-radius:5px;padding:1px 4px}
+  a.sim{background:var(--amarelo);color:var(--marromEsc)}a.sim:hover{background:var(--amarelo2)}
+  a.prop{background:var(--roxo);color:#fff}a.prop:hover{background:var(--roxo2)}
+  .tag{display:inline-block;margin-left:4px;font-size:10px;font-weight:800;color:#A23C68;background:#FBE8EF;border:1px solid #F2B8CD;border-radius:5px;padding:1px 4px}
   .avisos{font-size:12px;color:var(--suave);line-height:1.5;margin-top:12px}
   .avisos p{margin:4px 0}
-  #st{font-size:12.5px;color:#fff;opacity:.9}
+  #st{font-size:12.5px;color:var(--marromEsc)}
   .carregando{padding:30px;text-align:center;color:var(--suave)}
   @media print{header .bts,#st{display:none}body{background:#fff}.wrap{border:0}th{position:static}}
 </style>
 </head>
 <body>
 <header>
+  <img class="logo" src="assets/logo-ipes-arvore.jpg" alt="Reserva do Ipês" onerror="this.style.display='none'">
   <h1>Tabela de disponibilidades<span>Condomínio Reserva do Ipês · Morais Engenharia e Construção · <b id="data"></b></span></h1>
   <div class="bts">
     <button class="bt" id="bPdf" onclick="baixar('pdf')">⬇ PDF</button>
@@ -56,7 +61,7 @@
   <div class="avisos" id="avisos"></div>
 </main>
 <script src="fluxo-calc.js"></script>
-<script src="planilha-fluxo.js?v=r5"></script>
+<script src="planilha-fluxo.js?v=r6"></script>
 <script>
   /* mesmo endereço do mapa (index.html) */
   var APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbzwUIApU5nKXi1vG3cEs_V2DWCdkLDwY_vo0zBxO59ZBLbEihIxuOqbHdNLm-8pVVwVJQ/exec';

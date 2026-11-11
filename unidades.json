@@ -410,10 +410,10 @@
     "planta": "assets/plantas/tipo-4.jpg",
     "informacoes": "",
     "decorado": false,
-    "disponivel": false,
-    "reservado": true,
+    "disponivel": true,
+    "reservado": false,
     "vendido": false,
-    "vendidaCru": "RESERVADA"
+    "vendidaCru": "NAO"
   },
   {
     "unidade": "33",

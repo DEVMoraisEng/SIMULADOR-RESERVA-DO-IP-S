@@ -15,7 +15,7 @@
  * 10/11/2026 (dono): opção de entrada em 48, 36 ou 24 vezes e FGTS já abatido da entrada (página tabela.html: escolha
  *   no topo; PDF/Excel saem com a escolha). O Excel traz uma aba por prazo (48x, 36x e 24x), a escolhida primeiro.
  *   Uso: planilhaFluxoPadrao(unidades, formato, {prazo: 48|36|24, fgts: valor, fin: valor, finPor: {unidade: valor}})
- *   e tabelaDisponibilidadesDados(unidades, opcoes). fin/finPor = financiamento editado, sempre até 80% da avaliação.
+ *   e tabelaDisponibilidadesDados(unidades, opcoes). 11/11: {ordem: 'unidade'|'preco'|'aval', desc: true|false}. fin/finPor = financiamento editado, sempre até 80% da avaliação.
  * 10/11/2026 (dono): Excel travado (proteção da planilha, senha ipes2026).
  * 10/11/2026 (dono): cores da logo do Reserva do Ipês e a logo (assets/logo-ipes-arvore.jpg) no topo.
  * ------------------------------------------------------------------- */
@@ -74,7 +74,9 @@
     var pz = Number(o.prazo); if(PRAZOS.indexOf(pz) < 0) pz = 48;
     var por = {};
     if(o.finPor) Object.keys(o.finPor).forEach(function(k){ var v = r2(o.finPor[k]); if(v > 0) por[String(k)] = v; });
-    return {prazo: pz, fgts: Math.max(0, r2(o.fgts)), fin: Math.max(0, r2(o.fin)), finPor: por};
+    /* 11/11/2026 (dono): ordenar só por UNIDADE, VALOR ou AVALIAÇÃO (crescente ou decrescente) */
+    var ord = ['unidade', 'preco', 'aval'].indexOf(o.ordem) >= 0 ? o.ordem : 'unidade';
+    return {prazo: pz, fgts: Math.max(0, r2(o.fgts)), fin: Math.max(0, r2(o.fin)), finPor: por, ordem: ord, desc: !!o.desc};
   }
 
   /* fluxo padrão de uma unidade → as colunas da planilha */
@@ -152,8 +154,13 @@
   function montar(unidades, opcoes){
     var op = opcoesDe(opcoes), hoje = new Date();
     var lista = (unidades || []).filter(aVenda)
-      .sort(function(a, b){ return (parseInt(a.unidade, 10) || 0) - (parseInt(b.unidade, 10) || 0); })
-      .map(function(u){ return linhaDa(u, hoje, op); });
+      .map(function(u){ return linhaDa(u, hoje, op); })
+      .sort(function(a, b){
+        var nu = (parseInt(a.unidade, 10) || 0) - (parseInt(b.unidade, 10) || 0);
+        var d = op.ordem === 'unidade' ? nu : (a[op.ordem] - b[op.ordem]);
+        if(op.desc) d = -d;
+        return d || nu;   // empate: pela unidade
+      });
     var q1 = moda(lista, 'q1'), q2 = moda(lista, 'q2'), qp = moda(lista, 'qp'), b1q = moda(lista, 'b1q'), b2q = moda(lista, 'b2q');
     var cols = [{k: 'unidade', t: 'UNIDADE', w: 14}, {k: 'preco', t: 'VALOR', w: 24}, {k: 'aval', t: 'AVALIAÇÃO', w: 24},
                 {k: 'fin', t: lista.some(function(l){ return l.finEditado; }) ? 'FINANCIAMENTO (ATÉ 80% DA AVALIAÇÃO)' : 'FINANCIAMENTO (80% DA AVALIAÇÃO)', w: 26, destaque: true}];
@@ -367,7 +374,7 @@
     /* uma aba por prazo — a escolhida primeiro */
     var ordem = [M.op.prazo].concat(PRAZOS.filter(function(p){ return p !== M.op.prazo; }));
     for(var i = 0; i < ordem.length; i++){
-      await abaExcel(wb, i === 0 ? M : montar(unidades, {prazo: ordem[i], fgts: M.op.fgts, fin: M.op.fin, finPor: M.op.finPor}), lg);
+      await abaExcel(wb, i === 0 ? M : montar(unidades, {prazo: ordem[i], fgts: M.op.fgts, fin: M.op.fin, finPor: M.op.finPor, ordem: M.op.ordem, desc: M.op.desc}), lg);
     }
     var buf = await wb.xlsx.writeBuffer();
     baixar(buf, nomeArq(M, 'xlsx'));

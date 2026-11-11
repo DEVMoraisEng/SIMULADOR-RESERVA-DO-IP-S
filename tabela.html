@@ -52,6 +52,11 @@
   .fgts:focus-within{border-color:var(--marrom)}
   .fgts span{font-weight:800;color:var(--suave);font-size:14px}
   .fgts input{border:0;outline:0;font:inherit;font-size:15px;font-weight:700;color:var(--texto);padding:8px 6px;width:140px;background:transparent}
+  /* 11/11/2026 (dono): ordenar por UNIDADE, VALOR ou AVALIAÇÃO clicando no título da coluna */
+  th.ord{cursor:pointer;user-select:none;white-space:nowrap}
+  th.ord:hover{background:var(--marromEsc)}
+  th.ord .seta{display:inline-block;margin-left:5px;font-size:10px;opacity:.55}
+  th.ord.on .seta{opacity:1;color:var(--amarelo)}
   td.fin input{width:118px;border:1.5px solid #CDBBE3;border-radius:7px;padding:4px 6px;font:inherit;font-size:13px;font-weight:700;text-align:right;color:var(--texto);background:#fff}
   td.fin input:focus{outline:0;border-color:var(--roxo)}
   td.fin input.ed{border-color:var(--roxo);background:#F7F3FC}
@@ -82,7 +87,7 @@
     <div class="grp"><label class="t" for="finGeral">Financiamento (todas as unidades)</label>
       <div class="fgts"><span>R$</span><input id="finGeral" inputmode="numeric" placeholder="80% da avaliação" autocomplete="off"></div></div>
     <div class="grp"><label class="t">&nbsp;</label><button type="button" class="bt-mini" id="bFin80">Voltar a 80%</button></div>
-    <div class="dica">O financiamento vai até 80% da avaliação: dá para mudar aqui para todas ou na própria linha da unidade. Tudo recalcula na hora, e o PDF e o Excel saem como está na tela (o Excel com uma aba para cada prazo).</div>
+    <div class="dica">Clique em UNIDADE, VALOR ou AVALIAÇÃO para ordenar (de novo inverte). O financiamento vai até 80% da avaliação: dá para mudar aqui para todas ou na própria linha da unidade. Tudo recalcula na hora, e o PDF e o Excel saem como está na tela (o Excel com uma aba para cada prazo).</div>
   </div>
   <p class="sub" id="sub"></p>
   <div class="atencao" id="atencao"></div>
@@ -90,11 +95,23 @@
   <div class="avisos" id="avisos"></div>
 </main>
 <script src="fluxo-calc.js"></script>
-<script src="planilha-fluxo.js?v=r8"></script>
+<script src="planilha-fluxo.js?v=r9"></script>
 <script>
   /* mesmo endereço do mapa (index.html) */
   var APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbzwUIApU5nKXi1vG3cEs_V2DWCdkLDwY_vo0zBxO59ZBLbEihIxuOqbHdNLm-8pVVwVJQ/exec';
-  var UNIDADES=[], OP={prazo:48, fgts:0, fin:0, finPor:{}};
+  var UNIDADES=[], OP={prazo:48, fgts:0, fin:0, finPor:{}, ordem:'unidade', desc:false};
+  var ORDENAVEIS={unidade:1, preco:1, aval:1};
+  function cabCol(c){
+    if(!ORDENAVEIS[c.k]) return '<th>'+esc(c.t)+'</th>';
+    var on=OP.ordem===c.k, seta=on?(OP.desc?'▼':'▲'):'⇅';
+    return '<th class="ord'+(on?' on':'')+'" data-ord="'+c.k+'" title="Ordenar por '+esc(c.t.toLowerCase())+'">'+esc(c.t)+'<span class="seta">'+seta+'</span></th>';
+  }
+  document.addEventListener('click', function(e){
+    var th=e.target.closest && e.target.closest('th[data-ord]'); if(!th) return;
+    var k=th.dataset.ord;
+    if(OP.ordem===k) OP.desc=!OP.desc; else { OP.ordem=k; OP.desc=false; }
+    pintar();
+  });
   function esc(t){ return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
   function brl(v){ return 'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
   function num(v){ return (Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
@@ -159,7 +176,7 @@
     document.getElementById('avisos').innerHTML = D.avisos.map(function(a){ return '<p>'+esc(a)+'</p>'; }).join('');
     var tab=document.getElementById('tab');
     if(!D.lista.length){ tab.outerHTML='<div class="carregando" id="tab">Nenhuma unidade à venda no momento.</div>'; ASSIN=''; return; }
-    var assin = D.cols.map(function(c){return c.k;}).join(',')+'|'+D.lista.map(function(l){return l.unidade;}).join(',');
+    var assin = D.cols.map(function(c){return c.k;}).join(',')+'|'+OP.ordem+(OP.desc?'-':'+')+'|'+D.lista.map(function(l){return l.unidade;}).join(',');
     var foco = document.activeElement;
     if(assin===ASSIN && tab.tagName==='TABLE'){
       /* mesma tabela: só troca os valores (não tira o cursor da caixa que a pessoa está digitando) */
@@ -176,10 +193,10 @@
         tr.cells[D.cols.length].firstChild.href=D.link('simulador.html',l);
         tr.cells[D.cols.length+1].firstChild.href=D.link('proposta.html',l);
       });
-      tab.tHead.rows[0].cells[3].textContent=D.cols[3].t;
+      tab.tHead.rows[0].cells[3].textContent=D.cols[3].t;   // a coluna 3 (financiamento) não é ordenável
       return;
     }
-    var h = '<table id="tab"><thead><tr>'+D.cols.map(function(c){return '<th>'+esc(c.t)+'</th>';}).join('')+'<th>Simular</th><th>Subir pasta</th></tr></thead><tbody>';
+    var h = '<table id="tab"><thead><tr>'+D.cols.map(cabCol).join('')+'<th>Simular</th><th>Subir pasta</th></tr></thead><tbody>';
     D.lista.forEach(function(l){
       h += '<tr>'+D.cols.map(function(c){
         return '<td class="'+(c.k==='unidade'?'un':(c.destaque?'fin':''))+'">'+celula(c, l)+'</td>';

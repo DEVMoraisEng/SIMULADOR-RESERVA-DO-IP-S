@@ -65,7 +65,31 @@
   .bt-mini{border:1.5px solid var(--marrom);background:#fff;color:var(--marrom);border-radius:8px;padding:7px 10px;font:inherit;font-weight:800;font-size:12.5px;cursor:pointer}
   .opcoes .dica{font-size:12px;color:var(--suave);max-width:420px;line-height:1.4}
   .carregando{padding:30px;text-align:center;color:var(--suave)}
-  @media print{header .bts,#st{display:none}body{background:#fff}.wrap{border:0}th{position:static}}
+  /* 14/11/2026 (dono): mapa das unidades abaixo da tabela — mesmo SVG, cores e bolinhas do mapa de vendas (index.html) */
+  h2.sec{font-size:16px;color:var(--marrom);border-bottom:3px solid var(--amarelo);padding-bottom:8px;margin:26px 0 12px}
+  .mapbox{background:#fff;border:1px solid var(--borda);border-radius:12px;padding:12px;position:relative}
+  #mapScroll{overflow:auto;max-height:78vh;overscroll-behavior:contain;touch-action:pan-x pan-y pinch-zoom;-webkit-user-select:none;user-select:none;cursor:grab}
+  #mapScroll .mapa-vazio{aspect-ratio:6090/3920;background:#EFE7D8;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--suave);font-size:13px}
+  #mapScroll svg{display:block;height:auto}
+  #mapScroll svg *{-webkit-user-drag:none}
+  #mapScroll polygon{stroke:#A86018;stroke-width:3;cursor:pointer;transition:fill .1s}
+  #mapScroll polygon.sel{stroke:#2A2118;stroke-width:5}
+  .zoom{position:absolute;bottom:10px;right:10px;display:flex;gap:6px;z-index:6}
+  .zoom button{width:34px;height:34px;border-radius:6px;border:1px solid var(--borda);background:#fff;color:var(--marrom);font-size:18px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(42,33,24,.18)}
+  .legenda{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:12px;color:var(--suave)}
+  .legenda span{display:flex;align-items:center;gap:6px}
+  .legenda i{width:14px;height:14px;border-radius:3px;display:inline-block;border:1px solid rgba(0,0,0,.15)}
+  .dica-mapa{font-size:12px;color:var(--suave);margin:0 0 8px}
+  #pop{position:fixed;z-index:50;display:none;width:240px;background:#fff;border:1px solid var(--borda);border-radius:10px;box-shadow:0 8px 26px rgba(0,0,0,.2);padding:14px;overflow:hidden}
+  #pop h4{margin:0 0 8px;color:var(--marrom);font-size:15px;padding-right:16px}
+  #pop .val{font-size:13px;margin:2px 0}#pop .val b{color:var(--marromEsc)}
+  #pop img{width:100%;height:auto;aspect-ratio:16/9;object-fit:contain;background:#EFE7D8;border-radius:6px;margin:8px 0;border:1px solid var(--borda)}
+  #pop .x{position:absolute;top:6px;right:10px;cursor:pointer;color:var(--suave);font-size:18px;z-index:2}
+  #pop .acoes{display:flex;gap:8px;margin-top:8px}
+  #pop .acoes a{flex:1;text-align:center;padding:8px 4px}
+  #pop .est{display:inline-block;font-size:11px;font-weight:800;color:#fff;border-radius:5px;padding:2px 7px;margin-left:4px;vertical-align:middle}
+  #pop .aviso{margin-top:8px;font-size:11px;color:#1F6FB2;background:#EAF2FA;border:1px solid #BBD5EC;border-radius:6px;padding:6px 8px}
+  @media print{header .bts,#st{display:none}body{background:#fff}.wrap{border:0}th{position:static}.zoom,#pop{display:none!important}#mapScroll{max-height:none;overflow:visible}}
 </style>
 </head>
 <body>
@@ -93,7 +117,30 @@
   <div class="atencao" id="atencao"></div>
   <div class="wrap"><div class="carregando" id="tab">Carregando as unidades…</div></div>
   <div class="avisos" id="avisos"></div>
+
+  <!-- 14/11/2026 (dono): mapa das unidades logo abaixo da tabela -->
+  <h2 class="sec">Mapa das unidades</h2>
+  <p class="dica-mapa">Clique na unidade para ver valor, avaliação e a planta, e para SIMULAR ou SUBIR PASTA (abre em outra aba, com o prazo, o FGTS e o financiamento escolhidos acima).</p>
+  <div class="mapbox">
+    <div style="position:relative"><div id="mapScroll"><div class="mapa-vazio">Carregando o mapa…</div></div>
+    <div class="zoom"><button type="button" onclick="zoomMapa(1.25)" title="Aproximar">+</button><button type="button" onclick="zoomMapa(0.8)" title="Afastar">−</button></div></div>
+    <div class="legenda" id="legenda"></div>
+  </div>
 </main>
+
+<div id="pop">
+  <span class="x" onclick="fecharPop()">×</span>
+  <h4 id="popTit"></h4>
+  <div class="val">Valor de venda: <b id="popVal"></b></div>
+  <div class="val">Avaliação: <b id="popAval"></b></div>
+  <div class="val" id="popFin" style="display:none">Financiamento: <b></b></div>
+  <img id="popImg" alt="Planta" decoding="async" style="display:none">
+  <div class="aviso" id="popAviso" style="display:none"><b>Unidade reservada.</b> Dá para simular e subir pasta, mas a proposta só é analisada se houver desistência.</div>
+  <div class="acoes" id="popAcoes">
+    <a class="btn sim" id="popSim" target="_blank" rel="noopener">SIMULAR</a>
+    <a class="btn prop" id="popProp" target="_blank" rel="noopener">SUBIR PASTA</a>
+  </div>
+</div>
 <script src="fluxo-calc.js"></script>
 <script src="planilha-fluxo.js?v=r9"></script>
 <script>
@@ -167,6 +214,7 @@
   async function pintar(){
     if(!UNIDADES.length) return;
     var D = await tabelaDisponibilidadesDados(UNIDADES, OP);
+    ULT_D = D; pintarMapa();
     try{ var q=new URLSearchParams(location.search); q.set('prazo',OP.prazo);
          if(OP.fgts>0) q.set('fgts',OP.fgts); else q.delete('fgts'); if(OP.fin>0) q.set('fin',OP.fin); else q.delete('fin');
          history.replaceState(null,'',location.pathname+'?'+q.toString()); }catch(e){}
@@ -215,6 +263,168 @@
       .catch(function(e){ st.textContent='Não consegui gerar: '+((e&&e.message)||e); })
       .then(function(){ b.disabled=false; });
   }
+  /* =====================================================================
+     14/11/2026 (dono) — MAPA DAS UNIDADES abaixo da tabela.
+     Mesmas regras do mapa de vendas (index.html): a unidade fica sempre na
+     cor do tipo; reservada e vendida viram bolinha sólida no fundo do lote;
+     "em breve" fica cinza. SIMULAR / SUBIR PASTA abrem em outra aba e levam
+     o prazo, o FGTS e o financiamento escolhidos no topo (mesmo link da linha).
+     ===================================================================== */
+  var ULT_D=null, svgPronto=false;
+  var PALETA=['#F2C200','#7CB518','#8E5BB5','#17A398','#F06A1D','#D25FA6'], DEC_COR='#4A2A0C';
+  var COR_INDISP='#9AA0A6', COR_VENDIDO='#C1121F', COR_RESERVADA='#0B2E6B';
+  var PLANTAS_VERSAO='20261027b', SVGNS='http://www.w3.org/2000/svg';
+  var tiposOrdenados=[];
+  function corDoTipo(t,dec){ if(dec) return DEC_COR; var i=tiposOrdenados.indexOf(String(t)); return PALETA[(i<0?0:i)%PALETA.length]; }
+  function rgba(hex,a){ var n=parseInt(hex.slice(1),16); return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')'; }
+  function estadoUn(u){
+    if(!u) return 'BREVE';
+    var cru=String(u.vendidaCru||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().trim();
+    if(u.vendido===true || cru==='SIM') return 'VENDIDA';
+    if(u.reservado===true || cru==='RESERVADA' || cru==='RESERVADO') return 'RESERVADA';
+    if(u.disponivel===false) return 'BREVE';
+    return 'DISPONIVEL';
+  }
+  function porNum(n){ return UNIDADES.find(function(u){ return String(u.unidade)===String(n) || (parseInt(u.unidade,10)===Number(n)); }); }
+  function corUnidade(u){ var e=estadoUn(u); return e==='BREVE' ? COR_INDISP : corDoTipo(u.tipo,u.decorado); }
+  function polDe(n){ return document.getElementById(String(n).padStart(2,'0')); }
+  function marcarUnidade(pol, u){
+    var id='mk-'+pol.id, velho=document.getElementById(id); if(velho) velho.remove();
+    var e=estadoUn(u), cor = e==='VENDIDA' ? COR_VENDIDO : (e==='RESERVADA' ? COR_RESERVADA : '');
+    if(!cor) return;
+    var bb; try{ bb=pol.getBBox(); }catch(er){ return; }
+    if(!bb || !bb.width) return;
+    var r=Math.max(8, Math.min(bb.width, bb.height)*0.24), m=r*1.35, num=parseInt(pol.id,10);
+    var cx=bb.x+bb.width/2, cy=bb.y+bb.height/2;
+    /* bolinha no FUNDO do lote (lado oposto à rua) — igual ao mapa de vendas */
+    if(num<=6) cx=bb.x+m;
+    else if(num>=31 && num<=39) cx=bb.x+bb.width-m;
+    else if((num>=19 && num<=30) || num>=52) cy=bb.y+bb.height-m;
+    else cy=bb.y+m;
+    var c=document.createElementNS(SVGNS,'circle');
+    c.setAttribute('id',id); c.setAttribute('cx',cx); c.setAttribute('cy',cy); c.setAttribute('r',r);
+    c.setAttribute('fill',cor); c.setAttribute('stroke','#fff'); c.setAttribute('stroke-width',Math.max(2,r*0.22));
+    c.style.pointerEvents='none';
+    pol.parentNode.insertBefore(c, pol.nextSibling);
+  }
+  function legenda(){
+    var dec=UNIDADES.find(function(u){ return u.decorado; });
+    var h=tiposOrdenados.map(function(t){ return '<span><i style="background:'+corDoTipo(t,false)+'"></i>Tipo '+esc(t)+'</span>'; }).join('');
+    if(dec) h+='<span><i style="background:'+DEC_COR+'"></i>Decorado</span>';
+    if(UNIDADES.some(function(u){ return estadoUn(u)==='BREVE'; })) h+='<span><i style="background:'+COR_INDISP+'"></i>Em breve</span>';
+    var bol='border-radius:50%;box-shadow:0 0 0 2px #fff,0 0 0 3px #ccc';
+    if(UNIDADES.some(function(u){ return estadoUn(u)==='RESERVADA'; })) h+='<span><i style="background:'+COR_RESERVADA+';'+bol+'"></i>Reservada</span>';
+    if(UNIDADES.some(function(u){ return estadoUn(u)==='VENDIDA'; })) h+='<span><i style="background:'+COR_VENDIDO+';'+bol+'"></i>Vendida</span>';
+    document.getElementById('legenda').innerHTML=h;
+  }
+  function pintarMapa(){
+    if(!svgPronto || !UNIDADES.length) return;
+    tiposOrdenados=[...new Set(UNIDADES.filter(function(u){ return !u.decorado; }).map(function(u){ return String(u.tipo); }))];
+    UNIDADES.forEach(function(u){
+      var pol=polDe(u.unidade); if(!pol) return;
+      var cor=corUnidade(u);
+      pol.dataset.base=rgba(cor,0.35); pol.dataset.hover=rgba(cor,0.7);
+      if(pol!==selPoly) pol.style.fill=pol.dataset.base;
+      marcarUnidade(pol,u);
+    });
+    legenda();
+  }
+  /* ---- pop-up da unidade ---- */
+  var selPoly=null;
+  function linhaDe(u){ return ULT_D && ULT_D.lista ? ULT_D.lista.find(function(l){ return String(l.unidade)===String(u.unidade); }) : null; }
+  function linkUn(pag, u){
+    var l=linhaDe(u);
+    if(l && ULT_D) return ULT_D.link(pag, l);
+    return pag+'?tipo='+encodeURIComponent(u.tipo)+'&unidade='+encodeURIComponent(u.unidade);
+  }
+  function abrirPop(u, evt){
+    fecharPop();
+    var pol=polDe(u.unidade);
+    if(pol){ pol.classList.add('sel'); pol.style.fill=rgba(corUnidade(u),0.95); selPoly=pol; }
+    var e=estadoUn(u), ROT={VENDIDA:['VENDIDA',COR_VENDIDO],RESERVADA:['RESERVADA',COR_RESERVADA],BREVE:['EM BREVE',COR_INDISP],DISPONIVEL:['DISPONÍVEL','#2E7D52']}[e];
+    document.getElementById('popTit').innerHTML='Unidade '+esc(u.unidade)+(u.decorado?' (Decorado)':' · Tipo '+esc(u.tipo))+
+      '<span class="est" style="background:'+ROT[1]+'">'+ROT[0]+'</span>';
+    document.getElementById('popVal').textContent=brl(u.valorVenda);
+    document.getElementById('popAval').textContent=brl(u.avaliacao);
+    var l=linhaDe(u), pf=document.getElementById('popFin');
+    pf.style.display=l?'block':'none'; if(l) pf.querySelector('b').textContent=brl(l.fin);
+    var img=document.getElementById('popImg');
+    var base='assets/plantas/'+(u.decorado?'decorado':('tipo-'+String(u.tipo).trim()));
+    var fontes=[base+'-480.jpg?v='+PLANTAS_VERSAO, base+'.jpg?v='+PLANTAS_VERSAO, u.planta||''].filter(Boolean), i=0;
+    img.onerror=function(){ i++; if(i<fontes.length) img.src=fontes[i]; else { img.onerror=null; img.style.display='none'; } };
+    img.style.display='block'; img.src=fontes[0];
+    var podeAgir = e==='DISPONIVEL' || e==='RESERVADA';
+    document.getElementById('popAcoes').style.display=podeAgir?'flex':'none';
+    document.getElementById('popAviso').style.display=e==='RESERVADA'?'block':'none';
+    if(podeAgir){
+      document.getElementById('popSim').href=linkUn('simulador.html',u);
+      document.getElementById('popProp').href=linkUn('proposta.html',u);
+    }
+    var pop=document.getElementById('pop'); pop.style.display='block';
+    var x=Math.min(evt.clientX+12, window.innerWidth-260), y=Math.min(evt.clientY+12, window.innerHeight-pop.offsetHeight-12);
+    pop.style.left=Math.max(8,x)+'px'; pop.style.top=Math.max(12,y)+'px';
+  }
+  function fecharPop(){
+    document.getElementById('pop').style.display='none';
+    if(selPoly){ selPoly.classList.remove('sel'); selPoly.style.fill=selPoly.dataset.base||''; selPoly=null; }
+  }
+  document.addEventListener('click', function(e){ var p=document.getElementById('pop'); if(p.style.display==='block' && !p.contains(e.target)) fecharPop(); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') fecharPop(); });
+  window.addEventListener('scroll', function(){ if(document.getElementById('pop').style.display==='block') fecharPop(); }, {passive:true});
+  /* ---- zoom (+ / −) e arrastar ---- */
+  var zLevel=1;
+  function zoomMapa(f){
+    var svg=document.querySelector('#mapScroll svg'), wrap=document.getElementById('mapScroll'); if(!svg) return;
+    var novo=Math.max(1,Math.min(6,zLevel*f)); if(novo===zLevel) return;
+    var px=wrap.clientWidth/2, py=wrap.clientHeight/2;
+    var fx=(wrap.scrollLeft+px)/svg.offsetWidth, fy=(wrap.scrollTop+py)/svg.offsetHeight;
+    zLevel=novo; svg.style.width=(zLevel*100)+'%';
+    wrap.scrollLeft=fx*svg.offsetWidth-px; wrap.scrollTop=fy*svg.offsetHeight-py;
+  }
+  function ligarMapa(){
+    var wrap=document.getElementById('mapScroll');
+    for(var n=1;n<=62;n++)(function(n){
+      var pol=polDe(n); if(!pol) return;
+      pol.addEventListener('click', function(e){ if(wrap.dataset.arrastou) return; e.stopPropagation(); var u=porNum(n); if(u) abrirPop(u,e); });
+      pol.addEventListener('mouseenter', function(){ if(pol!==selPoly && pol.dataset.hover) pol.style.fill=pol.dataset.hover; });
+      pol.addEventListener('mouseleave', function(){ if(pol!==selPoly && pol.dataset.base) pol.style.fill=pol.dataset.base; });
+    })(n);
+    /* arrastar: só captura o ponteiro depois de mover de verdade, senão o clique não chega na unidade */
+    var arr=false, cap=false, x0=0, y0=0, sl=0, st=0, moveu=0;
+    wrap.addEventListener('pointerdown', function(e){ if(e.button!==0) return; arr=true; cap=false; moveu=0; x0=e.clientX; y0=e.clientY; sl=wrap.scrollLeft; st=wrap.scrollTop; });
+    wrap.addEventListener('pointermove', function(e){
+      if(!arr) return; var dx=e.clientX-x0, dy=e.clientY-y0; moveu=Math.max(moveu,Math.abs(dx)+Math.abs(dy));
+      if(!cap && moveu>6){ cap=true; try{ wrap.setPointerCapture(e.pointerId); }catch(er){} }
+      if(cap){ wrap.scrollLeft=sl-dx; wrap.scrollTop=st-dy; }
+    });
+    function soltar(e){
+      if(!arr) return; arr=false;
+      if(cap){ try{ wrap.releasePointerCapture(e.pointerId); }catch(er){} }
+      if(moveu>6){ wrap.dataset.arrastou='1'; setTimeout(function(){ delete wrap.dataset.arrastou; },0); }
+      cap=false;
+    }
+    wrap.addEventListener('pointerup', soltar); wrap.addEventListener('pointercancel', soltar);
+  }
+  /* ---- carrega o SVG (aproveita o cache do mapa de vendas) e depois a foto aérea ---- */
+  function usarSvg(txt){
+    if(!txt || txt.indexOf('<svg')<0) return false;
+    var caixa=document.createElement('div'); caixa.innerHTML=txt;
+    var el=caixa.querySelector('svg'); if(!el) return false;
+    el.removeAttribute('width'); el.removeAttribute('height'); el.style.width='100%'; el.style.height='auto';
+    var wrap=document.getElementById('mapScroll'); wrap.innerHTML=''; wrap.appendChild(el);
+    svgPronto=true; ligarMapa(); pintarMapa();
+    var fundo=document.getElementById('mapaFundo');
+    if(fundo){ fundo.setAttribute('href','assets/mapa-fundo.jpg'); fundo.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href','assets/mapa-fundo.jpg'); }
+    return true;
+  }
+  function carregarMapa(tent){
+    try{ var c=localStorage.getItem('svgMapa-v2'); if(c && usarSvg(c)) return; }catch(e){}
+    fetch('assets/CONDOMINIO_VENDAS.svg').then(function(r){ if(!r.ok) throw 0; return r.text(); })
+      .then(function(t){ if(!usarSvg(t)) throw 0; try{ localStorage.setItem('svgMapa-v2', t); }catch(e){} })
+      .catch(function(){ if((tent||0)<4) setTimeout(function(){ carregarMapa((tent||0)+1); }, 4000);
+                         else document.querySelector('#mapScroll .mapa-vazio').textContent='Não consegui carregar o mapa. Recarregue a página.'; });
+  }
+  carregarMapa(0);
   montar();
 </script>
 </body>

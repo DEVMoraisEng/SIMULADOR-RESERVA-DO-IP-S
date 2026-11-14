@@ -452,6 +452,9 @@
       .card-pessoa h3{margin:0 0 8px;font-size:14px;color:var(--marrom)}
       .card-pessoa .linha{margin:0}
     </style>
+    <!-- 14/11/2026 (dono) — com crédito aprovado a simulação da CAIXA não aparece, mas os compradores
+         têm de ser informados: o bloco "Mais de um comprador" vem para cá (mesmo preenchimento) -->
+    <div class="checks" id="slotMaisCompTopo" style="display:none;margin:0 0 14px"></div>
     <div class="secao">Renda de quem compra</div>
     <div class="card-pessoa" id="cardRendaProp">
       <h3>Proponente</h3>
@@ -531,6 +534,7 @@
       <div class="checks" style="margin-top:4px">
         <label class="check"><input type="checkbox" name="possuiImovelCidade" onchange="renderProdutos();atualizarFaixaMcmv()"> Possui algum imóvel</label>
         <label class="check"><input type="checkbox" name="fgts3anos" onchange="montarAnexos();montarFluxo();"> Tem 3 anos de FGTS</label>
+        <div id="slotMaisCompSiop"><div id="blocoMaisComp" style="display:flex;flex-direction:column;gap:10px">
         <label class="check"><input type="checkbox" name="maisDeUmComprador" onchange="verDependentes()"> Mais de um comprador ou dependente</label>
         <!-- r47 (item 3) — quantos e quem são: cada pessoa ganha nome, CPF,
              tipo e um campo próprio de anexo no passo 4. -->
@@ -541,6 +545,7 @@
                  style="width:90px;margin:4px 0 8px" onchange="montarDependentes()">
           <div id="listaDependentes"></div>
         </div>
+        </div></div>
         <label class="check"><input type="checkbox" name="jaBeneficiado" onchange="verSiopSub();atualizarFaixaMcmv()"> Já foi beneficiado com subsídio FGTS/União</label>
         <div class="campo" id="boxConcessaoProp" style="display:none;margin:2px 0 8px 26px;max-width:260px">
           <label>Data da concessão do benefício</label>
@@ -564,12 +569,12 @@
     <div class="secao">1. Financiamento</div>
     <div class="linha">
       <div class="campo" id="boxCredito"><label>Crédito aprovado (R$)<span class="obrig">*</span></label>
-        <!-- r96 (20/10/26) — o crédito vem SÓ do print da tela de aprovação da CAIXA (lido por IA, sem edição) -->
-        <label class="anexo-aprov" for="printAprovacao">📎 Anexar o print da tela de aprovação da CAIXA<span class="obrig">*</span></label>
+        <!-- 14/11/2026 (dono) — o print da CAIXA é OPCIONAL: se vier, a IA lê e preenche; sem ele, o valor é digitado -->
+        <label class="anexo-aprov" for="printAprovacao">📎 Anexar o print da tela de aprovação da CAIXA (opcional — preenche sozinho)</label>
         <input type="file" id="printAprovacao" accept="image/*,application/pdf" onchange="aoAnexarAprovacao(this)">
         <div id="lst-aprovacao" class="lst"></div>
-        <input type="text" name="creditoAprovado" inputmode="numeric" placeholder="lido do print" readonly tabindex="-1">
-        <span class="ajuda" id="ajudaCredito">O <b>Valor Financiamento</b> é lido do print automaticamente e não pode ser editado.</span></div>
+        <input type="text" name="creditoAprovado" inputmode="numeric" placeholder="0,00">
+        <span class="ajuda" id="ajudaCredito">Digite o <b>valor do crédito aprovado</b> pela CAIXA ou anexe o print para ele ser lido automaticamente.</span></div>
     </div>
     <!-- 28/10 — sem crédito aprovado: o cliente pode escrever quanto quer financiar (até 80% da avaliação);
          a CAIXA é simulada com compra/venda e avaliação = valor ÷ 0,8, para a parcela sair desse valor -->
@@ -1594,7 +1599,17 @@
   }
   /* O bloco do SIOP só faz sentido quando a simulação vai rodar. Fora disso
      ele some, para não pedir dez informações que ninguém vai usar. */
+  /* 14/11/2026 — com crédito aprovado, "Mais de um comprador" fica acima de "Renda de quem compra";
+     sem crédito, volta para o bloco da simulação da CAIXA (o mesmo elemento: nada do que foi preenchido se perde) */
+  function posicionarMaisComp(){
+    var b=document.getElementById('blocoMaisComp'), topo=document.getElementById('slotMaisCompTopo'),
+        siop=document.getElementById('slotMaisCompSiop'); if(!b||!topo||!siop) return;
+    var com=F().creditoAprovadoCaixa.value==='SIM', alvo=com?topo:siop;
+    if(b.parentNode!==alvo) alvo.appendChild(b);
+    topo.style.display=com?'':'none';
+  }
   function verBlocoSiop(){
+    posicionarMaisComp();
     var f=F(), u=unidadeAtual();
     var vai = !!u && (u.avaliacao||0)>0 &&
               (f.creditoAprovadoCaixa.value==='NAO' ||
@@ -1661,14 +1676,14 @@
           (c.cliente?' · '+esc_(c.cliente):'')+(c.resultado?' · '+esc_(c.resultado):'')+'. Confira com o print.';
       } else {
         st.className='lst err';
-        st.innerHTML='Não consegui ler o <b>Valor Financiamento</b> neste arquivo. Anexe um print nítido da tela de aprovação da CAIXA, '+
-          'com o campo "Valor Financiamento" à mostra.';
+        st.innerHTML='Não consegui ler o <b>Valor Financiamento</b> neste arquivo. Digite o valor do crédito aprovado ou anexe um print nítido '+
+          'da tela de aprovação da CAIXA, com o campo "Valor Financiamento" à mostra.';
       }
       montarFluxo();
     }).catch(function(e){
       if(PAPROV.arquivos[0]!==arqs[0]) return;
       st.className='lst err';
-      st.innerHTML=(e&&e.semLeitura?e.semLeitura+' ':'A leitura do print não respondeu agora. ')+'Tente anexar de novo — sem a leitura não dá para registrar o crédito aprovado.';
+      st.innerHTML=(e&&e.semLeitura?e.semLeitura+' ':'A leitura do print não respondeu agora. ')+'Tente anexar de novo ou digite o valor do crédito aprovado.';
       montarFluxo();
     });
   }
@@ -1689,6 +1704,7 @@
     }
     if(!com){ limparAprovacao(); var pa=document.getElementById('printAprovacao'); if(pa) pa.value=''; }
     verCorresp();
+    posicionarMaisComp();   // 14/11 — com crédito, "Mais de um comprador" acima da renda
     if(F().maisDeUmComprador && F().maisDeUmComprador.checked) montarDependentes();   // asterisco do comprador
     montarFluxo();
   }
@@ -2451,7 +2467,7 @@
     (raiz||document).querySelectorAll('input[type=file]').forEach(function(el){
       if(el.dataset.naCk) return;
       if(el.id==='ax-docCreci' || el.id==='ax5-creci' || el.id==='ax-outros') return;      // opcionais
-      if(el.id==='printAprovacao') return;   // r96 — o print da aprovação da CAIXA é obrigatório
+      if(el.id==='printAprovacao') return;   // 14/11 — o print da aprovação da CAIXA é opcional (sem "não anexar agora")
       if(el.closest('#campos-proponente,#campos-conjuge')) return;                         // já têm "Não anexar agora" na lista
       el.dataset.naCk='1';
       var k=chaveNaoAnexar(el);
@@ -2961,8 +2977,8 @@
       }
       if(f.creditoAprovadoCaixa.value==='NAO' && f.desejadoProp && f.desejadoProp.checked && !moeda(f.valorDesejado.value))
         return erro('Informe o <b>valor que o cliente deseja financiar</b> (ou desmarque a opção).', f.valorDesejado);
-      if(f.creditoAprovadoCaixa.value==='SIM' && (!PAPROV.assinatura || !moeda(f.creditoAprovado.value)))
-        return erro('Anexe o <b>print da tela de aprovação da CAIXA</b> — o crédito aprovado é lido dele automaticamente.', document.getElementById('printAprovacao'));
+      if(f.creditoAprovadoCaixa.value==='SIM' && !moeda(f.creditoAprovado.value))
+        return erro('Informe o <b>valor do crédito aprovado</b> pela CAIXA (digite ou anexe o print para ser lido).', f.creditoAprovado);
       var u2=unidadeAtual(), teto2=(u2&&u2.avaliacao||0)*0.8;
       var vaiSimular = teto2>0 && (f.creditoAprovadoCaixa.value==='NAO' ||
                        moeda(f.creditoAprovado.value) >= teto2-0.5);
@@ -3154,7 +3170,7 @@
       el.addEventListener('input',function(e){ e.target.value=fmtTel(e.target.value); });
     });
     ['rendaAprovada','saldoFgts','subsidio','valorEntrada',
-     'saldoFgtsConjuge','rendaAprovadaConjuge','parcelaFinanciamento','valorDesejado']
+     'saldoFgtsConjuge','rendaAprovadaConjuge','parcelaFinanciamento','valorDesejado','creditoAprovado']
       .forEach(function(nome){
         var el=F()[nome]; if(!el) return;
         el.addEventListener('input',function(e){
@@ -3165,6 +3181,7 @@
              HTML. O listener inline roda primeiro e lê o texto cru: digitar
              7.500,00 passava "750,000" para o parser, que entendia 750 —
              era essa a renda total errada. */
+          if(nome==='creditoAprovado'){ e.target.classList.remove('lido'); verBlocoSiop(); }   // 14/11 — crédito digitado
           somarRenda(); montarFluxo();
         });
       });
@@ -3285,14 +3302,14 @@
 
     var msgs=['<b>📋 Proposta montada a partir da simulação.</b> Os dados da simulação já estão preenchidos — confira e complete o que falta (documentos, endereço, estado civil, fiadores…).'];
     if(d.renda) msgs.push('A renda total da simulação (<b>R$ '+d.renda+'</b>) entrou como renda do <b>proponente</b>. Se houver cônjuge ou outros compradores, divida a renda entre eles no passo 2.');
-    if(d.origem==='portal') msgs.push('Veio do portal: o crédito ficou como <b>NÃO aprovado</b>. Se o cliente já tem crédito aprovado, troque para <b>SIM</b> acima e anexe o print da aprovação da CAIXA no passo 2.');
+    if(d.origem==='portal') msgs.push('Veio do portal: o crédito ficou como <b>NÃO aprovado</b>. Se o cliente já tem crédito aprovado, troque para <b>SIM</b> acima e informe o crédito aprovado no passo 2 (digitado ou pelo print da CAIXA).');
     if(d.unidade && String(f.unidade.value)!==String(d.unidade)) msgs.push('<b style="color:#B0431F">A unidade '+d.unidade+' da simulação não está disponível para proposta — escolha outra unidade acima.</b>');
     var av=document.getElementById('avisoDaSim');
     function pintar(){ if(av){ av.innerHTML=msgs.join('<br>'); av.style.display='block'; } }
     pintar();
     /* print da aprovação da CAIXA: vem da simulação e é lido de novo aqui (o servidor exige a leitura) */
     if(d.credito){
-      var semPrint='No passo 2, anexe o <b>print da aprovação da CAIXA</b> — sem ele o crédito aprovado não é registrado.';
+      var semPrint='No passo 2, informe o <b>crédito aprovado</b> (digite o valor ou anexe o print da aprovação da CAIXA para ser lido).';
       if(!d.temPrint){ msgs.push(semPrint); pintar(); return; }
       idbPrintP('get').then(function(blob){
         var inp=document.getElementById('printAprovacao');

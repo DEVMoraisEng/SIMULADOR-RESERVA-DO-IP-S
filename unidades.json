@@ -385,9 +385,9 @@
     "informacoes": "",
     "decorado": false,
     "disponivel": false,
-    "reservado": true,
-    "vendido": false,
-    "vendidaCru": "RESERVADA"
+    "reservado": false,
+    "vendido": true,
+    "vendidaCru": "SIM"
   },
   {
     "unidade": "31",
@@ -527,10 +527,10 @@
     "planta": "assets/plantas/tipo-2.jpg",
     "informacoes": "",
     "decorado": false,
-    "disponivel": true,
-    "reservado": false,
+    "disponivel": false,
+    "reservado": true,
     "vendido": false,
-    "vendidaCru": "NAO"
+    "vendidaCru": "RESERVADA"
   },
   {
     "unidade": "42",

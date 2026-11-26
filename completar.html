@@ -256,18 +256,18 @@ var REGIMES=['COMUNHAO PARCIAL DE BENS','COMUNHAO UNIVERSAL DE BENS','SEPARACAO 
 var LEITURA={
   'DOC. PROP.':{tipo:'pessoa', quem:'proponente', mapa:{nome:'cliente', cpf:'cpf', rg:'identidade', dataNascimento:'dataNascimento', nacionalidade:'nacionalidade'}},
   'DOC. CONJUGE':{tipo:'pessoa', quem:'conjuge', mapa:{nome:'conjuge', cpf:'cpfConjuge', rg:'rgConjuge', nacionalidade:'nacionalidadeConjuge'}},
-  'COMPROVANTE DE ENDERECO':{tipo:'endereco', quem:'proponente', mapa:{cep:'cep', logradouro:'logradouro', numero:'numero', bairro:'setor', cidade:'cidade'}, inteiro:'endereco'},
+  'COMPROVANTE DE ENDERECO':{tipo:'endereco', quem:'proponente', mapa:{cep:'cep', logradouro:'logradouro', numero:'numero', complemento:'complemento', bairro:'setor', cidade:'cidade'}, inteiro:'endereco'},
   'DOC. FIADOR 1':{tipo:'pessoa', quem:'fiador1', mapa:{nome:'fiador1', cpf:'cpfFiador1', rg:'rgFiador1', nacionalidade:'nacionalidadeFiador1'}},
   'DOC. FIADOR 2':{tipo:'pessoa', quem:'fiador2', mapa:{nome:'fiador2', cpf:'cpfFiador2', rg:'rgFiador2', nacionalidade:'nacionalidadeFiador2'}},
-  'COMP. END. FIADOR 1':{tipo:'endereco', quem:'fiador1', mapa:{cep:'cepFiador1', logradouro:'logradouroFiador1', numero:'numeroFiador1', bairro:'setorFiador1', cidade:'cidadeFiador1'}, inteiro:'enderecoFiador1'},
-  'COMP. END. FIADOR 2':{tipo:'endereco', quem:'fiador2', mapa:{cep:'cepFiador2', logradouro:'logradouroFiador2', numero:'numeroFiador2', bairro:'setorFiador2', cidade:'cidadeFiador2'}, inteiro:'enderecoFiador2'}
+  'COMP. END. FIADOR 1':{tipo:'endereco', quem:'fiador1', mapa:{cep:'cepFiador1', logradouro:'logradouroFiador1', numero:'numeroFiador1', complemento:'complementoFiador1', bairro:'setorFiador1', cidade:'cidadeFiador1'}, inteiro:'enderecoFiador1'},
+  'COMP. END. FIADOR 2':{tipo:'endereco', quem:'fiador2', mapa:{cep:'cepFiador2', logradouro:'logradouroFiador2', numero:'numeroFiador2', complemento:'complementoFiador2', bairro:'setorFiador2', cidade:'cidadeFiador2'}, inteiro:'enderecoFiador2'}
 };
 /* 31/10/2026 — documento e comprovante dos compradores preenchem o card de cada um */
 [1,2,3].forEach(function(n){
   LEITURA['DOC. COMPRADOR '+n]={tipo:'pessoa', quem:'comprador'+n, mapa:{nome:'comprador'+n, cpf:'cpfComprador'+n, rg:'rgComprador'+n,
     dataNascimento:'dataNascimentoComprador'+n, nacionalidade:'nacionalidadeComprador'+n}};
   LEITURA['COMP. END. COMPRADOR '+n]={tipo:'endereco', quem:'comprador'+n, mapa:{cep:'cepComprador'+n, logradouro:'logradouroComprador'+n,
-    numero:'numeroComprador'+n, bairro:'setorComprador'+n, cidade:'cidadeComprador'+n}};
+    numero:'numeroComprador'+n, complemento:'complementoComprador'+n, bairro:'setorComprador'+n, cidade:'cidadeComprador'+n}};
 });
 /* de quem é cada documento fixo (o selo aparece ao lado do nome) */
 var DONO_DOC={'PRINT APROVACAO CAIXA':'proponente','DOC. PROP.':'proponente','DOC. CONJUGE':'cônjuge','COMPROVANTE DE ENDERECO':'proponente',
@@ -568,7 +568,7 @@ function conjMoraJunto(){ var el=document.getElementById('c-conjugeMesmoEndereco
   if(el) return el.value!=='NAO'; return ((DADOS&&DADOS.pessoasDocs)||{}).conjMesmoEnd!==false; }
 function verEndConjLink(){
   var junto=conjMoraJunto(), com=temConjuge();
-  ['cepConjuge','enderecoConjuge','numeroConjuge','setorConjuge','cidadeConjuge'].forEach(function(id){
+  ['cepConjuge','enderecoConjuge','numeroConjuge','complementoConjuge','setorConjuge','cidadeConjuge'].forEach(function(id){
     var el=document.getElementById('c-'+id); if(!el) return; var cx=el.closest('.campo'); if(!cx) return;
     cx.style.display=(com && !junto)?'':'none';
     cx.dataset.obrig=(com && !junto && /^(cep|endereco|cidade)/.test(id))?'1':'0';
@@ -740,9 +740,9 @@ function lkColetar(){
       p.profissao=semAcento(g('lk-prof')); p.nacionalidade=semAcento(g('lk-nac')); p.rg=semAcento(g('lk-rg'));
       p.dataNascimento=g('lk-nasc'); p.email=g('lk-email').toLowerCase(); p.celular=dig(g('lk-cel'));
       p.renda=g('lk-renda'); p.origemRenda=g('lk-origem');
-      p.cep=dig(g('lk-cep')); p.logradouro=semAcento(g('lk-logr')); p.numero=semAcento(g('lk-num'));
+      p.cep=dig(g('lk-cep')); p.logradouro=semAcento(g('lk-logr')); p.numero=semAcento(g('lk-num')); p.complemento=semAcento(g('lk-compl'));
       p.setor=semAcento(g('lk-setor')); p.cidade=semAcento(g('lk-cid'));
-      p.endereco=[p.logradouro,p.numero,p.setor,p.cidade].filter(Boolean).join(', ')+(p.cep.length===8?' - CEP '+p.cep.slice(0,5)+'-'+p.cep.slice(5):'');
+      p.endereco=[p.logradouro,p.numero,p.complemento,p.setor,p.cidade].filter(Boolean).join(', ')+(p.cep.length===8?' - CEP '+p.cep.slice(0,5)+'-'+p.cep.slice(5):'');
     }
     out.push(p);
   });
@@ -827,6 +827,8 @@ function lkPintar(lista){
         lkCampo('CEP'+quem, lkInp('lk-cep', id('cepComprador'), fmtCep(p.cep||''), 'cep'), true)+
         lkCampo('Endereço'+quem+' (rua, avenida ou quadra)', lkInp('lk-logr', id('logradouroComprador'), p.logradouro||(!p.numero&&!p.setor?p.endereco:'')||'', 'texto'), true, true)+
         lkCampo('Número ou lote'+quem, lkInp('lk-num', id('numeroComprador'), p.numero, 'texto'), false)+
+        /* 26/11/2026 (dono): complemento (apto, bloco, casa, quadra/lote) — sem ele o endereço do contrato saía incompleto */
+        lkCampo('Complemento'+quem, lkInp('lk-compl', id('complementoComprador'), p.complemento, 'texto'), false)+
         lkCampo('Setor ou bairro'+quem, lkInp('lk-setor', id('setorComprador'), p.setor, 'texto'), true)+
         lkCampo('Cidade'+quem, lkInp('lk-cid', id('cidadeComprador'), p.cidade, 'texto'), true);
     }
@@ -873,7 +875,7 @@ function lkCivilMudou(i){
       return;
     }
     var s={uid:lkUid(), par:p.uid, conj:true, tipo:'COMPRADOR', nome:'', cpf:'', nacionalidade:'BR',
-           estadoCivil:p.estadoCivil, regimeBens:p.regimeBens, cep:p.cep, logradouro:p.logradouro, numero:p.numero, setor:p.setor, cidade:p.cidade};
+           estadoCivil:p.estadoCivil, regimeBens:p.regimeBens, cep:p.cep, logradouro:p.logradouro, numero:p.numero, complemento:p.complemento, setor:p.setor, cidade:p.cidade};
     p.par=s.uid; lista.splice(i+1, 0, s);
     lkPintar(lista);
     lkAviso('✓ <b>'+esc(p.nome||'O comprador')+'</b> é casado(a): o cônjuge entrou como <b>comprador</b> logo abaixo (agora são '+lista.length+

@@ -368,6 +368,8 @@
       <div class="campo"><label>CEP<span class="obrig">*</span></label><input type="text" name="cep" inputmode="numeric" maxlength="9" placeholder="00000-000"></div>
       <div class="campo full"><label>Endereço (rua, avenida ou quadra)<span class="obrig">*</span></label><input type="text" name="endereco" data-pad="1"></div>
       <div class="campo"><label>Número ou lote</label><input type="text" name="numero" data-pad="1"></div>
+      <!-- 26/11/2026 (dono): sem complemento o endereço do contrato saía incompleto -->
+      <div class="campo"><label>Complemento</label><input type="text" name="complemento" data-pad="1" placeholder="apto, bloco, casa, quadra/lote"></div>
       <div class="campo"><label>Setor ou bairro<span class="obrig">*</span></label><input type="text" name="setor" data-pad="1"></div>
       <div class="campo"><label>Cidade<span class="obrig">*</span></label><input type="text" name="cidade" data-pad="1"></div>
       <!-- 02/10 (item 7) — só celular: o telefone fixo saiu (fica escondido para não quebrar o envio) -->
@@ -430,6 +432,7 @@
           <div class="campo"><label>CEP do cônjuge<span class="obrig">*</span></label><input type="text" name="cepConjuge" inputmode="numeric" maxlength="9" placeholder="00000-000"></div>
           <div class="campo full"><label>Endereço do cônjuge (rua, avenida ou quadra)<span class="obrig">*</span></label><input type="text" name="logradouroConjuge" data-pad="1"></div>
           <div class="campo"><label>Número ou lote</label><input type="text" name="numeroConjuge" data-pad="1"></div>
+          <div class="campo"><label>Complemento</label><input type="text" name="complementoConjuge" data-pad="1" placeholder="apto, bloco, casa, quadra/lote"></div>
           <div class="campo"><label>Setor ou bairro<span class="obrig">*</span></label><input type="text" name="setorConjuge" data-pad="1"></div>
           <div class="campo"><label>Cidade<span class="obrig">*</span></label><input type="text" name="cidadeConjuge" data-pad="1"></div>
         </div>
@@ -698,6 +701,7 @@
       <div class="campo"><label>CEP</label><input type="text" name="cepFiador1" inputmode="numeric" maxlength="9" placeholder="00000-000"></div>
       <div class="campo full"><label>Endereço (rua, avenida ou quadra)</label><input type="text" name="logradouroFiador1" data-pad="1"></div>
       <div class="campo"><label>Número ou lote</label><input type="text" name="numeroFiador1" data-pad="1"></div>
+      <div class="campo"><label>Complemento</label><input type="text" name="complementoFiador1" data-pad="1" placeholder="apto, bloco, casa, quadra/lote"></div>
       <div class="campo"><label>Setor ou bairro</label><input type="text" name="setorFiador1" data-pad="1"></div>
       <div class="campo"><label>Cidade</label><input type="text" name="cidadeFiador1" data-pad="1"></div>
       <!-- 30/10/2026 (dono, Súmula 332 do STJ): estado civil do fiador; casado ou em união estável, o cônjuge também assina -->
@@ -740,6 +744,7 @@
       <div class="campo"><label>CEP</label><input type="text" name="cepFiador2" inputmode="numeric" maxlength="9" placeholder="00000-000"></div>
       <div class="campo full"><label>Endereço (rua, avenida ou quadra)</label><input type="text" name="logradouroFiador2" data-pad="1"></div>
       <div class="campo"><label>Número ou lote</label><input type="text" name="numeroFiador2" data-pad="1"></div>
+      <div class="campo"><label>Complemento</label><input type="text" name="complementoFiador2" data-pad="1" placeholder="apto, bloco, casa, quadra/lote"></div>
       <div class="campo"><label>Setor ou bairro</label><input type="text" name="setorFiador2" data-pad="1"></div>
       <div class="campo"><label>Cidade</label><input type="text" name="cidadeFiador2" data-pad="1"></div>
       <!-- 30/10/2026 (dono, Súmula 332 do STJ): estado civil do fiador; casado ou em união estável, o cônjuge também assina -->
@@ -1768,7 +1773,7 @@
     PENDCONJ=Array.prototype.slice.call(input.files||[]);
     resumoAnexos();
     lerEndereco(PENDCONJ[0], document.getElementById('lst-endconj-comp'), 'conjuge',
-      {cep:F().cepConjuge, logradouro:F().logradouroConjuge, numero:F().numeroConjuge, bairro:F().setorConjuge, cidade:F().cidadeConjuge});
+      {cep:F().cepConjuge, logradouro:F().logradouroConjuge, numero:F().numeroConjuge, complemento:F().complementoConjuge, bairro:F().setorConjuge, cidade:F().cidadeConjuge});
   }
   /* lê um comprovante de endereço e preenche os campos vazios de quem for */
   function lerEndereco(arq, st, quem, alvo){
@@ -1781,7 +1786,7 @@
     }).then(function(r){
       if(r && r.ok && r.lido){
         var c=r.campos||{}, n=0;
-        ['cep','logradouro','numero','bairro','cidade'].forEach(function(k){
+        ['cep','logradouro','numero','complemento','bairro','cidade'].forEach(function(k){
           var v=c[k], el=alvo[k]; if(!v||!el||String(el.value||'').trim()) return;
           el.value = k==='cep' ? fmtCepP(v) : padrao(v); el.classList.add('lido'); n++;
         });
@@ -1791,8 +1796,8 @@
     }).catch(function(e){ st.className='lst err'; st.textContent='Comprovante anexado. '+(e&&e.semLeitura?e.semLeitura+' ':'Leitura indisponível agora. ')+'Preencha o endereço manualmente.'; });
   }
   function fmtCepP(v){ var d=dig(v).slice(0,8); return d.length>5 ? d.slice(0,5)+'-'+d.slice(5) : d; }
-  function montaEndereco(logr, num, setor, cidade, cep){
-    var partes=[padrao(logr), padrao(num), padrao(setor), padrao(cidade)].filter(Boolean);
+  function montaEndereco(logr, num, setor, cidade, cep, compl){
+    var partes=[padrao(logr), padrao(num), padrao(compl), padrao(setor), padrao(cidade)].filter(Boolean);
     var c=dig(cep);
     return partes.join(', ')+(c?' - CEP '+fmtCepP(c):'');
   }
@@ -1917,7 +1922,7 @@
       }
       var s={uid:depUid(), par:p.uid, conj:true, tipo:'COMPRADOR', nome:'', cpf:'', rg:'', profissao:'', nacionalidade:'BR',
              estadoCivil:p.estadoCivil, regimeBens:p.regimeBens,
-             cep:p.cep, logradouro:p.logradouro, numero:p.numero, setor:p.setor, cidade:p.cidade,
+             cep:p.cep, logradouro:p.logradouro, numero:p.numero, complemento:p.complemento, setor:p.setor, cidade:p.cidade,
              dataNascimento:'', email:'', celular:'', renda:'', origemRenda:''};
       p.par=s.uid;
       lista.splice(i+1, 0, s); ordem.splice(i+1, 0, -1);
@@ -1974,7 +1979,7 @@
     var html='';
     var nomeDe=function(uid){ var o=atuais.filter(function(x){ return x && x.uid===uid; })[0]; return o ? (o.nome||'') : ''; };
     for(var i=0;i<n;i++){
-      var p=atuais[i]||{nome:'',cpf:'',tipo:'DEPENDENTE',profissao:'',nacionalidade:'',rg:'',cep:'',logradouro:'',numero:'',setor:'',cidade:''};
+      var p=atuais[i]||{nome:'',cpf:'',tipo:'DEPENDENTE',profissao:'',nacionalidade:'',rg:'',cep:'',logradouro:'',numero:'',complemento:'',setor:'',cidade:''};
       if(!p.uid) p.uid=depUid();
       var comp=p.tipo==='COMPRADOR', conj=!!p.conj && comp;
       var civ=comp ? (p.estadoCivil||'') : '', cas=depCasado(civ);
@@ -2046,8 +2051,10 @@
           '<div class="dep-grid" style="display:grid;grid-template-columns:140px 1fr;gap:8px;margin-top:8px">'+
           '<input type="text" class="dep-cep" inputmode="numeric" maxlength="9" placeholder="CEP" value="'+esc_(p.cep||'')+'">'+
           '<input type="text" class="dep-logr" placeholder="Endereço (rua, avenida ou quadra)" value="'+esc_(p.logradouro||'')+'">'+
-          '</div><div class="dep-grid" style="display:grid;grid-template-columns:140px 1fr 1fr;gap:8px;margin-top:8px">'+
+          '</div><div class="dep-grid" style="display:grid;grid-template-columns:140px 1fr;gap:8px;margin-top:8px">'+
           '<input type="text" class="dep-num" placeholder="Número ou lote" value="'+esc_(p.numero||'')+'">'+
+          '<input type="text" class="dep-compl" placeholder="Complemento (apto, bloco, casa, quadra/lote)" value="'+esc_(p.complemento||'')+'">'+
+          '</div><div class="dep-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">'+
           '<input type="text" class="dep-setor" placeholder="Setor ou bairro" value="'+esc_(p.setor||'')+'">'+
           '<input type="text" class="dep-cid" placeholder="Cidade" value="'+esc_(p.cidade||'')+'">'+
           '</div>'
@@ -2081,7 +2088,7 @@
     PDEND[i]=arqs; resumoAnexos();
     var dep=input.closest('.dep');
     lerEndereco(arqs[0], document.getElementById('lst-depend-'+i), 'comprador'+(i+1),
-      {cep:dep.querySelector('.dep-cep'), logradouro:dep.querySelector('.dep-logr'), numero:dep.querySelector('.dep-num'),
+      {cep:dep.querySelector('.dep-cep'), logradouro:dep.querySelector('.dep-logr'), numero:dep.querySelector('.dep-num'), complemento:dep.querySelector('.dep-compl'),
        bairro:dep.querySelector('.dep-setor'), cidade:dep.querySelector('.dep-cid')});
   }
   /* 01/10 — comprovante de endereço do fiador (lido: preenche o endereço dele) */
@@ -2091,7 +2098,7 @@
     PFIAEND[n]=arqs; resumoAnexos();
     var f=F();
     lerEndereco(arqs[0], document.getElementById('lst-fiadorend-'+n), 'fiador'+n,
-      {cep:f['cepFiador'+n], logradouro:f['logradouroFiador'+n], numero:f['numeroFiador'+n], bairro:f['setorFiador'+n], cidade:f['cidadeFiador'+n]});
+      {cep:f['cepFiador'+n], logradouro:f['logradouroFiador'+n], numero:f['numeroFiador'+n], complemento:f['complementoFiador'+n], bairro:f['setorFiador'+n], cidade:f['cidadeFiador'+n]});
   }
   /* 30/10/2026 — fiador só é exigido quando a entrada tem parcelas pós-chaves
      (prazo de 36 ou 48 meses). Em 24x não há pós-chaves: fiador dispensado. */
@@ -2127,7 +2134,7 @@
     if(f.conjugeFiador1.value.trim() && !f.fiador2.value.trim()){
       f.fiador2.value=f.conjugeFiador1.value; f.cpfFiador2.value=f.cpfConjugeFiador1.value; f.emailFiador2.value=f.emailConjugeFiador1.value;
     }
-    ['cepFiador','logradouroFiador','numeroFiador','setorFiador','cidadeFiador'].forEach(function(k){
+    ['cepFiador','logradouroFiador','numeroFiador','complementoFiador','setorFiador','cidadeFiador'].forEach(function(k){
       if(f[k+'2'] && f[k+'1'] && !f[k+'2'].value.trim()) f[k+'2'].value=f[k+'1'].value;
     });
     f.conjugeEhFiador2.checked=true;
@@ -2157,7 +2164,7 @@
   }
   function fiadorInformado(n){
     var f=F(), algum=false;
-    ['fiador','cpfFiador','rgFiador','emailFiador','cepFiador','logradouroFiador','numeroFiador','setorFiador','cidadeFiador'].forEach(function(k){
+    ['fiador','cpfFiador','rgFiador','emailFiador','cepFiador','logradouroFiador','numeroFiador','complementoFiador','setorFiador','cidadeFiador'].forEach(function(k){
       var el=f[k+n]; if(el && String(el.value||'').trim()) algum=true;
     });
     return algum || (PFIA[n]||[]).length>0 || (PFIAEND[n]||[]).length>0;
@@ -2226,7 +2233,7 @@
                 profissao:pf?padrao(pf.value):'', nacionalidade:nc?padrao(nc.value):'',
                 /* 01/10 — RG e endereço do comprador (mesmo formato do banco de vendas) */
                 rg:q('.dep-rg'), cep:dig((d.querySelector('.dep-cep')||{}).value||''),
-                logradouro:q('.dep-logr'), numero:q('.dep-num'), setor:q('.dep-setor'), cidade:q('.dep-cid'),
+                logradouro:q('.dep-logr'), numero:q('.dep-num'), complemento:q('.dep-compl'), setor:q('.dep-setor'), cidade:q('.dep-cid'),
                 /* 02/10 (item 12) */
                 dataNascimento:(d.querySelector('.dep-nasc')||{}).value||'',
                 email:String((d.querySelector('.dep-email')||{}).value||'').trim().toLowerCase(),
@@ -2238,7 +2245,7 @@
       var civ=d.querySelector('.dep-civil'), reg=d.querySelector('.dep-regime');
       p.estadoCivil = (p.tipo==='COMPRADOR' && civ) ? civ.value : '';
       p.regimeBens = (p.tipo==='COMPRADOR' && reg && depCasado(p.estadoCivil)) ? reg.value : '';
-      p.endereco = (p.logradouro||p.cidade) ? montaEndereco(p.logradouro,p.numero,p.setor,p.cidade,p.cep) : '';
+      p.endereco = (p.logradouro||p.cidade) ? montaEndereco(p.logradouro,p.numero,p.setor,p.cidade,p.cep,p.complemento) : '';
       out.push(p);
     });
     /* 31/10 — nome e CPF do cônjuge de cada comprador casado (o outro comprador do casal) */
@@ -2584,7 +2591,7 @@
     }).then(function(r){
       if(r && r.ok && r.lido){
         var f=F(), c=r.campos||{}, n=0;
-        [['cep','cep'],['logradouro','endereco'],['numero','numero'],['bairro','setor'],['cidade','cidade']].forEach(function(p){
+        [['cep','cep'],['logradouro','endereco'],['numero','numero'],['complemento','complemento'],['bairro','setor'],['cidade','cidade']].forEach(function(p){
           var v=c[p[0]], el=f[p[1]]; if(!v||!el||String(el.value||'').trim()) return;
           el.value = p[0]==='cep' ? String(v).replace(/^(\d{5})(\d{3})$/,'$1-$2') : padrao(v);
           el.classList.add('lido'); n++;
@@ -2624,7 +2631,7 @@
   }
   function enderecoCompleto(){
     var f=F();
-    var partes=[padrao(f.endereco.value), padrao(f.numero.value), padrao(f.setor.value), padrao(f.cidade.value)].filter(Boolean);
+    var partes=[padrao(f.endereco.value), padrao(f.numero.value), padrao(f.complemento.value), padrao(f.setor.value), padrao(f.cidade.value)].filter(Boolean);
     var cep=dig(f.cep.value);
     return partes.join(', ')+(cep?' - CEP '+cep.replace(/^(\d{5})(\d{3})$/,'$1-$2'):'');
   }
@@ -3460,13 +3467,14 @@
       cepConjuge:(conjugeAtivo() ? (f.conjugeMesmoEndereco.checked ? dig(f.cep.value) : dig(f.cepConjuge.value)) : ''),
       logradouroConjuge:(conjugeAtivo() ? padrao(f.conjugeMesmoEndereco.checked ? f.endereco.value : f.logradouroConjuge.value) : ''),
       numeroConjuge:(conjugeAtivo() ? padrao(f.conjugeMesmoEndereco.checked ? f.numero.value : f.numeroConjuge.value) : ''),
+      complementoConjuge:(conjugeAtivo() ? padrao(f.conjugeMesmoEndereco.checked ? f.complemento.value : f.complementoConjuge.value) : ''),
       setorConjuge:(conjugeAtivo() ? padrao(f.conjugeMesmoEndereco.checked ? f.setor.value : f.setorConjuge.value) : ''),
       cidadeConjuge:(conjugeAtivo() ? padrao(f.conjugeMesmoEndereco.checked ? f.cidade.value : f.cidadeConjuge.value) : ''),
       enderecoConjuge:(conjugeAtivo() ? (f.conjugeMesmoEndereco.checked ? enderecoCompleto()
-        : montaEndereco(f.logradouroConjuge.value, f.numeroConjuge.value, f.setorConjuge.value, f.cidadeConjuge.value, f.cepConjuge.value)) : ''),
+        : montaEndereco(f.logradouroConjuge.value, f.numeroConjuge.value, f.setorConjuge.value, f.cidadeConjuge.value, f.cepConjuge.value, f.complementoConjuge.value)) : ''),
       nacionalidade:padrao(f.nacionalidade.value), profissao:padrao(f.profissao.value),
       dataNascimento:f.dataNascimento.value, endereco:enderecoCompleto(),
-      cep:dig(f.cep.value), logradouro:padrao(f.endereco.value), numero:padrao(f.numero.value), setor:padrao(f.setor.value), cidade:padrao(f.cidade.value),
+      cep:dig(f.cep.value), logradouro:padrao(f.endereco.value), numero:padrao(f.numero.value), complemento:padrao(f.complemento.value), setor:padrao(f.setor.value), cidade:padrao(f.cidade.value),
       telefone:dig(f.telefone.value), celular:dig(f.celular.value),
       emailProponente:String(f.emailProponente.value||'').trim().toLowerCase(),
 
@@ -3507,15 +3515,15 @@
       /* 01/10 — fiador: RG, nacionalidade e endereço separado (igual ao banco de vendas) */
       rgFiador1:padrao(f.rgFiador1.value), nacionalidadeFiador1:(f.fiador1.value.trim() ? padrao(f.nacionalidadeFiador1.value) : ''),
       cepFiador1:dig(f.cepFiador1.value), logradouroFiador1:padrao(f.logradouroFiador1.value),
-      numeroFiador1:padrao(f.numeroFiador1.value), setorFiador1:padrao(f.setorFiador1.value), cidadeFiador1:padrao(f.cidadeFiador1.value),
-      enderecoFiador1:montaEndereco(f.logradouroFiador1.value, f.numeroFiador1.value, f.setorFiador1.value, f.cidadeFiador1.value, f.cepFiador1.value),
+      numeroFiador1:padrao(f.numeroFiador1.value), complementoFiador1:padrao(f.complementoFiador1.value), setorFiador1:padrao(f.setorFiador1.value), cidadeFiador1:padrao(f.cidadeFiador1.value),
+      enderecoFiador1:montaEndereco(f.logradouroFiador1.value, f.numeroFiador1.value, f.setorFiador1.value, f.cidadeFiador1.value, f.cepFiador1.value, f.complementoFiador1.value),
       fiador2:padrao(f.fiador2.value), cpfFiador2:dig(f.cpfFiador2.value),
       emailFiador2:String(f.emailFiador2.value||'').trim().toLowerCase(),
       /* 01/10 — fiador: RG, nacionalidade e endereço separado (igual ao banco de vendas) */
       rgFiador2:padrao(f.rgFiador2.value), nacionalidadeFiador2:(f.fiador2.value.trim() ? padrao(f.nacionalidadeFiador2.value) : ''),
       cepFiador2:dig(f.cepFiador2.value), logradouroFiador2:padrao(f.logradouroFiador2.value),
-      numeroFiador2:padrao(f.numeroFiador2.value), setorFiador2:padrao(f.setorFiador2.value), cidadeFiador2:padrao(f.cidadeFiador2.value),
-      enderecoFiador2:montaEndereco(f.logradouroFiador2.value, f.numeroFiador2.value, f.setorFiador2.value, f.cidadeFiador2.value, f.cepFiador2.value),
+      numeroFiador2:padrao(f.numeroFiador2.value), complementoFiador2:padrao(f.complementoFiador2.value), setorFiador2:padrao(f.setorFiador2.value), cidadeFiador2:padrao(f.cidadeFiador2.value),
+      enderecoFiador2:montaEndereco(f.logradouroFiador2.value, f.numeroFiador2.value, f.setorFiador2.value, f.cidadeFiador2.value, f.cepFiador2.value, f.complementoFiador2.value),
       valorFinanciado:moeda(document.getElementById('valorFinanciado').value),
       avaliacao:u.avaliacao||0,
       rendaTotal:moeda(document.getElementById('rendaTotal').value),
